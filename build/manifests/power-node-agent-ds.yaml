@@ -15,7 +15,7 @@ spec:
     spec:
       serviceAccountName: intel-power-node-agent
       containers:
-        - image: intel/power-node-agent:v2.5.0
+        - image: sivapt86/nodeagent:v1.4
           imagePullPolicy: IfNotPresent
           securityContext:
             privileged: true
@@ -37,6 +37,8 @@ spec:
           volumeMounts:
             - mountPath: /sys/devices/system/cpu
               name: cpusetup
+            - mountPath: /dev
+              name: device
             - mountPath: /sys/fs/cgroup
               name: cgroup
               readOnly: true
@@ -47,6 +49,9 @@ spec:
         - name: cpusetup
           hostPath:
             path: /sys/devices/system/cpu
+        - name: device
+          hostPath:
+            path: /dev
         - name: cgroup
           hostPath:
             path: /sys/fs/cgroup
