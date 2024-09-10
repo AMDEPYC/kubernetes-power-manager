@@ -1,0 +1,12 @@
+apiVersion: power.intel.com/v1
+kind: PowerProfile
+metadata:
+  name: shared
+  namespace: intel-power
+spec:
+  name: "shared"
+  max: 1000
+  min: 1000
+  epp: "power"
+  shared: true
+  governor: "powersave"
