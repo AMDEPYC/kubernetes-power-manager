@@ -8,7 +8,7 @@
 #define INCLUDE_E_SMI_E_SMI_H_
 
 #include <stdbool.h>
-#include </workspace/e-sms/amd_hsmp/amd_hsmp.h>
+#include <asm/amd_hsmp.h>
 
 #define ENERGY_DEV_NAME	"amd_energy"	//!< Supported Energy driver name
 

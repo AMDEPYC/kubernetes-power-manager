@@ -1,8 +1,8 @@
 package power
 
 /*
-#cgo CFLAGS: -I/workspace/e-sms/e_smi/include
-#cgo LDFLAGS: -L/workspace/e-sms/e_smi/lib -le_smi64
+#cgo CFLAGS: -I${SRCDIR}/../../../e-sms/e_smi/include -I${SRCDIR}/../../../e-sms/amd_hsmp
+#cgo LDFLAGS: -L${SRCDIR}/../../../e-sms/e_smi/lib -le_smi64
 #include <stdint.h>
 #include "e_smi/e_smi.h"
 */

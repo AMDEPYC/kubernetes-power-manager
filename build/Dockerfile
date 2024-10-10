@@ -1,6 +1,6 @@
 ARG BASE_IMAGE=ubuntu:22.04
 # Build the manager binary
-FROM golang@sha256:f43c6f049f04cbbaeb28f0aad3eea15274a7d0a7899a617d0037aec48d7ab010 as builder
+FROM golang@sha256:f43c6f049f04cbbaeb28f0aad3eea15274a7d0a7899a617d0037aec48d7ab010 AS builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -30,6 +30,6 @@ COPY ${MANIFEST} /power-manifests/
 COPY e-sms/e_smi/lib/ /usr/local/lib/
 USER 10001
 
-ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH=/usr/local/lib
 
 ENTRYPOINT ["/manager"]
