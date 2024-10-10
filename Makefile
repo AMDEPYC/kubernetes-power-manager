@@ -1,5 +1,18 @@
 export APP_NAME=intel-kubernetes-power-manager
 
+CONTROLLER_IMG ?= intel/power-operator
+AGENT_IMG ?= intel/power-node-agent
+
+# Prepend registry address to image tags for controller and agent.
+# The address is sourced from IMAGE_REGISTRY environment variable.
+ifneq (, $(IMAGE_REGISTRY))
+CONTROLLER_IMG_BASE = $(IMAGE_REGISTRY)/$(CONTROLLER_IMG)
+AGENT_IMG_BASE = $(IMAGE_REGISTRY)/$(AGENT_IMG)
+else
+CONTROLLER_IMG_BASE = $(CONTROLLER_IMG)
+AGENT_IMG_BASE = $(AGENT_IMG)
+endif
+
 # VERSION defines the project version for the bundle.
 # Update this value when you upgrade the version of your project.
 # To re-generate a bundle for another specific version without changing the standard setup, you can:
@@ -194,10 +207,10 @@ gofmt: # Run gofmt
 
 .PHONY: update
 update: ## Update project version
-	sed -i 's/intel\/power-operator.*$$/intel\/power-operator:v$(VERSION)/' config/manager/manager.yaml
-	sed -i 's/intel\/power-operator.*$$/intel\/power-operator_ocp-$(OCP_VERSION):v$(VERSION)/' config/manager/ocp/manager.yaml
-	sed -i 's/intel\/power-node-agent.*$$/intel\/power-node-agent:v$(VERSION)/' build/manifests/power-node-agent-ds.yaml
-	sed -i 's/intel\/power-node-agent.*$$/intel\/power-node-agent_ocp-$(OCP_VERSION):v$(VERSION)/' build/manifests/ocp/power-node-agent-ds.yaml
+	sed -i 's|image: .*|image: $(CONTROLLER_IMG_BASE):v$(VERSION)|' config/manager/manager.yaml
+	sed -i 's|image: .*|image: $(CONTROLLER_IMG_BASE)_ocp-$(OCP_VERSION):v$(VERSION)|' config/manager/ocp/manager.yaml
+	sed -i 's|image: .*|image: $(AGENT_IMG_BASE):v$(VERSION)|' build/manifests/power-node-agent-ds.yaml
+	sed -i 's|image: .*|image: $(AGENT_IMG_BASE)_ocp-$(OCP_VERSION):v$(VERSION)|' build/manifests/ocp/power-node-agent-ds.yaml
 
 .PHONY: clean
 clean: # Clean Go cache and build artifacts
@@ -223,19 +236,19 @@ run: generate fmt vet manifests ## Run a controller from your host.
 
 .PHONY: build-controller
 build-controller: ## Build the Manager's image.
-	$(CONTAINER_TOOL) build -f build/Dockerfile -t intel/power-operator:v$(VERSION) .
+	$(CONTAINER_TOOL) build -f build/Dockerfile -t $(CONTROLLER_IMG_BASE):v$(VERSION) .
 
 .PHONY: build-agent
 build-agent: ## Build the Node Agent's image.
-	$(CONTAINER_TOOL) build -f build/Dockerfile.nodeagent -t intel/power-node-agent:v$(VERSION) .
+	$(CONTAINER_TOOL) build -f build/Dockerfile.nodeagent -t $(AGENT_IMG_BASE):v$(VERSION) .
 
 .PHONY: build-controller-ocp
 build-controller-ocp: ## Build the Manager's image for OCP.
-	$(CONTAINER_TOOL) build --build-arg="BASE_IMAGE=$(OCP_IMAGE)" --build-arg="MANIFEST=build/manifests/ocp/power-node-agent-ds.yaml" -f build/Dockerfile -t intel/power-operator_ocp-$(OCP_VERSION):v$(VERSION) .
+	$(CONTAINER_TOOL) build --build-arg="BASE_IMAGE=$(OCP_IMAGE)" --build-arg="MANIFEST=build/manifests/ocp/power-node-agent-ds.yaml" -f build/Dockerfile -t $(CONTROLLER_IMG_BASE)_ocp-$(OCP_VERSION):v$(VERSION) .
 
 .PHONY: build-agent-ocp
 build-agent-ocp: ## Build the Node Agent's image for OCP.
-	$(CONTAINER_TOOL) build --build-arg="BASE_IMAGE=$(OCP_IMAGE)" -f build/Dockerfile.nodeagent -t intel/power-node-agent_ocp-$(OCP_VERSION):v$(VERSION) .
+	$(CONTAINER_TOOL) build --build-arg="BASE_IMAGE=$(OCP_IMAGE)" -f build/Dockerfile.nodeagent -t $(AGENT_IMG_BASE)_ocp-$(OCP_VERSION):v$(VERSION) .
 
 .PHONY: images
 images: generate manifests build-controller build-agent ## Build the Manager and Node Agent images.
@@ -247,11 +260,13 @@ docker-build: images ## Alias for images target.
 images-ocp: generate manifests build-controller-ocp build-agent-ocp ## Build the Manager and Node Agent images for OCP.
 
 .PHONY: push
-push: ## Push docker image with the manager.
-	$(CONTAINER_TOOL) push ${IMG}
+push: ## Push docker images with the controller and agent.
+	$(MAKE) docker-push IMG=$(CONTROLLER_IMG_BASE):v$(VERSION)
+	$(MAKE) docker-push IMG=$(AGENT_IMG_BASE):v$(VERSION)
 
 .PHONY: docker-push
-docker-push: push ## Alias for push
+docker-push: ## Push docker image with the manager.
+	$(CONTAINER_TOOL) push ${IMG}
 
 # PLATFORMS defines the target platforms for the manager image be built to provide support to multiple
 # architectures. (i.e. make docker-buildx IMG=myregistry/mypoperator:0.0.1). To use this option you need to:
@@ -325,7 +340,7 @@ endif
 	sed -i 's/^appVersion:.*$$/appVersion: \"$(HELM_CHART)\"/' helm/crds/Chart.yaml 
 	helm install kubernetes-power-manager-crds ./helm/crds
 	helm dependency update ./helm/kubernetes-power-manager
-	helm install kubernetes-power-manager-$(HELM_CHART) ./helm/kubernetes-power-manager --set operator.container.image=intel/power-operator$(OCP_SUFFIX):$(HELM_CHART) $(HELM_FLAG)
+	helm install kubernetes-power-manager-$(HELM_CHART) ./helm/kubernetes-power-manager --set operator.container.image=$(CONTROLLER_IMG_BASE)$(OCP_SUFFIX):$(HELM_CHART) $(HELM_FLAG)
 
 .PHONY: helm-uninstall
 helm-uninstall:
