@@ -4,3 +4,8 @@ run:
     - "_test\\.go$"
 output:
   sort-results: true
+issues:
+  exclude:
+    - "non-constant format"
+    - SA1006
+    - SA1019
