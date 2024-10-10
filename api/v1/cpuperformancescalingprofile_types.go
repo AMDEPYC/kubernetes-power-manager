@@ -25,17 +25,29 @@ import (
 
 // CPUPerformanceScalingProfileSpec defines the desired state of CPUPerformanceScalingProfile
 type CPUPerformanceScalingProfileSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// Name of the CPUPerformanceScalingProfile
+	Name string `json:"name"`
 
-	// Foo is an example field of CPUPerformanceScalingProfile. Edit cpuperformancescalingprofile_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// Minimum time to elapse between two CPU sample periods
+	//+kubebuilder:validation:Format=duration
+	//+kubebuilder:default="10ms"
+	SamplePeriod metav1.Duration `json:"samplePeriod,omitempty"`
+
+	// Minimum frequency cores can run at
+	Min int `json:"min,omitempty"`
+
+	// Maximum frequency cores can run at
+	Max int `json:"max,omitempty"`
+
+	// The priority value associated with this CPUPerformanceScalingProfile
+	Epp string `json:"epp,omitempty"`
 }
 
 // CPUPerformanceScalingProfileStatus defines the observed state of CPUPerformanceScalingProfile
 type CPUPerformanceScalingProfileStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// The ID given to the CPUPerformanceScalingProfile
+	ID           int `json:"id,omitempty"`
+	StatusErrors `json:",inline,omitempty"`
 }
 
 //+kubebuilder:object:root=true
@@ -57,6 +69,13 @@ type CPUPerformanceScalingProfileList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []CPUPerformanceScalingProfile `json:"items"`
+}
+
+func (prfl *CPUPerformanceScalingProfile) SetStatusErrors(errs *[]string) {
+	prfl.Status.Errors = *errs
+}
+func (prfl *CPUPerformanceScalingProfile) GetStatusErrors() *[]string {
+	return &prfl.Status.Errors
 }
 
 func init() {

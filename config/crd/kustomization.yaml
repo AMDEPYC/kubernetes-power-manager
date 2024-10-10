@@ -11,7 +11,7 @@ resources:
   - bases/power.intel.com_timeofdays.yaml
   - bases/power.intel.com_timeofdaycronjobs.yaml
   - bases/power.intel.com_uncores.yaml
-- bases/power.intel.com_cpuperformancescalingprofiles.yaml
+  - bases/power.intel.com_cpuperformancescalingprofiles.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
 patchesStrategicMerge:

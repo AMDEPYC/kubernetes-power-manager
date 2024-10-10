@@ -2,9 +2,34 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  creationTimestamp: null
   name: manager-role
 rules:
+- apiGroups:
+  - power.intel.com
+  resources:
+  - cpuperformancescalingprofiles
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - power.intel.com
+  resources:
+  - cpuperformancescalingprofiles/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - power.intel.com
+  resources:
+  - cpuperformancescalingprofiles/status
+  verbs:
+  - get
+  - patch
+  - update
 - apiGroups:
   - power.intel.com
   resources:
@@ -171,3 +196,11 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - security.openshift.io
+  resourceNames:
+  - privileged
+  resources:
+  - securitycontextconstraints
+  verbs:
+  - use
