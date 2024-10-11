@@ -21,7 +21,7 @@ var timeout = 2 * time.Minute
 
 // PodResourcesClient stores a client to the Kubelet PodResources API server
 type PodResourcesClient struct {
-	Client podresourcesapi.PodResourcesListerClient
+	Client                podresourcesapi.PodResourcesListerClient
 	CpuControlPlaneClient podresourcesapi.PodResourcesListerClient
 }
 
@@ -76,7 +76,7 @@ func getV1Client(socket string, connectionTimeout time.Duration, maxMsgSize int)
 func (p *PodResourcesClient) listResources(controlPlaneClient bool) (*podresourcesapi.ListPodResourcesResponse, error) {
 	var client podresourcesapi.PodResourcesListerClient
 	clientType := "default"
-	if controlPlaneClient && p.CpuControlPlaneClient != nil{
+	if controlPlaneClient && p.CpuControlPlaneClient != nil {
 		client = p.CpuControlPlaneClient
 		clientType = "cpuControlPlane"
 	} else {
@@ -92,7 +92,6 @@ func (p *PodResourcesClient) listResources(controlPlaneClient bool) (*podresourc
 	}
 	return resp, nil
 }
-
 
 // GetContainerCPUs returns a string in cpuset format of CPUs allocated to the container
 func (p *PodResourcesClient) GetContainerCPUs(podName, containerName string) (string, error) {
@@ -134,8 +133,6 @@ func parseContainers(resources []*podresourcesapi.PodResources, podName, contain
 	}
 	return "", errors.NewServiceUnavailable(fmt.Sprintf("resources for Pod:%v Container:%v not found", podName, containerName))
 }
-
-
 
 // cpuIDsToString returns a string in cpuset format
 func cpuIDsToString(cpuIds []int64) string {

@@ -76,8 +76,8 @@ func main() {
 		Metrics:          server.Options{BindAddress: metricsAddr},
 		LeaderElection:   enableLeaderElection,
 		LeaderElectionID: "power-operator-6846766c",
-		RenewDeadline: &renewDeadline,
-		LeaseDuration: &leaseDuration,
+		RenewDeadline:    &renewDeadline,
+		LeaseDuration:    &leaseDuration,
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")

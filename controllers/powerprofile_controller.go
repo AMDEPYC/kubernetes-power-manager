@@ -225,7 +225,7 @@ func (r *PowerProfileReconciler) Reconcile(c context.Context, req ctrl.Request) 
 		logger.Error(err, "invalid EPP")
 		actualEpp = ""
 	}
-	
+
 	if !checkGovs(profile.Spec.Governor) {
 		err = fmt.Errorf("governor %s is not supported, please use one of the following %v''", profile.Spec.Governor, power.GetAvailableGovernors())
 		logger.Error(err, "invalid governor")

@@ -54,7 +54,7 @@ func TestUncore_Reconcile_SystemUncore(t *testing.T) {
 	t.Setenv("NODE_NAME", nodename)
 	max := uint(2400000)
 	min := uint(1200000)
-	 	clientObjs := []runtime.Object{
+	clientObjs := []runtime.Object{
 		&powerv1.Uncore{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      nodename,

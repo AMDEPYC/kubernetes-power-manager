@@ -472,20 +472,20 @@ func FuzzPowerNodeController(f *testing.F) {
 			dummyFilesystemHost.GetSharedPool().MoveCpuIDs([]uint{0, 1, 2, 3, 4, 5})
 			pool.MoveCpuIDs([]uint{1, 2, 3})
 			pool, err = dummyFilesystemHost.AddExclusivePool(prof2)
-			if err !=nil {
+			if err != nil {
 				return
 			}
 			profile, err = power.NewPowerProfile(prof1, 10000, 10000, "powersave", "")
-			if err !=nil {
+			if err != nil {
 				return
 			}
 			pool.SetPowerProfile(profile)
 			pool, err = dummyFilesystemHost.AddExclusivePool(prof3)
-			if err !=nil {
+			if err != nil {
 				return
 			}
 			profile, err = power.NewPowerProfile(prof1, 10000, 10000, "powersave", "")
-			if err !=nil {
+			if err != nil {
 				return
 			}
 			pool.SetPowerProfile(profile)

@@ -436,7 +436,7 @@ func TestPowerPod_Reconcile_Create(t *testing.T) {
 						NodeName: "TestNode",
 						Containers: []corev1.Container{
 							{
-								Name:      "test-container-1",
+								Name: "test-container-1",
 								Resources: corev1.ResourceRequirements{
 									Limits: map[corev1.ResourceName]resource.Quantity{
 										corev1.ResourceName("device-plugin"):               *resource.NewQuantity(3, resource.DecimalSI),
@@ -543,7 +543,7 @@ func TestPowerPod_Duplicate_Containers(t *testing.T) {
 					Containers: []powerv1.Container{
 						{
 							Name:          "test-container-1",
-							Id: "abcdefg",
+							Id:            "abcdefg",
 							ExclusiveCPUs: []uint{1, 5, 8},
 							PowerProfile:  "performance",
 						},
@@ -605,14 +605,14 @@ func TestPowerPod_Duplicate_Containers(t *testing.T) {
 	assert.Nil(t, err)
 
 	for i, con1 := range workload.Spec.Node.Containers {
-		for j := i+1; j < len(workload.Spec.Node.Containers); j++ {
+		for j := i + 1; j < len(workload.Spec.Node.Containers); j++ {
 			con2 := workload.Spec.Node.Containers[j]
 			if con1.Id == con2.Id && reflect.DeepEqual(con1.ExclusiveCPUs, con2.ExclusiveCPUs) {
 				t.Error("duplicate container not filtered out")
 			}
 		}
 	}
-	
+
 }
 
 // tests where the workload associated with the profile requested does not exist
@@ -1565,18 +1565,18 @@ func TestPowerPod_Reconcile_PodClientErrs(t *testing.T) {
 
 func TestPowerPod_ControlPLaneSocket(t *testing.T) {
 	tcases := []struct {
-		testCase        string
-		nodeName        string
-		podName         string
-		podResources    []*podresourcesapi.PodResources
-		clientObjs      []runtime.Object
-		validateErr 	func(t *testing.T, e error)
+		testCase     string
+		nodeName     string
+		podName      string
+		podResources []*podresourcesapi.PodResources
+		clientObjs   []runtime.Object
+		validateErr  func(t *testing.T, e error)
 	}{
 		{
 			testCase: "Using control plane socket",
 			nodeName: "TestNode",
 			podName:  "test-pod-1",
-			validateErr: func(t *testing.T,err error) {
+			validateErr: func(t *testing.T, err error) {
 				assert.Nil(t, err)
 			},
 			podResources: []*podresourcesapi.PodResources{
@@ -1610,7 +1610,7 @@ func TestPowerPod_ControlPLaneSocket(t *testing.T) {
 						NodeName: "TestNode",
 						Containers: []corev1.Container{
 							{
-								Name:      "test-container-1",
+								Name: "test-container-1",
 								Resources: corev1.ResourceRequirements{
 									Limits: map[corev1.ResourceName]resource.Quantity{
 										corev1.ResourceName("power.intel.com/performance"): *resource.NewQuantity(3, resource.DecimalSI),
@@ -1641,7 +1641,7 @@ func TestPowerPod_ControlPLaneSocket(t *testing.T) {
 			testCase: "Mismatched cores/requests",
 			nodeName: "TestNode",
 			podName:  "test-pod-1",
-			validateErr: func(t *testing.T,err error) {
+			validateErr: func(t *testing.T, err error) {
 				assert.ErrorContains(t, err, "recoverable errors")
 			},
 			podResources: []*podresourcesapi.PodResources{
@@ -1675,7 +1675,7 @@ func TestPowerPod_ControlPLaneSocket(t *testing.T) {
 						NodeName: "TestNode",
 						Containers: []corev1.Container{
 							{
-								Name:      "test-container-1",
+								Name: "test-container-1",
 								Resources: corev1.ResourceRequirements{
 									Limits: map[corev1.ResourceName]resource.Quantity{
 										corev1.ResourceName("power.intel.com/performance"): *resource.NewQuantity(2, resource.DecimalSI),
@@ -1721,7 +1721,7 @@ func TestPowerPod_ControlPLaneSocket(t *testing.T) {
 
 		_, err = r.Reconcile(context.TODO(), req)
 		tc.validateErr(t, err)
-		
+
 	}
 }
 
