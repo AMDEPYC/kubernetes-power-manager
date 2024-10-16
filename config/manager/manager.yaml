@@ -5,6 +5,8 @@ metadata:
   namespace: intel-power
   labels:
     control-plane: controller-manager
+    app.kubernetes.io/name: intel-kubernetes-power-manager
+    app.kubernetes.io/managed-by: kustomize
 spec:
   selector:
     matchLabels:
@@ -12,15 +14,19 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
       labels:
         control-plane: controller-manager
     spec:
       serviceAccountName: intel-power-operator
+      securityContext:
+        runAsNonRoot: true
       containers:
         - command:
             - /manager
           args:
-            - --enable-leader-election
+            - --leader-elect
             - --zap-log-level
             - "3"
           imagePullPolicy: IfNotPresent
@@ -33,19 +39,32 @@ spec:
             runAsUser: 10001
             seccompProfile:
               type: RuntimeDefault
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8081
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 10
           name: manager
           resources:
             limits:
-              cpu: 100m
-              memory: 64Mi
+              cpu: 200m
+              memory: 100Mi
             requests:
-              cpu: 100m
-              memory: 64Mi
+              cpu: 200m
+              memory: 100Mi
           volumeMounts:
             - mountPath: /sys/fs/cgroup
               name: cgroup
               mountPropagation: HostToContainer
               readOnly: true
+      serviceAccountName: controller-manager
       terminationGracePeriodSeconds: 10
       volumes:
         - name: cgroup

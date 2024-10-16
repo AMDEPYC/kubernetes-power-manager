@@ -4,7 +4,7 @@ metadata:
   name: pm_user
 subjects:
   - kind: User
-    name: default
+    name: controller-manager
     namespace: intel-power
     apiGroup: rbac.authorization.k8s.io
 roleRef:

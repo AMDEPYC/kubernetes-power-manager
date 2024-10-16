@@ -68,7 +68,7 @@ operator:
     serviceaccount:
       name: intel-power-operator
     command: /manager
-    args: --enable-leader-election
+    args: --leader-elect
     image: intel/power-operator:v2.5.0
     name: manager
     cpu:

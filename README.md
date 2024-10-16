@@ -841,7 +841,7 @@ spec:
         - command:
             - /manager
           args:
-            - --enable-leader-election
+            - --leader-elect
           imagePullPolicy: IfNotPresent
           image: power-operator:v2.3.0
           securityContext:

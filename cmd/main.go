@@ -1,0 +1,1 @@
+../build/nodeagent/main.go

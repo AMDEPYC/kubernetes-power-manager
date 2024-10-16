@@ -17,23 +17,29 @@ limitations under the License.
 package main
 
 import (
+	"crypto/tls"
 	"flag"
 	"fmt"
 	"os"
+
+	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
+	// to ensure that exec-entrypoint and run can make use of them.
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	"go.uber.org/zap/zapcore"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
-	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
+	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
 	"github.com/intel/kubernetes-power-manager/pkg/podresourcesclient"
 
-	"github.com/intel/kubernetes-power-manager/controllers"
+	"github.com/intel/kubernetes-power-manager/internal/controller"
 	"github.com/intel/kubernetes-power-manager/pkg/podstate"
 	"github.com/intel/power-optimization-library/pkg/power"
 	corev1 "k8s.io/api/core/v1"
@@ -54,7 +60,19 @@ func init() {
 
 func main() {
 	var metricsAddr string
-	flag.StringVar(&metricsAddr, "metrics-addr", ":10001", "The address the metric endpoint binds to.")
+	var enableLeaderElection bool
+	var probeAddr string
+	var secureMetrics bool
+	var enableHTTP2 bool
+	flag.StringVar(&metricsAddr, "metrics-bind-address", ":10001", "The address the metric endpoint binds to.")
+	flag.StringVar(&probeAddr, "health-probe-bind-address", ":10002", "The address the probe endpoint binds to.")
+	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
+		"Enable leader election for controller manager. "+
+			"Enabling this will ensure there is only one active controller manager.")
+	flag.BoolVar(&secureMetrics, "metrics-secure", false,
+		"If set the metrics endpoint is served securely")
+	flag.BoolVar(&enableHTTP2, "enable-http2", false,
+		"If set, HTTP/2 will be enabled for the metrics and webhook servers")
 	logOpts := zap.Options{}
 	logOpts.BindFlags(flag.CommandLine)
 	flag.Parse()
@@ -67,17 +85,56 @@ func main() {
 		zap.UseFlagOptions(&logOpts),
 	),
 	)
-	nodeName := os.Getenv("NODE_NAME")
+
+	// if the enable-http2 flag is false (the default), http/2 should be disabled
+	// due to its vulnerabilities. More specifically, disabling http/2 will
+	// prevent from being vulnerable to the HTTP/2 Stream Cancellation and
+	// Rapid Reset CVEs. For more information see:
+	// - https://github.com/advisories/GHSA-qppj-fm5r-hxr3
+	// - https://github.com/advisories/GHSA-4374-p667-p6c8
+	disableHTTP2 := func(c *tls.Config) {
+		setupLog.Info("disabling http/2")
+		c.NextProtos = []string{"http/1.1"}
+	}
+
+	tlsOpts := []func(*tls.Config){}
+	if !enableHTTP2 {
+		tlsOpts = append(tlsOpts, disableHTTP2)
+	}
+
+	webhookServer := webhook.NewServer(webhook.Options{
+		TLSOpts: tlsOpts,
+	})
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:  scheme,
-		Metrics: server.Options{BindAddress: metricsAddr},
+		Scheme: scheme,
+		Metrics: metricsserver.Options{
+			BindAddress:   metricsAddr,
+			SecureServing: secureMetrics,
+			TLSOpts:       tlsOpts,
+		},
+		WebhookServer:          webhookServer,
+		HealthProbeBindAddress: probeAddr,
+		LeaderElection:         enableLeaderElection,
+		LeaderElectionID:       "f3490581.intel.com",
+		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
+		// when the Manager ends. This requires the binary to immediately end when the
+		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly
+		// speeds up voluntary leader transitions as the new leader don't have to wait
+		// LeaseDuration time first.
+		//
+		// In the default scaffold provided, the program ends immediately after
+		// the manager stops, so would be fine to enable this option. However,
+		// if you are doing or is intended to do any operation such as perform cleanups
+		// after the manager stops then its usage might be unsafe.
+		// LeaderElectionReleaseOnCancel: true,
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
 	power.SetLogger(ctrl.Log.WithName("powerLibrary"))
+	nodeName := os.Getenv("NODE_NAME")
 	powerLibrary, err := power.CreateInstance(nodeName)
 	if powerLibrary == nil {
 		setupLog.Error(err, "unable to create Power Library instance")
@@ -109,7 +166,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.PowerProfileReconciler{
+	if err = (&controller.PowerProfileReconciler{
 		Client:       mgr.GetClient(),
 		Log:          ctrl.Log.WithName("controllers").WithName("PowerProfile"),
 		Scheme:       mgr.GetScheme(),
@@ -118,7 +175,7 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "PowerProfile")
 		os.Exit(1)
 	}
-	if err = (&controllers.PowerWorkloadReconciler{
+	if err = (&controller.PowerWorkloadReconciler{
 		Client:       mgr.GetClient(),
 		Log:          ctrl.Log.WithName("controllers").WithName("PowerWorkload"),
 		Scheme:       mgr.GetScheme(),
@@ -127,7 +184,7 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "PowerWorkload")
 		os.Exit(1)
 	}
-	if err = (&controllers.PowerNodeReconciler{
+	if err = (&controller.PowerNodeReconciler{
 		Client:       mgr.GetClient(),
 		Log:          ctrl.Log.WithName("controllers").WithName("PowerNode"),
 		Scheme:       mgr.GetScheme(),
@@ -138,7 +195,7 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "PowerNode")
 		os.Exit(1)
 	}
-	if err = (&controllers.PowerPodReconciler{
+	if err = (&controller.PowerPodReconciler{
 		Client:             mgr.GetClient(),
 		Log:                ctrl.Log.WithName("controllers").WithName("PowerPod"),
 		Scheme:             mgr.GetScheme(),
@@ -148,7 +205,7 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "PowerPod")
 		os.Exit(1)
 	}
-	if err = (&controllers.CStatesReconciler{
+	if err = (&controller.CStatesReconciler{
 		Client:       mgr.GetClient(),
 		Log:          ctrl.Log.WithName("controllers").WithName("CState"),
 		Scheme:       mgr.GetScheme(),
@@ -157,7 +214,7 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "CStates")
 		os.Exit(1)
 	}
-	if err = (&controllers.TimeOfDayReconciler{
+	if err = (&controller.TimeOfDayReconciler{
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("TimeOfDay"),
 		Scheme: mgr.GetScheme(),
@@ -165,7 +222,7 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "TimeOfDay")
 		os.Exit(1)
 	}
-	if err = (&controllers.TimeOfDayCronJobReconciler{
+	if err = (&controller.TimeOfDayCronJobReconciler{
 		Client:       mgr.GetClient(),
 		Log:          ctrl.Log.WithName("controllers").WithName("TimeOfDayCronJob"),
 		Scheme:       mgr.GetScheme(),
@@ -175,7 +232,7 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "TimeOfDayCronJob")
 		os.Exit(1)
 	}
-	if err = (&controllers.UncoreReconciler{
+	if err = (&controller.UncoreReconciler{
 		Client:       mgr.GetClient(),
 		Log:          ctrl.Log.WithName("controllers").WithName("Uncore"),
 		Scheme:       mgr.GetScheme(),
@@ -185,6 +242,15 @@ func main() {
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder
+
+	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
+		setupLog.Error(err, "unable to set up health check")
+		os.Exit(1)
+	}
+	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
+		setupLog.Error(err, "unable to set up ready check")
+		os.Exit(1)
+	}
 
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {

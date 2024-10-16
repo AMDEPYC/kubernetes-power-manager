@@ -16,3 +16,4 @@ resources:
   - user_role.yaml
   - cstates_viewer_role.yaml
   - uncore_viewer_role.yaml
+  - service_account.yaml
