@@ -39,10 +39,11 @@ import (
 	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
 	"github.com/intel/kubernetes-power-manager/pkg/podresourcesclient"
 
-	"github.com/intel/kubernetes-power-manager/internal/controller"
-	"github.com/intel/kubernetes-power-manager/pkg/podstate"
 	"github.com/intel/power-optimization-library/pkg/power"
 	corev1 "k8s.io/api/core/v1"
+
+	"github.com/intel/kubernetes-power-manager/internal/controller"
+	"github.com/intel/kubernetes-power-manager/pkg/podstate"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -239,6 +240,13 @@ func main() {
 		PowerLibrary: powerLibrary,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Uncore")
+		os.Exit(1)
+	}
+	if err = (&controller.CPUPerformanceScalingProfileReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "CPUPerformanceScalingProfile")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder
