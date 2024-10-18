@@ -19,18 +19,22 @@ package controller
 import (
 	"context"
 
+	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
+	"github.com/intel/power-optimization-library/pkg/power"
 )
 
 // CPUPerformanceScalingProfileReconciler reconciles a CPUPerformanceScalingProfile object
 type CPUPerformanceScalingProfileReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Log          logr.Logger
+	Scheme       *runtime.Scheme
+	PowerLibrary power.Host
 }
 
 //+kubebuilder:rbac:groups=power.intel.com,resources=cpuperformancescalingprofiles,verbs=get;list;watch;create;update;patch;delete

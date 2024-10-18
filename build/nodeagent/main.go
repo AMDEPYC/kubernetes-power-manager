@@ -243,8 +243,10 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&controller.CPUPerformanceScalingProfileReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:       mgr.GetClient(),
+		Log:          ctrl.Log.WithName("controllers").WithName("CPUPerformanceScalingProfile"),
+		Scheme:       mgr.GetScheme(),
+		PowerLibrary: powerLibrary,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "CPUPerformanceScalingProfile")
 		os.Exit(1)
