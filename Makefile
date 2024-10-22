@@ -91,7 +91,8 @@ CONTAINER_TOOL ?= docker
 SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
 
-# parameter used for helm chart image
+# parameters used for helm chart images
+HELM ?= helm
 HELM_CHART ?= v2.5.0
 HELM_VERSION := $(shell echo $(HELM_CHART) | cut -d "v" -f2)
 
@@ -329,7 +330,7 @@ undeploy: kustomize ## Undeploy controller from the K8s cluster specified in ~/.
 	$(KUSTOMIZE) build config/default | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
 
 .PHONY: helm-install
-helm-install:
+helm-install: ## Install project helm charts.
 ifeq (true, $(OCP))
 	$(eval HELM_FLAG:=--set ocp=true)
 	$(eval OCP_SUFFIX:=_ocp-$(OCP_VERSION))
@@ -338,18 +339,18 @@ endif
 	sed -i 's/^appVersion:.*$$/appVersion: \"$(HELM_CHART)\"/' helm/kubernetes-power-manager/Chart.yaml
 	sed -i 's/^version:.*$$/version: $(HELM_VERSION)/' helm/crds/Chart.yaml 
 	sed -i 's/^appVersion:.*$$/appVersion: \"$(HELM_CHART)\"/' helm/crds/Chart.yaml 
-	helm install kubernetes-power-manager-crds ./helm/crds
-	helm dependency update ./helm/kubernetes-power-manager
-	helm install kubernetes-power-manager-$(HELM_CHART) ./helm/kubernetes-power-manager --set operator.container.image=$(CONTROLLER_IMG_BASE)$(OCP_SUFFIX):$(HELM_CHART) $(HELM_FLAG)
+	$(HELM) install kubernetes-power-manager-crds ./helm/crds
+	$(HELM) dependency update ./helm/kubernetes-power-manager
+	$(HELM) install kubernetes-power-manager-$(HELM_CHART) ./helm/kubernetes-power-manager --set operator.container.image=$(CONTROLLER_IMG_BASE)$(OCP_SUFFIX):$(HELM_CHART) $(HELM_FLAG)
 
 .PHONY: helm-uninstall
-helm-uninstall:
+helm-uninstall: ## Uninstall project helm charts.
 	sed -i 's/^version:.*$$/version: $(HELM_VERSION)/' helm/kubernetes-power-manager/Chart.yaml 
 	sed -i 's/^appVersion:.*$$/appVersion: \"$(HELM_CHART)\"/' helm/kubernetes-power-manager/Chart.yaml 
 	sed -i 's/^version:.*$$/version: $(HELM_VERSION)/' helm/crds/Chart.yaml 
 	sed -i 's/^appVersion:.*$$/appVersion: \"$(HELM_CHART)\"/' helm/crds/Chart.yaml 
-	helm uninstall kubernetes-power-manager-$(HELM_CHART)
-	helm uninstall kubernetes-power-manager-crds
+	$(HELM) uninstall kubernetes-power-manager-$(HELM_CHART)
+	$(HELM) uninstall kubernetes-power-manager-crds
 
 ##@ Dependencies
 
