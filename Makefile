@@ -238,13 +238,13 @@ build-agent-ocp: ## Build the Node Agent's image for OCP.
 	$(CONTAINER_TOOL) build --build-arg="BASE_IMAGE=$(OCP_IMAGE)" -f build/Dockerfile.nodeagent -t intel/power-node-agent_ocp-$(OCP_VERSION):v$(VERSION) .
 
 .PHONY: images
-images: generate manifests install build-controller build-agent ## Build the Manager and Node Agent images.
+images: generate manifests build-controller build-agent ## Build the Manager and Node Agent images.
 
 .PHONY: docker-build
 docker-build: images ## Alias for images target.
 
 .PHONY: images-ocp
-images-ocp: generate manifests install build-controller-ocp build-agent-ocp ## Build the Manager and Node Agent images for OCP.
+images-ocp: generate manifests build-controller-ocp build-agent-ocp ## Build the Manager and Node Agent images for OCP.
 
 .PHONY: push
 push: ## Push docker image with the manager.
