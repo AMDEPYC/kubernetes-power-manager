@@ -14,6 +14,8 @@ resources:
   # if you do not want those helpers be installed with your Project.
   - cpuscalingprofile_editor_role.yaml
   - cpuscalingprofile_viewer_role.yaml
+  - cpuscalingconfiguration_editor_role.yaml
+  - cpuscalingconfiguration_viewer_role.yaml
   - user_role_binding.yaml
   - cstates_editor_role.yaml
   # we're adding the namespace in the config/default/kustomize.yaml

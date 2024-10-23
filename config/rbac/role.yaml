@@ -7,6 +7,32 @@ rules:
 - apiGroups:
   - power.intel.com
   resources:
+  - cpuscalingconfigurations
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - power.intel.com
+  resources:
+  - cpuscalingconfigurations/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - power.intel.com
+  resources:
+  - cpuscalingconfigurations/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - power.intel.com
+  resources:
   - cpuscalingprofiles
   verbs:
   - create

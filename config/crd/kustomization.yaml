@@ -12,6 +12,7 @@ resources:
   - bases/power.intel.com_timeofdaycronjobs.yaml
   - bases/power.intel.com_uncores.yaml
   - bases/power.intel.com_cpuscalingprofiles.yaml
+  - bases/power.intel.com_cpuscalingconfigurations.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
 patchesStrategicMerge:
@@ -46,6 +47,7 @@ patchesStrategicMerge:
 #- patches/cainjection_in_timeofdaycronjobs.yaml
 #- patches/cainjection_in_uncores.yaml
 #- path: patches/cainjection_in_cpuscalingprofiles.yaml
+#- path: patches/cainjection_in_cpuscalingconfigurations.yaml
 # +kubebuilder:scaffold:crdkustomizecainjectionpatch
 
 # the following config is for teaching kustomize how to do kustomization for CRDs.

@@ -1,0 +1,17 @@
+apiVersion: power.intel.com/v1
+kind: CPUScalingConfiguration
+metadata:
+  labels:
+    app.kubernetes.io/name: intel-kubernetes-power-manager
+    app.kubernetes.io/managed-by: kustomize
+  name: <NODE_NAME>
+  namespace: power-manager
+spec:
+  items:
+    - cpuIDs:
+        - 1
+        - 2
+      samplePeriod: 10ms
+    - cpuIDs:
+        - 3
+      samplePeriod: 200ms
