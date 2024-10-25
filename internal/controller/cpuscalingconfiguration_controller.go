@@ -31,15 +31,17 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
+	"github.com/intel/kubernetes-power-manager/internal/scaling"
 	"github.com/intel/power-optimization-library/pkg/power"
 )
 
 // CPUScalingConfigurationReconciler reconciles a CPUScalingConfiguration object
 type CPUScalingConfigurationReconciler struct {
 	client.Client
-	Log          logr.Logger
-	Scheme       *runtime.Scheme
-	PowerLibrary power.Host
+	Log               logr.Logger
+	Scheme            *runtime.Scheme
+	PowerLibrary      power.Host
+	CPUScalingManager scaling.CPUScalingManager
 }
 
 var (
@@ -81,7 +83,8 @@ func (r *CPUScalingConfigurationReconciler) Reconcile(ctx context.Context, req c
 	logger.V(5).Info("retrieving the cpu scaling configuration instance")
 	if err != nil {
 		if errors.IsNotFound(err) {
-			// TODO: resource was deleted, inform the scaler
+			r.CPUScalingManager.UpdateConfig([]scaling.CPUScalingOpts{})
+
 			return ctrl.Result{}, nil
 		}
 
@@ -101,7 +104,9 @@ func (r *CPUScalingConfigurationReconciler) Reconcile(ctx context.Context, req c
 		return ctrl.Result{}, nil
 	}
 
-	// TODO: update the scaler if neccessary
+	r.CPUScalingManager.UpdateConfig(
+		r.parseConfig(config.Spec.Items),
+	)
 
 	return ctrl.Result{}, nil
 }
@@ -138,6 +143,22 @@ func (r *CPUScalingConfigurationReconciler) validateSamplePeriods(configItems []
 	}
 
 	return nil
+}
+
+func (r *CPUScalingConfigurationReconciler) parseConfig(configItems []powerv1.ConfigItem) []scaling.CPUScalingOpts {
+	optsList := make([]scaling.CPUScalingOpts, 0)
+
+	for _, item := range configItems {
+		for _, cpuID := range item.CpuIDs {
+			opts := scaling.CPUScalingOpts{
+				CPUID:        cpuID,
+				SamplePeriod: item.SamplePeriod.Duration,
+			}
+			optsList = append(optsList, opts)
+		}
+	}
+
+	return optsList
 }
 
 // SetupWithManager sets up the controller with the Manager.

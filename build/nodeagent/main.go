@@ -45,6 +45,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/intel/kubernetes-power-manager/internal/controller"
+	"github.com/intel/kubernetes-power-manager/internal/scaling"
 	"github.com/intel/kubernetes-power-manager/pkg/podstate"
 	// +kubebuilder:scaffold:imports
 )
@@ -192,6 +193,12 @@ func main() {
 		monitoring.RegisterESMICollectors(esmiClient, powerLibrary, logger)
 	}
 
+	cpuScalingMgr := scaling.NewCPUScalingManager(&powerLibrary)
+	if err = mgr.Add(cpuScalingMgr); err != nil {
+		setupLog.Error(err, "unable to register runnable", "runnable", "CPUScalingManager")
+		os.Exit(1)
+	}
+
 	if err = (&controller.PowerProfileReconciler{
 		Client:       mgr.GetClient(),
 		Log:          ctrl.Log.WithName("controllers").WithName("PowerProfile"),
@@ -268,10 +275,11 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&controller.CPUScalingConfigurationReconciler{
-		Client:       mgr.GetClient(),
-		Log:          ctrl.Log.WithName("controllers").WithName("CPUScalingConfiguration"),
-		Scheme:       mgr.GetScheme(),
-		PowerLibrary: powerLibrary,
+		Client:            mgr.GetClient(),
+		Log:               ctrl.Log.WithName("controllers").WithName("CPUScalingConfiguration"),
+		Scheme:            mgr.GetScheme(),
+		PowerLibrary:      powerLibrary,
+		CPUScalingManager: cpuScalingMgr,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "CPUScalingConfiguration")
 		os.Exit(1)

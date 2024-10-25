@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"go.uber.org/zap/zapcore"
-	"k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -34,15 +33,26 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 
 	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
+	"github.com/intel/kubernetes-power-manager/internal/scaling"
 	"github.com/intel/kubernetes-power-manager/pkg/testutils"
 	"github.com/intel/power-optimization-library/pkg/power"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 const (
 	nodeName  string = "TestNode"
 	namespace string = "power-manager"
 )
+
+type ScalingMgrMock struct {
+	scaling.CPUScalingManager
+	mock.Mock
+}
+
+func (m *ScalingMgrMock) UpdateConfig(configs []scaling.CPUScalingOpts) {
+	m.Called(configs)
+}
 
 func createCPUScalingConfigurationReconcilerObject(objs []client.Object) (*CPUScalingConfigurationReconciler, error) {
 	log.SetLogger(zap.New(
@@ -61,7 +71,8 @@ func createCPUScalingConfigurationReconcilerObject(objs []client.Object) (*CPUSc
 	r := &CPUScalingConfigurationReconciler{
 		cl,
 		ctrl.Log.WithName("testing"),
-		scheme.Scheme,
+		s,
+		nil,
 		nil,
 	}
 
@@ -71,7 +82,7 @@ func createCPUScalingConfigurationReconcilerObject(objs []client.Object) (*CPUSc
 func TestCPUScalingConfiguration_Reconcile_InvalidRequests(t *testing.T) {
 	t.Setenv("NODE_NAME", nodeName)
 	r, err := createCPUScalingConfigurationReconcilerObject([]client.Object{})
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// NOTE: wrong nodename in request is not tested because we do not
 	// have enough information returned to reliably judge if it
@@ -196,17 +207,127 @@ func TestCPUScalingConfiguration_Reconcile_Validation(t *testing.T) {
 		}
 
 		r, err := createCPUScalingConfigurationReconcilerObject([]client.Object{config})
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		r.PowerLibrary = nodemk
 
 		_, err = r.Reconcile(context.TODO(), req)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		err = r.Client.Get(context.TODO(), client.ObjectKey{
 			Name:      nodeName,
 			Namespace: namespace,
 		}, config)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Contains(t, config.Status.Errors, tc.expectedErr)
 	}
+}
+
+func TestCPUScalingConfiguration_Reconcile_Success(t *testing.T) {
+	t.Setenv("NODE_NAME", nodeName)
+
+	req := reconcile.Request{
+		NamespacedName: client.ObjectKey{
+			Name:      nodeName,
+			Namespace: namespace,
+		},
+	}
+	config := &powerv1.CPUScalingConfiguration{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      nodeName,
+			Namespace: namespace,
+			UID:       "test",
+		},
+		Spec: powerv1.CPUScalingConfigurationSpec{
+			Items: []powerv1.ConfigItem{
+				{
+					CpuIDs: []uint{0, 1},
+					SamplePeriod: metav1.Duration{
+						Duration: 10 * time.Millisecond,
+					},
+				},
+				{
+					CpuIDs: []uint{5},
+					SamplePeriod: metav1.Duration{
+						Duration: 100 * time.Millisecond,
+					},
+				},
+			},
+		},
+	}
+	expectedOpts := []scaling.CPUScalingOpts{
+		{
+			CPUID:        0,
+			SamplePeriod: 10 * time.Millisecond,
+		},
+		{
+			CPUID:        1,
+			SamplePeriod: 10 * time.Millisecond,
+		},
+		{
+			CPUID:        5,
+			SamplePeriod: 100 * time.Millisecond,
+		},
+	}
+
+	cpuListMock := power.CpuList{}
+	for i := 0; i < 10; i++ {
+		mockCore := new(testutils.MockCPU)
+		mockCore.On("GetID").Return(uint(i))
+		cpuListMock = append(cpuListMock, mockCore)
+	}
+	nodemk := new(testutils.MockHost)
+	nodemk.On("GetAllCpus").Return(&cpuListMock)
+
+	mgrmk := new(ScalingMgrMock)
+	mgrmk.On("UpdateConfig", expectedOpts).Return()
+
+	r, err := createCPUScalingConfigurationReconcilerObject([]client.Object{config})
+	assert.NoError(t, err)
+
+	r.PowerLibrary = nodemk
+	r.CPUScalingManager = mgrmk
+
+	_, err = r.Reconcile(context.TODO(), req)
+	assert.NoError(t, err)
+	mgrmk.AssertCalled(t, "UpdateConfig", expectedOpts)
+
+	err = r.Client.Get(context.TODO(), client.ObjectKey{
+		Name:      nodeName,
+		Namespace: namespace,
+	}, config)
+	assert.NoError(t, err)
+	assert.Empty(t, config.Status.Errors)
+}
+
+func TestCPUScalingConfiguration_Reconcile_NotFound(t *testing.T) {
+	t.Setenv("NODE_NAME", nodeName)
+
+	req := reconcile.Request{
+		NamespacedName: client.ObjectKey{
+			Name:      nodeName,
+			Namespace: namespace,
+		},
+	}
+
+	cpuListMock := power.CpuList{}
+	for i := 0; i < 10; i++ {
+		mockCore := new(testutils.MockCPU)
+		mockCore.On("GetID").Return(uint(i))
+		cpuListMock = append(cpuListMock, mockCore)
+	}
+	nodemk := new(testutils.MockHost)
+	nodemk.On("GetAllCpus").Return(&cpuListMock)
+
+	mgrmk := new(ScalingMgrMock)
+	mgrmk.On("UpdateConfig", []scaling.CPUScalingOpts{}).Return()
+
+	r, err := createCPUScalingConfigurationReconcilerObject([]client.Object{})
+	assert.NoError(t, err)
+
+	r.PowerLibrary = nodemk
+	r.CPUScalingManager = mgrmk
+
+	_, err = r.Reconcile(context.TODO(), req)
+	assert.NoError(t, err)
+	mgrmk.AssertCalled(t, "UpdateConfig", []scaling.CPUScalingOpts{})
 }
