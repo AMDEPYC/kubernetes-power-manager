@@ -15,7 +15,7 @@ type mockCpuTopology struct {
 	mock.Mock
 }
 
-func (m *mockCpuTopology) getID() uint {
+func (m *mockCpuTopology) GetID() uint {
 	return m.Called().Get(0).(uint)
 }
 
@@ -86,7 +86,7 @@ type mockCpuPackage struct {
 	mock.Mock
 }
 
-func (m *mockCpuPackage) getID() uint {
+func (m *mockCpuPackage) GetID() uint {
 	return m.Called().Get(0).(uint)
 }
 
@@ -157,7 +157,7 @@ type mockCpuDie struct {
 	mock.Mock
 }
 
-func (m *mockCpuDie) getID() uint {
+func (m *mockCpuDie) GetID() uint {
 	return m.Called().Get(0).(uint)
 }
 
@@ -262,7 +262,7 @@ func (m *mockCpuCore) CPUs() *CpuList {
 	return r0
 }
 
-func (m *mockCpuCore) getID() uint {
+func (m *mockCpuCore) GetID() uint {
 	return m.Called().Get(0).(uint)
 }
 

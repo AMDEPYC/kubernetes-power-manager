@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
+	"github.com/intel/kubernetes-power-manager/pkg/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	corev1 "k8s.io/api/core/v1"
@@ -94,7 +95,7 @@ func TestTimeOfDay_Reconcile(t *testing.T) {
 			Namespace: IntelPowerNamespace,
 		},
 	}
-	nodemk := new(hostMock)
+	nodemk := new(testutils.MockHost)
 	_, err = r.Reconcile(context.TODO(), req)
 	assert.NoError(t, err)
 	nodemk.AssertExpectations(t)
@@ -418,7 +419,7 @@ func TestTimeOfDay_Reconcile_ClientErrs(t *testing.T) {
 	}
 	r, err := createTimeOfDayReconcilerObject([]runtime.Object{})
 	assert.NoError(t, err)
-	mkcl := new(errClient)
+	mkcl := new(testutils.ErrClient)
 	mkcl.On("List", mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("client list error"))
 	r.Client = mkcl
 	_, err = r.Reconcile(context.TODO(), req)
@@ -427,9 +428,9 @@ func TestTimeOfDay_Reconcile_ClientErrs(t *testing.T) {
 	r, err = createTimeOfDayReconcilerObject([]runtime.Object{})
 	assert.NoError(t, err)
 
-	mkwriter := new(mockResourceWriter)
+	mkwriter := new(testutils.MockResourceWriter)
 	mkwriter.On("Update", mock.Anything, mock.Anything).Return(nil)
-	mkcl = new(errClient)
+	mkcl = new(testutils.ErrClient)
 	mkcl.On("List", mock.Anything, mock.AnythingOfType("*v1.TimeOfDayList")).Return(nil).Run(func(args mock.Arguments) {
 		todList := args.Get(1).(*powerv1.TimeOfDayList)
 		*todList = powerv1.TimeOfDayList{Items: []powerv1.TimeOfDay{*todObj}}
@@ -465,13 +466,13 @@ func TestTimeOfDay_Reconcile_ClientErrs(t *testing.T) {
 func TestTimeOfDay_Reconcile_SetupPass(t *testing.T) {
 	r, err := createTimeOfDayReconcilerObject([]runtime.Object{})
 	assert.Nil(t, err)
-	mgr := new(mgrMock)
+	mgr := new(testutils.MgrMock)
 	mgr.On("GetControllerOptions").Return(config.Controller{})
 	mgr.On("GetScheme").Return(r.Scheme)
 	mgr.On("GetLogger").Return(r.Log)
 	mgr.On("SetFields", mock.Anything).Return(nil)
 	mgr.On("Add", mock.Anything).Return(nil)
-	mgr.On("GetCache").Return(new(cacheMk))
+	mgr.On("GetCache").Return(new(testutils.CacheMk))
 	err = (&TimeOfDayReconciler{
 		Client: r.Client,
 		Scheme: r.Scheme,
@@ -483,7 +484,7 @@ func TestTimeOfDay_Reconcile_SetupPass(t *testing.T) {
 func TestTimeOfDay_Reconcile_SetupFail(t *testing.T) {
 	r, err := createTimeOfDayReconcilerObject([]runtime.Object{})
 	assert.Nil(t, err)
-	mgr := new(mgrMock)
+	mgr := new(testutils.MgrMock)
 	mgr.On("GetControllerOptions").Return(config.Controller{})
 	mgr.On("GetScheme").Return(r.Scheme)
 	mgr.On("GetLogger").Return(r.Log)

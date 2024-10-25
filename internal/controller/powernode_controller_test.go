@@ -20,6 +20,7 @@ import (
 
 	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
 	"github.com/intel/kubernetes-power-manager/pkg/podstate"
+	"github.com/intel/kubernetes-power-manager/pkg/testutils"
 	"github.com/intel/power-optimization-library/pkg/power"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -186,7 +187,7 @@ func TestPowerNode_Reconcile(t *testing.T) {
 			},
 		},
 	}
-	dummyFilesystemHost, teardown, err := fullDummySystem()
+	dummyFilesystemHost, teardown, err := testutils.FullDummySystem()
 	assert.Nil(t, err)
 	defer teardown()
 	pool, err := dummyFilesystemHost.AddExclusivePool("performance-TestNode")
@@ -223,7 +224,7 @@ func TestPowerNode_Reconcile(t *testing.T) {
 }
 
 // test to check for errors returned by the client
-// uses an errclient which mocks client calls
+// uses an testutils.ErrClient which mocks client calls
 func TestPowerNode_Reconcile_ClientErrs(t *testing.T) {
 	tcases := []struct {
 		testCase      string
@@ -237,7 +238,7 @@ func TestPowerNode_Reconcile_ClientErrs(t *testing.T) {
 			nodeName:      "TestNode",
 			powerNodeName: "TestNode",
 			convertClient: func(c client.Client, orphanedPods map[string]corev1.Pod) client.Client {
-				mkcl := new(errClient)
+				mkcl := new(testutils.ErrClient)
 				mkcl.On("Get", mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("client get error"))
 				return mkcl
 			},
@@ -248,7 +249,7 @@ func TestPowerNode_Reconcile_ClientErrs(t *testing.T) {
 			nodeName:      "TestNode",
 			powerNodeName: "TestNode",
 			convertClient: func(c client.Client, orphanedPods map[string]corev1.Pod) client.Client {
-				mkcl := new(errClient)
+				mkcl := new(testutils.ErrClient)
 				//returns power node
 				mkcl.On("Get", mock.Anything, mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 					node := args.Get(2).(*powerv1.PowerNode)
@@ -264,7 +265,7 @@ func TestPowerNode_Reconcile_ClientErrs(t *testing.T) {
 			nodeName:      "TestNode",
 			powerNodeName: "TestNode",
 			convertClient: func(c client.Client, orphanedPods map[string]corev1.Pod) client.Client {
-				mkcl := new(errClient)
+				mkcl := new(testutils.ErrClient)
 				mkcl.On("Get", mock.Anything, mock.Anything, mock.AnythingOfType("*v1.PowerNode")).Return(nil).Run(func(args mock.Arguments) {
 					node := args.Get(2).(*powerv1.PowerNode)
 					*node = *defaultNode
@@ -299,7 +300,7 @@ func TestPowerNode_Reconcile_ClientErrs(t *testing.T) {
 			nodeName:      "TestNode",
 			powerNodeName: "TestNode",
 			convertClient: func(c client.Client, orphanedPods map[string]corev1.Pod) client.Client {
-				mkcl := new(errClient)
+				mkcl := new(testutils.ErrClient)
 				mkcl.On("Get", mock.Anything, mock.Anything, mock.AnythingOfType("*v1.PowerNode")).Return(nil).Run(func(args mock.Arguments) {
 					node := args.Get(2).(*powerv1.PowerNode)
 					*node = *defaultNode
@@ -330,7 +331,7 @@ func TestPowerNode_Reconcile_ClientErrs(t *testing.T) {
 			clientErr: "client update error",
 		},
 	}
-	dummyFilesystemHost, teardown, err := fullDummySystem()
+	dummyFilesystemHost, teardown, err := testutils.FullDummySystem()
 	assert.Nil(t, err)
 	defer teardown()
 	pool, err := dummyFilesystemHost.AddExclusivePool("performance")
@@ -459,7 +460,7 @@ func FuzzPowerNodeController(f *testing.F) {
 				container,
 			},
 		}
-		dummyFilesystemHost, teardown, err := fullDummySystem()
+		dummyFilesystemHost, teardown, err := testutils.FullDummySystem()
 		assert.Nil(t, err)
 		defer teardown()
 
@@ -512,13 +513,13 @@ func FuzzPowerNodeController(f *testing.F) {
 func TestPowerNode_Reconcile_SetupPass(t *testing.T) {
 	r, err := createPowerNodeReconcilerObject([]runtime.Object{})
 	assert.Nil(t, err)
-	mgr := new(mgrMock)
+	mgr := new(testutils.MgrMock)
 	mgr.On("GetControllerOptions").Return(config.Controller{})
 	mgr.On("GetScheme").Return(r.Scheme)
 	mgr.On("GetLogger").Return(r.Log)
 	mgr.On("SetFields", mock.Anything).Return(nil)
 	mgr.On("Add", mock.Anything).Return(nil)
-	mgr.On("GetCache").Return(new(cacheMk))
+	mgr.On("GetCache").Return(new(testutils.CacheMk))
 	err = (&PowerNodeReconciler{
 		Client: r.Client,
 		Scheme: r.Scheme,
@@ -530,7 +531,7 @@ func TestPowerNode_Reconcile_SetupPass(t *testing.T) {
 func TestPowerNode_Reconcile_SetupFail(t *testing.T) {
 	r, err := createPowerNodeReconcilerObject([]runtime.Object{})
 	assert.Nil(t, err)
-	mgr := new(mgrMock)
+	mgr := new(testutils.MgrMock)
 	mgr.On("GetControllerOptions").Return(config.Controller{})
 	mgr.On("GetScheme").Return(r.Scheme)
 	mgr.On("GetLogger").Return(r.Log)

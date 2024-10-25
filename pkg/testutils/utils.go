@@ -1,7 +1,6 @@
-package controller
+package testutils
 
 import (
-	// "errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -23,40 +22,40 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 )
 
-type hostMock struct {
+type MockHost struct {
 	mock.Mock
 	power.Host
 }
 
-func (m *hostMock) Topology() power.Topology {
+func (m *MockHost) Topology() power.Topology {
 	return m.Called().Get(0).(power.Topology)
 }
 
-func (m *hostMock) ValidateCStates(states power.CStates) error {
+func (m *MockHost) ValidateCStates(states power.CStates) error {
 	return m.Called(states).Error(0)
 }
 
-func (m *hostMock) AvailableCStates() []string {
+func (m *MockHost) AvailableCStates() []string {
 	return m.Called().Get(0).([]string)
 }
 
-func (m *hostMock) GetAllExclusivePools() *power.PoolList {
+func (m *MockHost) GetAllExclusivePools() *power.PoolList {
 	return m.Called().Get(0).(*power.PoolList)
 }
 
-func (m *hostMock) SetName(name string) {
+func (m *MockHost) SetName(name string) {
 	m.Called(name)
 }
 
-func (m *hostMock) GetName() string {
+func (m *MockHost) GetName() string {
 	return m.Called().String(0)
 }
 
-func (m *hostMock) GetFreqRanges() power.CoreTypeList {
+func (m *MockHost) GetFreqRanges() power.CoreTypeList {
 	return m.Called().Get(0).(power.CoreTypeList)
 }
 
-func (m *hostMock) GetFeaturesInfo() power.FeatureSet {
+func (m *MockHost) GetFeaturesInfo() power.FeatureSet {
 	ret := m.Called().Get(0)
 	if ret == nil {
 		return nil
@@ -65,7 +64,7 @@ func (m *hostMock) GetFeaturesInfo() power.FeatureSet {
 	}
 }
 
-func (m *hostMock) GetReservedPool() power.Pool {
+func (m *MockHost) GetReservedPool() power.Pool {
 	ret := m.Called().Get(0)
 	if ret == nil {
 		return nil
@@ -74,7 +73,7 @@ func (m *hostMock) GetReservedPool() power.Pool {
 	}
 }
 
-func (m *hostMock) GetSharedPool() power.Pool {
+func (m *MockHost) GetSharedPool() power.Pool {
 	ret := m.Called().Get(0)
 	if ret == nil {
 		return nil
@@ -82,7 +81,7 @@ func (m *hostMock) GetSharedPool() power.Pool {
 		return ret.(power.Pool)
 	}
 }
-func (m *hostMock) AddExclusivePool(poolName string) (power.Pool, error) {
+func (m *MockHost) AddExclusivePool(poolName string) (power.Pool, error) {
 	args := m.Called(poolName)
 	retPool := args.Get(0)
 	if retPool == nil {
@@ -92,7 +91,7 @@ func (m *hostMock) AddExclusivePool(poolName string) (power.Pool, error) {
 	}
 }
 
-func (m *hostMock) GetExclusivePool(poolName string) power.Pool {
+func (m *MockHost) GetExclusivePool(poolName string) power.Pool {
 	ret := m.Called(poolName).Get(0)
 	if ret == nil {
 		return nil
@@ -101,7 +100,7 @@ func (m *hostMock) GetExclusivePool(poolName string) power.Pool {
 	}
 }
 
-func (m *hostMock) GetAllCpus() *power.CpuList {
+func (m *MockHost) GetAllCpus() *power.CpuList {
 	ret := m.Called().Get(0)
 	if ret == nil {
 		return nil
@@ -110,24 +109,24 @@ func (m *hostMock) GetAllCpus() *power.CpuList {
 	}
 }
 
-type poolMock struct {
+type MockPool struct {
 	mock.Mock
 	power.Pool
 }
 
-func (m *poolMock) SetCStates(states power.CStates) error {
+func (m *MockPool) SetCStates(states power.CStates) error {
 	return m.Called(states).Error(0)
 }
 
-func (m *poolMock) Clear() error {
+func (m *MockPool) Clear() error {
 	return m.Called().Error(0)
 }
 
-func (m *poolMock) Name() string {
+func (m *MockPool) Name() string {
 	return m.Called().String(0)
 }
 
-func (m *poolMock) Cpus() *power.CpuList {
+func (m *MockPool) Cpus() *power.CpuList {
 	args := m.Called().Get(0)
 	if args == nil {
 		return nil
@@ -135,32 +134,32 @@ func (m *poolMock) Cpus() *power.CpuList {
 	return args.(*power.CpuList)
 }
 
-func (m *poolMock) SetCpus(cores power.CpuList) error {
+func (m *MockPool) SetCpus(cores power.CpuList) error {
 	return m.Called(cores).Error(0)
 }
 
-func (m *poolMock) SetCpuIDs(cpuIDs []uint) error {
+func (m *MockPool) SetCpuIDs(cpuIDs []uint) error {
 	return m.Called(cpuIDs).Error(0)
 }
 
-func (m *poolMock) Remove() error {
+func (m *MockPool) Remove() error {
 	return m.Called().Error(0)
 }
 
-func (m *poolMock) MoveCpuIDs(coreIDs []uint) error {
+func (m *MockPool) MoveCpuIDs(coreIDs []uint) error {
 	return m.Called(coreIDs).Error(0)
 }
 
-func (m *poolMock) MoveCpus(cores power.CpuList) error {
+func (m *MockPool) MoveCpus(cores power.CpuList) error {
 	return m.Called(cores).Error(0)
 }
 
-func (m *poolMock) SetPowerProfile(profile power.Profile) error {
+func (m *MockPool) SetPowerProfile(profile power.Profile) error {
 	args := m.Called(profile)
 	return args.Error(0)
 }
 
-func (m *poolMock) GetPowerProfile() power.Profile {
+func (m *MockPool) GetPowerProfile() power.Profile {
 	args := m.Called().Get(0)
 	if args == nil {
 		return nil
@@ -168,66 +167,97 @@ func (m *poolMock) GetPowerProfile() power.Profile {
 	return args.(power.Profile)
 }
 
-type profMock struct {
+type MockProf struct {
 	mock.Mock
 	power.Profile
 }
 
-func (m *profMock) Name() string {
+func (m *MockProf) Name() string {
 	return m.Called().String(0)
 }
 
-func (m *profMock) Epp() string {
+func (m *MockProf) Epp() string {
 	return m.Called().String(0)
 }
 
-func (m *profMock) MaxFreq() uint {
+func (m *MockProf) MaxFreq() uint {
 	return uint(m.Called().Int(0))
 }
 
-func (m *profMock) MinFreq() uint {
+func (m *MockProf) MinFreq() uint {
 	return uint(m.Called().Int(0))
 }
 
-func (m *profMock) Governor() string {
+func (m *MockProf) Governor() string {
 	return m.Called().String(0)
 }
 
-type coreMock struct {
+type MockCPU struct {
 	mock.Mock
 	power.Cpu
 }
 
-func (m *coreMock) SetCStates(cStates power.CStates) error {
+func (m *MockCPU) SetCStates(cStates power.CStates) error {
 	return m.Called(cStates).Error(0)
 }
 
-func (m *coreMock) GetID() uint {
-	args := m.Called()
-	return args.Get(0).(uint)
+func (m *MockCPU) GetID() uint {
+	return m.Called().Get(0).(uint)
 }
-func (m *coreMock) SetPool(pool power.Pool) error {
+
+func (m *MockCPU) SetPool(pool power.Pool) error {
 	return m.Called(pool).Error(0)
 }
 
-type mockCpuTopology struct {
+func MakeCPUList(mockedCPUs ...*MockCPU) power.CpuList {
+	cpuList := power.CpuList{}
+	for _, mockedCPU := range mockedCPUs {
+		cpuList = append(cpuList, mockedCPU)
+	}
+
+	return cpuList
+}
+
+type MockCore struct {
+	mock.Mock
+	power.Core
+}
+
+func (m *MockCore) MakeList() []power.Core {
+	return []power.Core{m}
+}
+
+func (m *MockCore) CPUs() *power.CpuList {
+	args := m.Called().Get(0)
+	if args == nil {
+		return nil
+	}
+	return args.(*power.CpuList)
+}
+
+func (m *MockCore) GetID() uint {
+	args := m.Called()
+	return args.Get(0).(uint)
+}
+
+type MockTopology struct {
 	mock.Mock
 	power.Topology
 }
 
-func (m *mockCpuTopology) getID() uint {
+func (m *MockTopology) GetID() uint {
 	return m.Called().Get(0).(uint)
 }
 
-func (m *mockCpuTopology) SetUncore(uncore power.Uncore) error {
+func (m *MockTopology) SetUncore(uncore power.Uncore) error {
 	return m.Called(uncore).Error(0)
 }
 
-func (m *mockCpuTopology) applyUncore() error {
+func (m *MockTopology) applyUncore() error {
 	return m.Called().Error(0)
 }
 
-func (m *mockCpuTopology) getEffectiveUncore() power.Uncore {
+func (m *MockTopology) getEffectiveUncore() power.Uncore {
 	ret := m.Called()
 	if ret.Get(0) != nil {
 		return ret.Get(0).(power.Uncore)
@@ -235,7 +265,7 @@ func (m *mockCpuTopology) getEffectiveUncore() power.Uncore {
 	return nil
 }
 
-func (m *mockCpuTopology) addCpu(u uint) (power.Cpu, error) {
+func (m *MockTopology) addCpu(u uint) (power.Cpu, error) {
 	ret := m.Called(u)
 
 	var r0 power.Cpu
@@ -249,7 +279,7 @@ func (m *mockCpuTopology) addCpu(u uint) (power.Cpu, error) {
 	return r0, r1
 }
 
-func (m *mockCpuTopology) CPUs() *power.CpuList {
+func (m *MockTopology) CPUs() *power.CpuList {
 	ret := m.Called()
 
 	var r0 *power.CpuList
@@ -260,7 +290,7 @@ func (m *mockCpuTopology) CPUs() *power.CpuList {
 	return r0
 }
 
-func (m *mockCpuTopology) Packages() *[]power.Package {
+func (m *MockTopology) Packages() *[]power.Package {
 	ret := m.Called()
 
 	var r0 *[]power.Package
@@ -271,7 +301,7 @@ func (m *mockCpuTopology) Packages() *[]power.Package {
 	return r0
 }
 
-func (m *mockCpuTopology) Package(id uint) power.Package {
+func (m *MockTopology) Package(id uint) power.Package {
 	ret := m.Called(id)
 
 	var r0 power.Package
@@ -282,30 +312,31 @@ func (m *mockCpuTopology) Package(id uint) power.Package {
 	return r0
 }
 
-type mockCpuPackage struct {
+type MockPackage struct {
 	mock.Mock
 	power.Package
 }
-type mockPackageList struct {
+type MockPackageList struct {
 	mock.Mock
 }
 
-func (m *mockCpuPackage) MakeList() []power.Package {
+func (m *MockPackage) MakeList() []power.Package {
 	return []power.Package{m}
 }
-func (m *mockCpuPackage) getID() uint {
+
+func (m *MockPackage) GetID() uint {
 	return m.Called().Get(0).(uint)
 }
 
-func (m *mockCpuPackage) SetUncore(uncore power.Uncore) error {
+func (m *MockPackage) SetUncore(uncore power.Uncore) error {
 	return m.Called(uncore).Error(0)
 }
 
-func (m *mockCpuPackage) applyUncore() error {
+func (m *MockPackage) applyUncore() error {
 	return m.Called().Error(0)
 }
 
-func (m *mockCpuPackage) getEffectiveUncore() power.Uncore {
+func (m *MockPackage) getEffectiveUncore() power.Uncore {
 	ret := m.Called()
 	if ret.Get(0) != nil {
 		return ret.Get(0).(power.Uncore)
@@ -313,7 +344,7 @@ func (m *mockCpuPackage) getEffectiveUncore() power.Uncore {
 	return nil
 }
 
-func (m *mockCpuPackage) addCpu(u uint) (power.Cpu, error) {
+func (m *MockPackage) addCpu(u uint) (power.Cpu, error) {
 	ret := m.Called(u)
 
 	var r0 power.Cpu
@@ -327,7 +358,7 @@ func (m *mockCpuPackage) addCpu(u uint) (power.Cpu, error) {
 	return r0, r1
 }
 
-func (m *mockCpuPackage) CPUs() *power.CpuList {
+func (m *MockPackage) CPUs() *power.CpuList {
 	ret := m.Called()
 
 	var r0 *power.CpuList
@@ -338,7 +369,7 @@ func (m *mockCpuPackage) CPUs() *power.CpuList {
 	return r0
 }
 
-func (m *mockCpuPackage) Dies() *[]power.Die {
+func (m *MockPackage) Dies() *[]power.Die {
 	ret := m.Called()
 
 	var r0 *[]power.Die
@@ -349,7 +380,7 @@ func (m *mockCpuPackage) Dies() *[]power.Die {
 	return r0
 }
 
-func (m *mockCpuPackage) Die(id uint) power.Die {
+func (m *MockPackage) Die(id uint) power.Die {
 	ret := m.Called(id)
 
 	var r0 power.Die
@@ -360,28 +391,28 @@ func (m *mockCpuPackage) Die(id uint) power.Die {
 	return r0
 }
 
-type mockCpuDie struct {
+type MockDie struct {
 	mock.Mock
 	power.Die
 }
 
-func (m *mockCpuDie) MakeList() []power.Die {
+func (m *MockDie) MakeList() []power.Die {
 	return []power.Die{m}
 }
 
-func (m *mockCpuDie) getID() uint {
+func (m *MockDie) GetID() uint {
 	return m.Called().Get(0).(uint)
 }
 
-func (m *mockCpuDie) SetUncore(uncore power.Uncore) error {
+func (m *MockDie) SetUncore(uncore power.Uncore) error {
 	return m.Called(uncore).Error(0)
 }
 
-func (m *mockCpuDie) applyUncore() error {
+func (m *MockDie) applyUncore() error {
 	return m.Called().Error(0)
 }
 
-func (m *mockCpuDie) getEffectiveUncore() power.Uncore {
+func (m *MockDie) getEffectiveUncore() power.Uncore {
 	ret := m.Called()
 	if ret.Get(0) != nil {
 		return ret.Get(0).(power.Uncore)
@@ -389,7 +420,7 @@ func (m *mockCpuDie) getEffectiveUncore() power.Uncore {
 	return nil
 }
 
-func (m *mockCpuDie) addCpu(u uint) (power.Cpu, error) {
+func (m *MockDie) addCpu(u uint) (power.Cpu, error) {
 	ret := m.Called(u)
 
 	var r0 power.Cpu
@@ -403,7 +434,7 @@ func (m *mockCpuDie) addCpu(u uint) (power.Cpu, error) {
 	return r0, r1
 }
 
-func (m *mockCpuDie) CPUs() *power.CpuList {
+func (m *MockDie) CPUs() *power.CpuList {
 	ret := m.Called()
 
 	var r0 *power.CpuList
@@ -414,18 +445,18 @@ func (m *mockCpuDie) CPUs() *power.CpuList {
 	return r0
 }
 
-func (m *mockCpuDie) Cores() *[]power.Core {
+func (m *MockDie) Cores() *[]power.Core {
 	ret := m.Called()
 
 	var r0 *[]power.Core
 	if ret.Get(0) != nil {
 		r0 = ret.Get(0).(*[]power.Core)
-
 	}
+
 	return r0
 }
 
-func (m *mockCpuDie) Core(id uint) power.Core {
+func (m *MockDie) Core(id uint) power.Core {
 	ret := m.Called(id)
 
 	var r0 power.Core
@@ -436,20 +467,20 @@ func (m *mockCpuDie) Core(id uint) power.Core {
 	return r0
 }
 
-type frequencySetMock struct {
+type FrequencySetMock struct {
 	mock.Mock
 	power.CpuFrequencySet
 }
 
-func (m *frequencySetMock) GetMax() uint {
+func (m *FrequencySetMock) GetMax() uint {
 	return m.Called().Get(0).(uint)
 }
 
-func (m *frequencySetMock) GetMin() uint {
+func (m *FrequencySetMock) GetMin() uint {
 	return m.Called().Get(0).(uint)
 }
 
-func setupDummyFiles(cores int, packages int, diesPerPackage int, cpufiles map[string]string) (power.Host, func(), error) {
+func SetupDummyFiles(cores int, packages int, diesPerPackage int, cpufiles map[string]string) (power.Host, func(), error) {
 	//variables for various files
 	path := "testing/cpus"
 	pStatesDrvFile := "cpufreq/scaling_driver"
@@ -553,14 +584,18 @@ func setupDummyFiles(cores int, packages int, diesPerPackage int, cpufiles map[s
 		}
 	}
 	host, err := power.CreateInstanceWithConf("test-node", power.LibConfig{CpuPath: "testing/cpus", ModulePath: "testing/proc.modules", Cores: uint(cores)})
+	// Ignore if error comes from ESMI initialization - we want to run unit tests on any hardware, not only AMD EPYCs
+	if strings.Contains(err.Error(), "ESMI") {
+		err = nil
+	}
 	return host, func() {
 		os.RemoveAll(strings.Split(path, "/")[0])
 	}, err
 }
 
 // default dummy file system to be used in standard tests
-func fullDummySystem() (power.Host, func(), error) {
-	return setupDummyFiles(86, 1, 2, map[string]string{
+func FullDummySystem() (power.Host, func(), error) {
+	return SetupDummyFiles(86, 1, 2, map[string]string{
 		"driver": "intel_pstate", "max": "3700000", "min": "1000000",
 		"epp": "performance", "governor": "performance",
 		"available_governors": "powersave performance",
@@ -569,24 +604,24 @@ func fullDummySystem() (power.Host, func(), error) {
 }
 
 // mock required for testing setupwithmanager
-type clientMock struct {
+type ClientMock struct {
 	mock.Mock
 	client.Client
 }
 
 // mock required for testing client errs
-type errClient struct {
+type ErrClient struct {
 	client.Client
 	mock.Mock
 }
 
-func (e *errClient) Get(ctx context.Context, NamespacedName types.NamespacedName, obj client.Object, opts ...client.GetOption) error {
+func (e *ErrClient) Get(ctx context.Context, NamespacedName types.NamespacedName, obj client.Object, opts ...client.GetOption) error {
 	if len(opts) != 0 {
 		return e.Called(ctx, NamespacedName, obj, opts).Error(0)
 	}
 	return e.Called(ctx, NamespacedName, obj).Error(0)
 }
-func (e *errClient) List(ctx context.Context, list client.ObjectList, opts ...client.ListOption) error {
+func (e *ErrClient) List(ctx context.Context, list client.ObjectList, opts ...client.ListOption) error {
 	if len(opts) != 0 {
 		return e.Called(ctx, list, opts).Error(0)
 
@@ -594,111 +629,111 @@ func (e *errClient) List(ctx context.Context, list client.ObjectList, opts ...cl
 	return e.Called(ctx, list).Error(0)
 }
 
-func (e *errClient) Create(ctx context.Context, obj client.Object, opts ...client.CreateOption) error {
+func (e *ErrClient) Create(ctx context.Context, obj client.Object, opts ...client.CreateOption) error {
 	if len(opts) != 0 {
 		return e.Called(ctx, obj, opts).Error(0)
 	}
 	return e.Called(ctx, obj).Error(0)
 }
 
-func (e *errClient) Update(ctx context.Context, obj client.Object, opts ...client.UpdateOption) error {
+func (e *ErrClient) Update(ctx context.Context, obj client.Object, opts ...client.UpdateOption) error {
 	if len(opts) != 0 {
 		return e.Called(ctx, obj, opts).Error(0)
 	}
 	return e.Called(ctx, obj).Error(0)
 }
 
-func (e *errClient) Delete(ctx context.Context, obj client.Object, opts ...client.DeleteOption) error {
+func (e *ErrClient) Delete(ctx context.Context, obj client.Object, opts ...client.DeleteOption) error {
 	if len(opts) != 0 {
 		return e.Called(ctx, obj, opts).Error(0)
 	}
 	return e.Called(ctx, obj).Error(0)
 }
 
-func (e *errClient) DeleteAllOf(ctx context.Context, obj client.Object, opts ...client.DeleteAllOfOption) error {
+func (e *ErrClient) DeleteAllOf(ctx context.Context, obj client.Object, opts ...client.DeleteAllOfOption) error {
 	if len(opts) != 0 {
 		return e.Called(ctx, obj, opts).Error(0)
 	}
 	return e.Called(ctx, obj).Error(0)
 }
 
-func (e *errClient) Patch(ctx context.Context, obj client.Object, patch client.Patch, opts ...client.PatchOption) error {
+func (e *ErrClient) Patch(ctx context.Context, obj client.Object, patch client.Patch, opts ...client.PatchOption) error {
 	if len(opts) != 0 {
 		return e.Called(ctx, obj, patch, opts).Error(0)
 	}
 	return e.Called(ctx, obj, patch).Error(0)
 }
 
-func (e *errClient) Status() client.SubResourceWriter {
+func (e *ErrClient) Status() client.SubResourceWriter {
 	return e.Called().Get(0).(client.SubResourceWriter)
 }
 
-type mockResourceWriter struct {
+type MockResourceWriter struct {
 	mock.Mock
 	client.SubResourceWriter
 }
 
-func (m *mockResourceWriter) Update(ctx context.Context, obj client.Object, opts ...client.SubResourceUpdateOption) error {
+func (m *MockResourceWriter) Update(ctx context.Context, obj client.Object, opts ...client.SubResourceUpdateOption) error {
 	if len(opts) != 0 {
 		return m.Called(ctx, obj, opts).Error(0)
 	}
 	return m.Called(ctx, obj).Error(0)
 }
 
-type mgrMock struct {
+type MgrMock struct {
 	mock.Mock
 	manager.Manager
 }
 
-func (m *mgrMock) Add(r manager.Runnable) error {
+func (m *MgrMock) Add(r manager.Runnable) error {
 	return m.Called(r).Error(0)
 }
 
-func (m *mgrMock) Elected() <-chan struct{} {
+func (m *MgrMock) Elected() <-chan struct{} {
 	return m.Called().Get(0).(<-chan struct{})
 }
 
-func (m *mgrMock) AddMetricsExtraHandler(path string, handler http.Handler) error {
+func (m *MgrMock) AddMetricsExtraHandler(path string, handler http.Handler) error {
 	return m.Called(path, handler).Get(0).(error)
 }
 
-func (m *mgrMock) AddHealthzCheck(name string, check healthz.Checker) error {
+func (m *MgrMock) AddHealthzCheck(name string, check healthz.Checker) error {
 	return m.Called(name, check).Get(0).(error)
 }
 
-func (m *mgrMock) AddReadyzCheck(name string, check healthz.Checker) error {
+func (m *MgrMock) AddReadyzCheck(name string, check healthz.Checker) error {
 	return m.Called(name, check).Get(0).(error)
 }
 
-func (m *mgrMock) Start(ctx context.Context) error {
+func (m *MgrMock) Start(ctx context.Context) error {
 	return m.Called(ctx).Get(0).(error)
 }
 
-func (m *mgrMock) GetWebhookServer() webhook.Server {
+func (m *MgrMock) GetWebhookServer() webhook.Server {
 	return m.Called().Get(0).(webhook.Server)
 }
 
-func (m *mgrMock) GetLogger() logr.Logger {
+func (m *MgrMock) GetLogger() logr.Logger {
 	return m.Called().Get(0).(logr.Logger)
 
 }
 
-func (m *mgrMock) GetControllerOptions() config.Controller {
+func (m *MgrMock) GetControllerOptions() config.Controller {
 	return m.Called().Get(0).(config.Controller)
 }
 
-func (m *mgrMock) GetScheme() *runtime.Scheme {
+func (m *MgrMock) GetScheme() *runtime.Scheme {
 	return m.Called().Get(0).(*runtime.Scheme)
 }
-func (m *mgrMock) SetFields(i interface{}) error {
+func (m *MgrMock) SetFields(i interface{}) error {
 	return m.Called(i).Error(0)
 }
 
-func (m *mgrMock) GetCache() cache.Cache {
+func (m *MgrMock) GetCache() cache.Cache {
 	return m.Called().Get(0).(cache.Cache)
 }
 
-type cacheMk struct {
+type CacheMk struct {
 	cache.Cache
 	mock.Mock
 }

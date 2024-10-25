@@ -12,6 +12,27 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+// Add consts and 2 functions previously removed from uncore.go to silence compiler errors
+const (
+	uncoreKmodName = "intel_uncore_frequency"
+	uncoreDirName  = "intel_uncore_frequency"
+
+	uncorePathFmt         = uncoreDirName + "/package_%02d_die_%02d"
+	uncoreInitMaxFreqFile = "initial_max_freq_khz"
+	uncoreInitMinFreqFile = "initial_min_freq_khz"
+	uncoreMaxFreqFile     = "max_freq_khz"
+	uncoreMinFreqFile     = "min_freq_khz"
+)
+
+func readUncoreProperty(pkgID, dieID uint, property string) (uint, error) {
+	fullPath := path.Join(basePath, fmt.Sprintf(uncorePathFmt, pkgID, dieID), property)
+	return readUintFromFile(fullPath)
+}
+
+func normalizeUncoreFreq(freq uint) uint {
+	return freq - (freq % uint(100_000))
+}
+
 type mockUncore struct {
 	mock.Mock
 }

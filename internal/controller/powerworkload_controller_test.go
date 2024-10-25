@@ -12,6 +12,7 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
+	"github.com/intel/kubernetes-power-manager/pkg/testutils"
 	"github.com/intel/power-optimization-library/pkg/power"
 	"github.com/stretchr/testify/mock"
 	corev1 "k8s.io/api/core/v1"
@@ -54,11 +55,11 @@ func createWorkloadReconcilerObject(objs []runtime.Object) (*PowerWorkloadReconc
 }
 
 type reservedPoolMocks struct {
-	node             *hostMock
-	shared           *poolMock
-	performance      *poolMock
-	exclusiveRserved *poolMock
-	reserved         *poolMock
+	node             *testutils.MockHost
+	shared           *testutils.MockPool
+	performance      *testutils.MockPool
+	exclusiveRserved *testutils.MockPool
+	reserved         *testutils.MockPool
 }
 
 // used to remove a call from a predefined mock
@@ -74,11 +75,11 @@ func popCall(calls []*mock.Call, method string) []*mock.Call {
 
 // creates a basic template for reaching reserved pool related segments
 func mocktemplate() reservedPoolMocks {
-	nodemk := new(hostMock)
-	sharedPoolmk := new(poolMock)
-	perfPoolmk := new(poolMock)
-	exclusiveReservedmk := new(poolMock)
-	reservedmk := new(poolMock)
+	nodemk := new(testutils.MockHost)
+	sharedPoolmk := new(testutils.MockPool)
+	perfPoolmk := new(testutils.MockPool)
+	exclusiveReservedmk := new(testutils.MockPool)
+	reservedmk := new(testutils.MockPool)
 	nodemk.On("GetReservedPool").Return(reservedmk)
 	nodemk.On("GetSharedPool").Return(sharedPoolmk)
 	nodemk.On("GetAllExclusivePools").Return(&power.PoolList{exclusiveReservedmk})
@@ -94,7 +95,7 @@ func mocktemplate() reservedPoolMocks {
 	exclusiveReservedmk.On("Remove").Return(nil)
 	exclusiveReservedmk.On("SetCpuIDs", mock.Anything).Return(nil)
 	exclusiveReservedmk.On("SetPowerProfile", mock.Anything).Return(nil)
-	perfPoolmk.On("GetPowerProfile").Return(new(profMock))
+	perfPoolmk.On("GetPowerProfile").Return(new(testutils.MockProf))
 	return reservedPoolMocks{
 		node:             nodemk,
 		shared:           sharedPoolmk,
@@ -150,7 +151,7 @@ func TestPowerWorkload_Reconcile(t *testing.T) {
 		testCase     string
 		workloadName string
 		clientObjs   []runtime.Object
-		getNodemk    func() *hostMock
+		getNodemk    func() *testutils.MockHost
 		validateErr  func(r *PowerWorkloadReconciler, e error) bool
 	}{
 		{
@@ -159,8 +160,8 @@ func TestPowerWorkload_Reconcile(t *testing.T) {
 			validateErr: func(r *PowerWorkloadReconciler, e error) bool {
 				return assert.ErrorContains(t, e, "does not exist in the power library")
 			},
-			getNodemk: func() *hostMock {
-				nodemk := new(hostMock)
+			getNodemk: func() *testutils.MockHost {
+				nodemk := new(testutils.MockHost)
 				nodemk.On("GetExclusivePool", mock.Anything).Return(nil)
 				return nodemk
 			},
@@ -172,7 +173,7 @@ func TestPowerWorkload_Reconcile(t *testing.T) {
 		{
 			testCase:     "Test Case 2 - workload creation",
 			workloadName: "shared-" + testNode,
-			getNodemk:    func() *hostMock { return new(hostMock) },
+			getNodemk:    func() *testutils.MockHost { return new(testutils.MockHost) },
 			validateErr: func(r *PowerWorkloadReconciler, e error) bool {
 				assert.Nil(t, e)
 				req := reconcile.Request{
@@ -210,9 +211,9 @@ func TestPowerWorkload_Reconcile(t *testing.T) {
 		{
 			testCase:     "Test Case 3 - pool deletion err",
 			workloadName: "performance-TestNode",
-			getNodemk: func() *hostMock {
-				nodemk := new(hostMock)
-				poolmk := new(poolMock)
+			getNodemk: func() *testutils.MockHost {
+				nodemk := new(testutils.MockHost)
+				poolmk := new(testutils.MockPool)
 				nodemk.On("GetExclusivePool", mock.Anything).Return(poolmk)
 				poolmk.On("Remove").Return(errors.New("pool removal err"))
 				return nodemk
@@ -224,14 +225,14 @@ func TestPowerWorkload_Reconcile(t *testing.T) {
 		{
 			testCase:     "Test Case 4 - shared workload deletion",
 			workloadName: "shared",
-			getNodemk: func() *hostMock {
-				nodemk := new(hostMock)
-				reservedmk := new(poolMock)
-				poolmk := new(poolMock)
+			getNodemk: func() *testutils.MockHost {
+				nodemk := new(testutils.MockHost)
+				reservedmk := new(testutils.MockPool)
+				poolmk := new(testutils.MockPool)
 				nodemk.On("GetSharedPool").Return(poolmk)
 				poolmk.On("SetPowerProfile", nil).Return(nil)
 				nodemk.On("GetReservedPool").Return(reservedmk)
-				exclusiveReservedmk := new(poolMock)
+				exclusiveReservedmk := new(testutils.MockPool)
 				nodemk.On("GetAllExclusivePools").Return(&power.PoolList{exclusiveReservedmk})
 				exclusiveReservedmk.On("Name").Return("TestNode-reserved-[0]")
 				exclusiveReservedmk.On("Remove").Return(nil)
@@ -251,9 +252,9 @@ func TestPowerWorkload_Reconcile(t *testing.T) {
 		{
 			testCase:     "Test Case 5 - shared workload on wrong node",
 			workloadName: "shared-" + testNode,
-			getNodemk: func() *hostMock {
+			getNodemk: func() *testutils.MockHost {
 				sharedPowerWorkloadName = "shared"
-				return new(hostMock)
+				return new(testutils.MockHost)
 			},
 			validateErr: func(r *PowerWorkloadReconciler, e error) bool {
 				return assert.Nil(t, e)
@@ -263,8 +264,8 @@ func TestPowerWorkload_Reconcile(t *testing.T) {
 		{
 			testCase:     "Test Case 6 - shared workload already exists",
 			workloadName: "shared-" + testNode,
-			getNodemk: func() *hostMock {
-				return new(hostMock)
+			getNodemk: func() *testutils.MockHost {
+				return new(testutils.MockHost)
 			},
 			validateErr: func(r *PowerWorkloadReconciler, e error) bool {
 				return assert.ErrorContains(t, e, "a shared power workload already exists")
@@ -274,12 +275,12 @@ func TestPowerWorkload_Reconcile(t *testing.T) {
 		{
 			testCase:     "Test Case 7 - set cpu error",
 			workloadName: "shared-" + testNode,
-			getNodemk: func() *hostMock {
-				nodemk := new(hostMock)
-				poolmk := new(poolMock)
-				sharedPoolmk := new(poolMock)
-				dummyPoolmk := new(poolMock)
-				profmk := new(profMock)
+			getNodemk: func() *testutils.MockHost {
+				nodemk := new(testutils.MockHost)
+				poolmk := new(testutils.MockPool)
+				sharedPoolmk := new(testutils.MockPool)
+				dummyPoolmk := new(testutils.MockPool)
+				profmk := new(testutils.MockProf)
 				nodemk.On("GetReservedPool").Return(poolmk)
 				nodemk.On("GetExclusivePool", mock.Anything).Return(dummyPoolmk)
 				nodemk.On("GetSharedPool").Return(sharedPoolmk)
@@ -297,7 +298,7 @@ func TestPowerWorkload_Reconcile(t *testing.T) {
 		{
 			testCase:     "Test Case 8 - shared pool creation",
 			workloadName: "shared-" + testNode,
-			getNodemk: func() *hostMock {
+			getNodemk: func() *testutils.MockHost {
 				template := mocktemplate()
 				return template.node
 			},
@@ -310,7 +311,7 @@ func TestPowerWorkload_Reconcile(t *testing.T) {
 		{
 			testCase:     "Test Case 9 - reserved setProfile error recovery failure",
 			workloadName: "shared-" + testNode,
-			getNodemk: func() *hostMock {
+			getNodemk: func() *testutils.MockHost {
 				template := mocktemplate()
 				// have 2 calls causign an issue
 				template.exclusiveRserved.ExpectedCalls = popCall(template.exclusiveRserved.ExpectedCalls, "SetPowerProfile")
@@ -327,7 +328,7 @@ func TestPowerWorkload_Reconcile(t *testing.T) {
 		{
 			testCase:     "Test Case 10 - reserved setCpu error recovery failure",
 			workloadName: "shared-" + testNode,
-			getNodemk: func() *hostMock {
+			getNodemk: func() *testutils.MockHost {
 				template := mocktemplate()
 				template.exclusiveRserved.ExpectedCalls = popCall(template.exclusiveRserved.ExpectedCalls, "SetCpuIDs")
 				template.reserved.ExpectedCalls = popCall(template.reserved.ExpectedCalls, "MoveCpuIDs")
@@ -343,7 +344,7 @@ func TestPowerWorkload_Reconcile(t *testing.T) {
 		{
 			testCase:     "Test Case 11 - reserved SetCpuIDs() and pseudoReservedPool.Remove() errors",
 			workloadName: "shared-" + testNode,
-			getNodemk: func() *hostMock {
+			getNodemk: func() *testutils.MockHost {
 				template := mocktemplate()
 				template.exclusiveRserved.ExpectedCalls = popCall(template.exclusiveRserved.ExpectedCalls, "SetCpuIDs")
 				template.reserved.ExpectedCalls = popCall(template.reserved.ExpectedCalls, "MoveCpuIDs")
@@ -360,9 +361,9 @@ func TestPowerWorkload_Reconcile(t *testing.T) {
 		{
 			testCase:     "Test Case 12 - reserved recovery",
 			workloadName: "shared-" + testNode,
-			getNodemk: func() *hostMock {
+			getNodemk: func() *testutils.MockHost {
 				template := mocktemplate()
-				exclusiveReservedmk2 := new(poolMock)
+				exclusiveReservedmk2 := new(testutils.MockPool)
 				template.exclusiveRserved.ExpectedCalls = popCall(template.exclusiveRserved.ExpectedCalls, "SetCpuIDs")
 				template.reserved.ExpectedCalls = popCall(template.reserved.ExpectedCalls, "MoveCpuIDs")
 				template.node.ExpectedCalls = popCall(template.node.ExpectedCalls, "GetAllExclusivePools")
@@ -386,9 +387,9 @@ func TestPowerWorkload_Reconcile(t *testing.T) {
 		{
 			testCase:     "Test Case 13 - SetPowerProfile() and pseudoReservedPool.Remove() errors",
 			workloadName: "shared-" + testNode,
-			getNodemk: func() *hostMock {
+			getNodemk: func() *testutils.MockHost {
 				template := mocktemplate()
-				exclusiveReservedmk2 := new(poolMock)
+				exclusiveReservedmk2 := new(testutils.MockPool)
 				template.exclusiveRserved.ExpectedCalls = popCall(template.exclusiveRserved.ExpectedCalls, "SetCpuIDs")
 				template.reserved.ExpectedCalls = popCall(template.reserved.ExpectedCalls, "MoveCpuIDs")
 				template.node.ExpectedCalls = popCall(template.node.ExpectedCalls, "GetAllExclusivePools")
@@ -414,9 +415,9 @@ func TestPowerWorkload_Reconcile(t *testing.T) {
 		{
 			testCase:     "Test Case 14 - nil GetExclusivePool() response and pseudoReservedPool.Remove() error",
 			workloadName: "shared-" + testNode,
-			getNodemk: func() *hostMock {
+			getNodemk: func() *testutils.MockHost {
 				template := mocktemplate()
-				exclusiveReservedmk2 := new(poolMock)
+				exclusiveReservedmk2 := new(testutils.MockPool)
 				template.node.ExpectedCalls = popCall(template.node.ExpectedCalls, "GetAllExclusivePools")
 				template.node.ExpectedCalls = popCall(template.node.ExpectedCalls, "AddExclusivePool")
 				template.node.ExpectedCalls = popCall(template.node.ExpectedCalls, "GetExclusivePool")
@@ -451,7 +452,7 @@ func TestPowerWorkload_Reconcile(t *testing.T) {
 		}
 		nodemk := tc.getNodemk()
 		if tc.testCase == "Test Case 2 - workload creation" {
-			host, teardown, err := fullDummySystem()
+			host, teardown, err := testutils.FullDummySystem()
 			assert.Nil(t, err)
 			defer teardown()
 			sharedProf, err := power.NewPowerProfile("shared", 1000, 1000, "powersave", "power")
@@ -563,9 +564,9 @@ func TestPowerWorkload_Reconcile_ClientErrs(t *testing.T) {
 		t.Fatalf("error creating the reconciler object")
 	}
 
-	mkwriter := new(mockResourceWriter)
+	mkwriter := new(testutils.MockResourceWriter)
 	mkwriter.On("Update", mock.Anything, mock.Anything).Return(nil)
-	mkcl := new(errClient)
+	mkcl := new(testutils.ErrClient)
 	mkcl.On("Get", mock.Anything, mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		node := args.Get(2).(*powerv1.PowerWorkload)
 		*node = *pwrWorkloadObj
@@ -573,7 +574,7 @@ func TestPowerWorkload_Reconcile_ClientErrs(t *testing.T) {
 	mkcl.On("List", mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("client list error"))
 	mkcl.On("Status").Return(mkwriter)
 	r.Client = mkcl
-	nodemk := new(hostMock)
+	nodemk := new(testutils.MockHost)
 
 	r.PowerLibrary = nodemk
 
@@ -590,8 +591,8 @@ func TestPowerWorkload_Reconcile_ClientErrs(t *testing.T) {
 	// error deleting duplicate shared pool
 	r, err = createWorkloadReconcilerObject([]runtime.Object{pwrWorkloadObj, nodesObj})
 	assert.Nil(t, err)
-	r.PowerLibrary = new(hostMock)
-	mkcl = new(errClient)
+	r.PowerLibrary = new(testutils.MockHost)
+	mkcl = new(testutils.ErrClient)
 	mkcl.On("Get", mock.Anything, mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		wload := args.Get(2).(*powerv1.PowerWorkload)
 		*wload = *pwrWorkloadObj
@@ -680,7 +681,7 @@ func FuzzPowerWorkloadController(f *testing.F) {
 		}
 		r, err := createWorkloadReconcilerObject(clientObjs)
 		assert.Nil(t, err)
-		host, teardown, err := fullDummySystem()
+		host, teardown, err := testutils.FullDummySystem()
 		assert.Nil(t, err)
 		defer teardown()
 		r.PowerLibrary = host
@@ -701,13 +702,13 @@ func FuzzPowerWorkloadController(f *testing.F) {
 func TestPowerWorkload_Reconcile_SetupPass(t *testing.T) {
 	r, err := createPowerNodeReconcilerObject([]runtime.Object{})
 	assert.Nil(t, err)
-	mgr := new(mgrMock)
+	mgr := new(testutils.MgrMock)
 	mgr.On("GetControllerOptions").Return(config.Controller{})
 	mgr.On("GetScheme").Return(r.Scheme)
 	mgr.On("GetLogger").Return(r.Log)
 	mgr.On("SetFields", mock.Anything).Return(nil)
 	mgr.On("Add", mock.Anything).Return(nil)
-	mgr.On("GetCache").Return(new(cacheMk))
+	mgr.On("GetCache").Return(new(testutils.CacheMk))
 	err = (&PowerWorkloadReconciler{
 		Client: r.Client,
 		Scheme: r.Scheme,
@@ -718,7 +719,7 @@ func TestPowerWorkload_Reconcile_SetupPass(t *testing.T) {
 func TestPowerWorkload_Reconcile_SetupFail(t *testing.T) {
 	r, err := createPowerNodeReconcilerObject([]runtime.Object{})
 	assert.Nil(t, err)
-	mgr := new(mgrMock)
+	mgr := new(testutils.MgrMock)
 	mgr.On("GetControllerOptions").Return(config.Controller{})
 	mgr.On("GetScheme").Return(r.Scheme)
 	mgr.On("GetLogger").Return(r.Log)

@@ -3,11 +3,12 @@ package controller
 import (
 	"context"
 	"fmt"
-	"github.com/go-logr/logr"
 	"reflect"
 	"sort"
 	"testing"
 	"time"
+
+	"github.com/go-logr/logr"
 
 	//"k8s.io/apimachinery/pkg/api/errors"
 	"go.uber.org/zap/zapcore"
@@ -27,6 +28,7 @@ import (
 	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
 	"github.com/intel/kubernetes-power-manager/pkg/podresourcesclient"
 	"github.com/intel/kubernetes-power-manager/pkg/podstate"
+	"github.com/intel/kubernetes-power-manager/pkg/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -1364,7 +1366,7 @@ func TestPowerPod_Reconcile_Delete(t *testing.T) {
 	}
 }
 
-// uses errclient to mock errors from the client
+// uses testutils.ErrClient to mock errors from the client
 func TestPowerPod_Reconcile_PodClientErrs(t *testing.T) {
 	var deletedPod = &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -1420,7 +1422,7 @@ func TestPowerPod_Reconcile_PodClientErrs(t *testing.T) {
 			nodeName: "TestNode",
 			podName:  "test-pod-1",
 			convertClient: func(c client.Client) client.Client {
-				mkcl := new(errClient)
+				mkcl := new(testutils.ErrClient)
 				mkcl.On("Get", mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("client get error"))
 				return mkcl
 			},
@@ -1432,7 +1434,7 @@ func TestPowerPod_Reconcile_PodClientErrs(t *testing.T) {
 			nodeName: "TestNode",
 			podName:  "test-pod-1",
 			convertClient: func(c client.Client) client.Client {
-				mkcl := new(errClient)
+				mkcl := new(testutils.ErrClient)
 				mkcl.On("Get", mock.Anything, mock.Anything, mock.AnythingOfType("*v1.Pod")).Return(nil).Run(func(args mock.Arguments) {
 					pod := args.Get(2).(*corev1.Pod)
 					*pod = *deletedPod
@@ -1479,7 +1481,7 @@ func TestPowerPod_Reconcile_PodClientErrs(t *testing.T) {
 			nodeName: "TestNode",
 			podName:  "test-pod-1",
 			convertClient: func(c client.Client) client.Client {
-				mkcl := new(errClient)
+				mkcl := new(testutils.ErrClient)
 				mkcl.On("Get", mock.Anything, mock.Anything, mock.AnythingOfType("*v1.Pod")).Return(nil).Run(func(args mock.Arguments) {
 					node := args.Get(2).(*corev1.Pod)
 					*node = *defaultPod
@@ -1514,7 +1516,7 @@ func TestPowerPod_Reconcile_PodClientErrs(t *testing.T) {
 			nodeName: "TestNode",
 			podName:  "test-pod-1",
 			convertClient: func(c client.Client) client.Client {
-				mkcl := new(errClient)
+				mkcl := new(testutils.ErrClient)
 				mkcl.On("Get", mock.Anything, mock.Anything, mock.AnythingOfType("*v1.Pod")).Return(nil).Run(func(args mock.Arguments) {
 					node := args.Get(2).(*corev1.Pod)
 					*node = *defaultPod
@@ -1721,7 +1723,6 @@ func TestPowerPod_ControlPLaneSocket(t *testing.T) {
 
 		_, err = r.Reconcile(context.TODO(), req)
 		tc.validateErr(t, err)
-
 	}
 }
 
@@ -1731,13 +1732,13 @@ func TestPowerPod_Reconcile_SetupPass(t *testing.T) {
 	podResourcesClient := createFakePodResourcesListerClient(podResources)
 	r, err := createPodReconcilerObject([]runtime.Object{}, podResourcesClient)
 	assert.Nil(t, err)
-	mgr := new(mgrMock)
+	mgr := new(testutils.MgrMock)
 	mgr.On("GetControllerOptions").Return(config.Controller{})
 	mgr.On("GetScheme").Return(r.Scheme)
 	mgr.On("GetLogger").Return(r.Log)
 	mgr.On("SetFields", mock.Anything).Return(nil)
 	mgr.On("Add", mock.Anything).Return(nil)
-	mgr.On("GetCache").Return(new(cacheMk))
+	mgr.On("GetCache").Return(new(testutils.CacheMk))
 	err = (&PowerPodReconciler{
 		Client: r.Client,
 		Scheme: r.Scheme,
@@ -1751,7 +1752,7 @@ func TestPowerPod_Reconcile_SetupFail(t *testing.T) {
 	podResourcesClient := createFakePodResourcesListerClient(podResources)
 	r, err := createPodReconcilerObject([]runtime.Object{}, podResourcesClient)
 	assert.Nil(t, err)
-	mgr := new(mgrMock)
+	mgr := new(testutils.MgrMock)
 	mgr.On("GetControllerOptions").Return(config.Controller{})
 	mgr.On("GetScheme").Return(r.Scheme)
 	mgr.On("GetLogger").Return(r.Log)

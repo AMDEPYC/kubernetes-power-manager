@@ -144,7 +144,7 @@ func (d *cpuDie) SetUncore(uncore Uncore) error {
 }
 
 func (d *cpuDie) applyUncore() error {
-	return d.getEffectiveUncore().write(d.parentSocket.getID(), d.id)
+	return d.getEffectiveUncore().write(d.parentSocket.GetID(), d.id)
 }
 
 func (d *cpuDie) getEffectiveUncore() Uncore {

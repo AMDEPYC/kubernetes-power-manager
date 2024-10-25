@@ -1,7 +1,3 @@
-run:
-  skip-files:
-    # exclude tests
-    - "_test\\.go$"
 output:
   sort-results: true
 issues:
@@ -9,3 +5,8 @@ issues:
     - "non-constant format"
     - SA1006
     - SA1019
+  exclude-files:
+    # exclude tests
+    - "_test\\.go$"
+  exclude-dirs:
+    - "testutils"

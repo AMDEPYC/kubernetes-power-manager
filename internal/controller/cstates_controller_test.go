@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
+	"github.com/intel/kubernetes-power-manager/pkg/testutils"
 	"github.com/intel/power-optimization-library/pkg/power"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -105,14 +106,14 @@ func TestCStates_Reconcile(t *testing.T) {
 		cStatesObj, powerProfilesObj, powerNodesObj,
 	}
 
-	powerLibMock := new(hostMock)
-	sharedPoolMock := new(poolMock)
+	powerLibMock := new(testutils.MockHost)
+	sharedPoolMock := new(testutils.MockPool)
 	powerLibMock.On("GetSharedPool").Return(sharedPoolMock)
-	exclusivePool := new(poolMock)
+	exclusivePool := new(testutils.MockPool)
 	exclusivePool.On("Name").Return("exclusive")
 	powerLibMock.On("GetAllExclusivePools").Return(&power.PoolList{exclusivePool})
 	powerLibMock.On("GetExclusivePool", "performance").Return(exclusivePool)
-	mockedCore := new(coreMock)
+	mockedCore := new(testutils.MockCPU)
 	mockedCore.On("GetID").Return(uint(3))
 	powerLibMock.On("GetAllCpus").Return(&power.CpuList{mockedCore})
 
@@ -152,7 +153,7 @@ func TestCStates_Reconcile(t *testing.T) {
 
 	// simulate CRD intended for a different node
 	t.Setenv("NODE_NAME", "node2")
-	powerLibMock = new(hostMock)
+	powerLibMock = new(testutils.MockHost)
 	r.PowerLibrary = powerLibMock
 
 	_, err = r.Reconcile(ctx, req)
@@ -173,20 +174,20 @@ func TestCStates_Reconcile(t *testing.T) {
 }
 
 func initializeMocksForPartialHandling(hasSharedPool bool, exclusivePools, individualCores map[string]map[string]bool,
-	invalidIndividualCores map[string]bool) (*poolMock, map[string]*poolMock, map[string]*coreMock, *hostMock) {
-	var sharedPoolMock *poolMock
-	powerLibMock := new(hostMock)
+	invalidIndividualCores map[string]bool) (*testutils.MockPool, map[string]*testutils.MockPool, map[string]*testutils.MockCPU, *testutils.MockHost) {
+	var sharedPoolMock *testutils.MockPool
+	powerLibMock := new(testutils.MockHost)
 
 	if hasSharedPool {
-		sharedPoolMock = new(poolMock)
+		sharedPoolMock = new(testutils.MockPool)
 		powerLibMock.On("GetSharedPool").Return(sharedPoolMock)
 	}
 
-	mockedExclusivePoolMappings := make(map[string]*poolMock)
+	mockedExclusivePoolMappings := make(map[string]*testutils.MockPool)
 	mockedPoolList := power.PoolList{}
 
 	for poolName := range exclusivePools {
-		mockedPool := new(poolMock)
+		mockedPool := new(testutils.MockPool)
 		mockedPool.On("Name").Return(poolName)
 		powerLibMock.On("GetExclusivePool", poolName).Return(mockedPool)
 		mockedExclusivePoolMappings[poolName] = mockedPool
@@ -195,10 +196,10 @@ func initializeMocksForPartialHandling(hasSharedPool bool, exclusivePools, indiv
 
 	powerLibMock.On("GetAllExclusivePools").Return(&mockedPoolList)
 
-	mockedCPUMappings := make(map[string]*coreMock)
+	mockedCPUMappings := make(map[string]*testutils.MockCPU)
 	mockedCPUList := power.CpuList{}
 	for cpuID := range individualCores {
-		mockedCore := new(coreMock)
+		mockedCore := new(testutils.MockCPU)
 		coreIDInt, _ := strconv.Atoi(cpuID)
 		mockedCore.On("GetID").Return(uint(coreIDInt))
 		mockedCPUMappings[cpuID] = mockedCore
@@ -215,8 +216,8 @@ func initializeMocksForPartialHandling(hasSharedPool bool, exclusivePools, indiv
 	return sharedPoolMock, mockedExclusivePoolMappings, mockedCPUMappings, powerLibMock
 }
 
-func assignMockMethodsForSharedPoolHandling(mock *hostMock, sharedPoolMock *poolMock,
-	reconcileMethodAtError string, sharedPoolCStates map[string]bool, withSharedPoolError bool) (*hostMock, *poolMock) {
+func assignMockMethodsForSharedPoolHandling(mock *testutils.MockHost, sharedPoolMock *testutils.MockPool,
+	reconcileMethodAtError string, sharedPoolCStates map[string]bool, withSharedPoolError bool) (*testutils.MockHost, *testutils.MockPool) {
 
 	if withSharedPoolError && reconcileMethodAtError == controllerVerifyMethodName {
 		mock.On("ValidateCStates", power.CStates(sharedPoolCStates)).
@@ -243,9 +244,9 @@ func assignMockMethodsForSharedPoolHandling(mock *hostMock, sharedPoolMock *pool
 	return mock, sharedPoolMock
 }
 
-func assignMockMethodsForExclPoolHandling(mock *hostMock, exclusivePoolMocks map[string]*poolMock,
+func assignMockMethodsForExclPoolHandling(mock *testutils.MockHost, exclusivePoolMocks map[string]*testutils.MockPool,
 	reconcileMethodAtError string, exclusivePoolCStates map[string]map[string]bool,
-	exclusivePoolsWithError map[string]bool) (*hostMock, map[string]*poolMock) {
+	exclusivePoolsWithError map[string]bool) (*testutils.MockHost, map[string]*testutils.MockPool) {
 	for poolName, mockedPool := range exclusivePoolMocks {
 		if reconcileMethodAtError == controllerVerifyMethodName && exclusivePoolsWithError[poolName] {
 			mock.On("ValidateCStates", power.CStates(exclusivePoolCStates[poolName])).
@@ -278,9 +279,9 @@ func assignMockMethodsForExclPoolHandling(mock *hostMock, exclusivePoolMocks map
 	return mock, exclusivePoolMocks
 }
 
-func assignMockMethodsForIndvdPoolHandling(mock *hostMock, individualPoolMocks map[string]*coreMock,
+func assignMockMethodsForIndvdPoolHandling(mock *testutils.MockHost, individualPoolMocks map[string]*testutils.MockCPU,
 	reconcileMethodAtError string, individualPoolCStates map[string]map[string]bool,
-	individualPoolsWithErrors map[string]bool) (*hostMock, map[string]*coreMock) {
+	individualPoolsWithErrors map[string]bool) (*testutils.MockHost, map[string]*testutils.MockCPU) {
 
 	for cpuID, mockedPool := range individualPoolMocks {
 		if reconcileMethodAtError == controllerVerifyMethodName && individualPoolsWithErrors[cpuID] {
@@ -593,7 +594,7 @@ func TestCStates_Reconcile_WithPartialSetup(t *testing.T) {
 }
 
 func FuzzCStatesReconciler(f *testing.F) {
-	powerLibMock := new(hostMock)
+	powerLibMock := new(testutils.MockHost)
 	// verifying cStates exists
 	powerLibMock.On("IsCStateValid", mock.Anything).Return(true)
 
@@ -709,15 +710,15 @@ func TestCstate_Reconcile_SetupPass(t *testing.T) {
 		Client:       client,
 		Log:          ctrl.Log.WithName("testing"),
 		Scheme:       schm,
-		PowerLibrary: new(hostMock),
+		PowerLibrary: new(testutils.MockHost),
 	}
-	mgr := new(mgrMock)
+	mgr := new(testutils.MgrMock)
 	mgr.On("GetControllerOptions").Return(config.Controller{})
 	mgr.On("GetScheme").Return(r.Scheme)
 	mgr.On("GetLogger").Return(r.Log)
 	mgr.On("SetFields", mock.Anything).Return(nil)
 	mgr.On("Add", mock.Anything).Return(nil)
-	mgr.On("GetCache").Return(new(cacheMk))
+	mgr.On("GetCache").Return(new(testutils.CacheMk))
 	err = (&CStatesReconciler{
 		Client: r.Client,
 		Scheme: r.Scheme,
@@ -727,7 +728,7 @@ func TestCstate_Reconcile_SetupPass(t *testing.T) {
 
 // tests failure for SetupWithManager function
 func TestCstate_Reconcile_SetupFail(t *testing.T) {
-	powerLibMock := new(hostMock)
+	powerLibMock := new(testutils.MockHost)
 	r := buildCStatesReconcilerObject([]runtime.Object{}, powerLibMock)
 	mgr, _ := ctrl.NewManager(&rest.Config{}, ctrl.Options{
 		Scheme: scheme.Scheme,

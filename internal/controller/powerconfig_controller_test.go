@@ -8,6 +8,7 @@ import (
 
 	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
 	"github.com/intel/kubernetes-power-manager/pkg/state"
+	"github.com/intel/kubernetes-power-manager/pkg/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"go.uber.org/zap/zapcore"
@@ -187,7 +188,7 @@ func TestPowerConfig_Reconcile_Creation(t *testing.T) {
 	}
 	for _, tc := range tcases {
 		t.Setenv("NODE_NAME", tc.nodeName)
-		NodeAgentDaemonSetPath = "../build/manifests/power-node-agent-ds.yaml"
+		NodeAgentDaemonSetPath = "../../build/manifests/power-node-agent-ds.yaml"
 
 		r, err := createConfigReconcilerObject(tc.clientObjs)
 		if err != nil {
@@ -290,7 +291,7 @@ func TestPowerConfig_Reconcile_Exists(t *testing.T) {
 	}
 	for _, tc := range tcases {
 		t.Setenv("NODE_NAME", tc.nodeName)
-		NodeAgentDaemonSetPath = "../build/manifests/power-node-agent-ds.yaml"
+		NodeAgentDaemonSetPath = "../../build/manifests/power-node-agent-ds.yaml"
 
 		r, err := createConfigReconcilerObject(tc.clientObjs)
 		if err != nil {
@@ -466,7 +467,7 @@ func TestPowerConfig_Reconcile_CustomDevices_Creation(t *testing.T) {
 	}
 	for _, tc := range tcases {
 		t.Setenv("NODE_NAME", tc.nodeName)
-		NodeAgentDaemonSetPath = "../build/manifests/power-node-agent-ds.yaml"
+		NodeAgentDaemonSetPath = "../../build/manifests/power-node-agent-ds.yaml"
 
 		r, err := createConfigReconcilerObject(tc.clientObjs)
 		if err != nil {
@@ -641,7 +642,7 @@ func TestPowerConfig_Reconcile_CustomDevices_Update(t *testing.T) {
 	}
 	for _, tc := range tcases {
 		t.Setenv("NODE_NAME", tc.nodeName)
-		NodeAgentDaemonSetPath = "../build/manifests/power-node-agent-ds.yaml"
+		NodeAgentDaemonSetPath = "../../build/manifests/power-node-agent-ds.yaml"
 
 		r, err := createConfigReconcilerObject(tc.clientObjs)
 		if err != nil {
@@ -902,7 +903,7 @@ func TestPowerConfig_Reconcile_ProfilesNoLongerRequested(t *testing.T) {
 	}
 	for _, tc := range tcases {
 		t.Setenv("NODE_NAME", tc.nodeName)
-		NodeAgentDaemonSetPath = "../build/manifests/power-node-agent-ds.yaml"
+		NodeAgentDaemonSetPath = "../../build/manifests/power-node-agent-ds.yaml"
 
 		r, err := createConfigReconcilerObject(tc.clientObjs)
 		if err != nil {
@@ -1022,7 +1023,7 @@ func TestPowerConfig_Reconcile_Deletion(t *testing.T) {
 	}
 	for _, tc := range tcases {
 		t.Setenv("NODE_NAME", tc.nodeName)
-		NodeAgentDaemonSetPath = "../build/manifests/power-node-agent-ds.yaml"
+		NodeAgentDaemonSetPath = "../../build/manifests/power-node-agent-ds.yaml"
 
 		r, err := createConfigReconcilerObject(tc.clientObjs)
 		if err != nil {
@@ -1121,7 +1122,7 @@ func FuzzPowerConfigController(f *testing.F) {
 				},
 			},
 		}
-		NodeAgentDaemonSetPath = "../build/manifests/power-node-agent-ds.yaml"
+		NodeAgentDaemonSetPath = "../../build/manifests/power-node-agent-ds.yaml"
 		r, err := createConfigReconcilerObject(clientObjs)
 		assert.Nil(t, err)
 		req := reconcile.Request{
@@ -1140,13 +1141,13 @@ func FuzzPowerConfigController(f *testing.F) {
 func TestPowerConfig_Reconcile_SetupPass(t *testing.T) {
 	r, err := createConfigReconcilerObject([]client.Object{})
 	assert.Nil(t, err)
-	mgr := new(mgrMock)
+	mgr := new(testutils.MgrMock)
 	mgr.On("GetControllerOptions").Return(config.Controller{})
 	mgr.On("GetScheme").Return(r.Scheme)
 	mgr.On("GetLogger").Return(r.Log)
 	mgr.On("SetFields", mock.Anything).Return(nil)
 	mgr.On("Add", mock.Anything).Return(nil)
-	mgr.On("GetCache").Return(new(cacheMk))
+	mgr.On("GetCache").Return(new(testutils.CacheMk))
 	err = (&PowerConfigReconciler{
 		Client: r.Client,
 		Scheme: r.Scheme,
@@ -1157,7 +1158,7 @@ func TestPowerConfig_Reconcile_SetupPass(t *testing.T) {
 func TestPowerConfig_Reconcile_SetupFail(t *testing.T) {
 	r, err := createConfigReconcilerObject([]client.Object{})
 	assert.Nil(t, err)
-	mgr := new(mgrMock)
+	mgr := new(testutils.MgrMock)
 	mgr.On("GetControllerOptions").Return(config.Controller{})
 	mgr.On("GetScheme").Return(r.Scheme)
 	mgr.On("GetLogger").Return(r.Log)

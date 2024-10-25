@@ -10,7 +10,7 @@ const (
 type topologyTypeObj interface {
 	addCpu(uint) (Cpu, error)
 	CPUs() *CpuList
-	getID() uint
+	GetID() uint
 }
 
 // this stores the frequencies of core types
@@ -83,7 +83,7 @@ func (s *cpuTopology) Package(id uint) Package {
 	return pkg
 }
 
-func (s *cpuTopology) getID() uint {
+func (s *cpuTopology) GetID() uint {
 	return 0
 }
 
@@ -150,7 +150,7 @@ func (c *cpuPackage) CPUs() *CpuList {
 	return &c.cpus
 }
 
-func (c *cpuPackage) getID() uint {
+func (c *cpuPackage) GetID() uint {
 	return c.id
 }
 
@@ -215,7 +215,7 @@ func (d *cpuDie) addCpu(cpuId uint) (Cpu, error) {
 	return cpu, nil
 }
 
-func (d *cpuDie) getID() uint {
+func (d *cpuDie) GetID() uint {
 	return d.id
 }
 
@@ -254,7 +254,7 @@ func (c *cpuCore) CPUs() *CpuList {
 	return &c.cpus
 }
 
-func (c *cpuCore) getID() uint {
+func (c *cpuCore) GetID() uint {
 	return c.id
 }
 

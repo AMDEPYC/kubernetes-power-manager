@@ -37,6 +37,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
+	"github.com/intel/kubernetes-power-manager/internal/metrics"
+	"github.com/intel/kubernetes-power-manager/internal/monitoring"
 	"github.com/intel/kubernetes-power-manager/pkg/podresourcesclient"
 
 	"github.com/intel/power-optimization-library/pkg/power"
@@ -166,6 +168,14 @@ func main() {
 		setupLog.Error(err, "unable to create internal client")
 		os.Exit(1)
 	}
+
+	perfEventClient := metrics.NewPerfEventClient(
+		ctrl.Log.WithName("clients").WithName("PerfEventClient"),
+		powerLibrary,
+	)
+	defer perfEventClient.Close()
+
+	monitoring.RegisterMetrics(perfEventClient, powerLibrary, ctrl.Log)
 
 	if err = (&controller.PowerProfileReconciler{
 		Client:       mgr.GetClient(),

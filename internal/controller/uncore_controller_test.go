@@ -1,3 +1,5 @@
+//go:build uncore_controller_test
+
 package controller
 
 import (
@@ -9,6 +11,7 @@ import (
 	"testing"
 
 	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
+	"github.com/intel/kubernetes-power-manager/pkg/testutils"
 	"github.com/intel/power-optimization-library/pkg/power"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -68,7 +71,7 @@ func TestUncore_Reconcile_SystemUncore(t *testing.T) {
 	}
 	r, err := createUncoreReconcilerObject(clientObjs)
 	assert.Nil(t, err)
-	host, teardown, err := fullDummySystem()
+	host, teardown, err := testutils.FullDummySystem()
 	assert.Nil(t, err)
 	defer teardown()
 	r.PowerLibrary = host
@@ -109,7 +112,7 @@ func TestUncore_Reconcile_TestDieTuning(t *testing.T) {
 	}
 	r, err := createUncoreReconcilerObject(clientObjs)
 	assert.Nil(t, err)
-	host, teardown, err := fullDummySystem()
+	host, teardown, err := testutils.FullDummySystem()
 	assert.Nil(t, err)
 	defer teardown()
 	r.PowerLibrary = host
@@ -150,7 +153,7 @@ func TestUncore_Reconcile_PackageTuning(t *testing.T) {
 	}
 	r, err := createUncoreReconcilerObject(clientObjs)
 	assert.Nil(t, err)
-	host, teardown, err := fullDummySystem()
+	host, teardown, err := testutils.FullDummySystem()
 	assert.Nil(t, err)
 	defer teardown()
 	r.PowerLibrary = host
@@ -183,7 +186,7 @@ func TestUncore_Reconcile_InvalidUncores(t *testing.T) {
 	}
 	r, err := createUncoreReconcilerObject([]runtime.Object{})
 	assert.Nil(t, err)
-	host, teardown, err := fullDummySystem()
+	host, teardown, err := testutils.FullDummySystem()
 	assert.Nil(t, err)
 	defer teardown()
 	r.PowerLibrary = host
@@ -496,7 +499,7 @@ func TestUncore_Reconcile_InvalidFileSystem(t *testing.T) {
 	}
 	r, err := createUncoreReconcilerObject(clientObjs)
 	assert.Nil(t, err)
-	host, teardown, err := fullDummySystem()
+	host, teardown, err := testutils.FullDummySystem()
 	assert.Nil(t, err)
 	defer teardown()
 	r.PowerLibrary = host
@@ -519,14 +522,14 @@ func TestUncore_Reconcile_UnexpectedClientErr(t *testing.T) {
 	}
 	r, err := createUncoreReconcilerObject([]runtime.Object{})
 	assert.Nil(t, err)
-	host, teardown, err := fullDummySystem()
+	host, teardown, err := testutils.FullDummySystem()
 	assert.Nil(t, err)
 	defer teardown()
 	r.PowerLibrary = host
 
-	mkwriter := new(mockResourceWriter)
+	mkwriter := new(testutils.MockResourceWriter)
 	mkwriter.On("Update", mock.Anything, mock.Anything).Return(nil)
-	mkcl := new(errClient)
+	mkcl := new(testutils.ErrClient)
 	mkcl.On("Get", mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("client get error"))
 	mkcl.On("Status").Return(mkwriter)
 	r.Client = mkcl
@@ -538,13 +541,13 @@ func TestUncore_Reconcile_UnexpectedClientErr(t *testing.T) {
 func TestUncore_Reconcile_SetupPass(t *testing.T) {
 	r, err := createUncoreReconcilerObject([]runtime.Object{})
 	assert.Nil(t, err)
-	mgr := new(mgrMock)
+	mgr := new(testutils.MgrMock)
 	mgr.On("GetControllerOptions").Return(config.Controller{})
 	mgr.On("GetScheme").Return(r.Scheme)
 	mgr.On("GetLogger").Return(r.Log)
 	mgr.On("SetFields", mock.Anything).Return(nil)
 	mgr.On("Add", mock.Anything).Return(nil)
-	mgr.On("GetCache").Return(new(cacheMk))
+	mgr.On("GetCache").Return(new(testutils.CacheMk))
 	err = (&UncoreReconciler{
 		Client: r.Client,
 		Scheme: r.Scheme,
@@ -556,7 +559,7 @@ func TestUncore_Reconcile_SetupPass(t *testing.T) {
 func TestUncore_Reconcile_SetupFail(t *testing.T) {
 	r, err := createUncoreReconcilerObject([]runtime.Object{})
 	assert.Nil(t, err)
-	mgr := new(mgrMock)
+	mgr := new(testutils.MgrMock)
 	mgr.On("GetControllerOptions").Return(config.Controller{})
 	mgr.On("GetScheme").Return(r.Scheme)
 	mgr.On("GetLogger").Return(r.Log)
@@ -572,10 +575,10 @@ func TestUncore_Reconcile_SetupFail(t *testing.T) {
 
 // fuzzing function for uncore
 func FuzzUncoreReconciler(f *testing.F) {
-	hostmk := new(hostMock)
-	mocktop := new(mockCpuTopology)
-	mockpkg := new(mockCpuPackage)
-	mockdie := new(mockCpuDie)
+	hostmk := new(testutils.MockHost)
+	mocktop := new(testutils.MockTopology)
+	mockpkg := new(testutils.MockPackage)
+	mockdie := new(testutils.MockDie)
 	pkglst := mockpkg.MakeList()
 	dielst := mockdie.MakeList()
 	mocktop.On("SetUncore", mock.Anything).Return(nil)
@@ -588,7 +591,7 @@ func FuzzUncoreReconciler(f *testing.F) {
 	mockpkg.On("Die", mock.Anything).Return(mockdie)
 	mockdie.On("SetUncore", mock.Anything).Return(nil)
 	f.Add("node1", "intel-power", true, "node2", true, uint(1400000), uint(2400000), uint(0))
-	_, teardown, err := fullDummySystem()
+	_, teardown, err := testutils.FullDummySystem()
 	assert.Nil(f, err)
 	defer teardown()
 	f.Fuzz(func(t *testing.T, nodeName string, namespace string, extraNode bool, node2Name string, runningOnTargetNode bool, min uint, max uint, die_and_package uint) {

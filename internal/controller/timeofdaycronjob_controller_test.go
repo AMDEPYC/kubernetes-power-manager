@@ -8,6 +8,7 @@ import (
 
 	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
 	"github.com/intel/kubernetes-power-manager/pkg/podstate"
+	"github.com/intel/kubernetes-power-manager/pkg/testutils"
 	"github.com/intel/power-optimization-library/pkg/power"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -240,11 +241,11 @@ func TestTimeOfDayCronJob_Reconcile_CronProfile(t *testing.T) {
 			Namespace: "intel-power",
 		},
 	}
-	nodemk := new(hostMock)
-	poolmk := new(poolMock)
+	nodemk := new(testutils.MockHost)
+	poolmk := new(testutils.MockPool)
 	poolmk.On("SetPowerProfile", mock.Anything).Return(nil)
 	nodemk.On("GetSharedPool").Return(poolmk)
-	freqSetmk := new(frequencySetMock)
+	freqSetmk := new(testutils.FrequencySetMock)
 	nodemk.On("GetFreqRanges").Return(power.CoreTypeList{freqSetmk})
 	freqSetmk.On("GetMax").Return(uint(9000000))
 	freqSetmk.On("GetMin").Return(uint(100000))
@@ -252,7 +253,7 @@ func TestTimeOfDayCronJob_Reconcile_CronProfile(t *testing.T) {
 	r.PowerLibrary = nodemk
 	assert.NoError(t, err)
 	// this just prevents a feature not enabled error from the library
-	_, teardown, err := fullDummySystem()
+	_, teardown, err := testutils.FullDummySystem()
 	assert.Nil(t, err)
 	defer teardown()
 	// ensure the workload has the correct initial profile
@@ -403,7 +404,7 @@ func TestTimeOfDayCronJob_Reconcile_CronPods(t *testing.T) {
 			Namespace: IntelPowerNamespace,
 		},
 	}
-	nodemk := new(hostMock)
+	nodemk := new(testutils.MockHost)
 	r, err := createTODCronReconcilerObject(clientObjs)
 	assert.NoError(t, err)
 	// adding pods to the internal state
@@ -503,7 +504,7 @@ func TestTimeOfDayCronJob_Reconcile_Cstates(t *testing.T) {
 			Namespace: IntelPowerNamespace,
 		},
 	}
-	nodemk := new(hostMock)
+	nodemk := new(testutils.MockHost)
 	r, err := createTODCronReconcilerObject(clientObjs)
 	assert.NoError(t, err)
 	// ensure no initial C-State object exists
@@ -598,7 +599,7 @@ func TestTimeOfDayCronJob_Reconcile_ExistingCstates(t *testing.T) {
 			Namespace: IntelPowerNamespace,
 		},
 	}
-	nodemk := new(hostMock)
+	nodemk := new(testutils.MockHost)
 	r, err := createTODCronReconcilerObject(clientObjs)
 	assert.NoError(t, err)
 	// reconcile job and wait for schedule time
@@ -692,13 +693,13 @@ func TestTimeOfDayCronJob_Reconcile_NoExistingWorkload_Lib_Err(t *testing.T) {
 			Namespace: "intel-power",
 		},
 	}
-	_, teardown, err := fullDummySystem()
+	_, teardown, err := testutils.FullDummySystem()
 	assert.Nil(t, err)
 	defer teardown()
-	nodemk := new(hostMock)
-	poolmk := new(poolMock)
+	nodemk := new(testutils.MockHost)
+	poolmk := new(testutils.MockPool)
 	nodemk.On("GetSharedPool").Return(poolmk)
-	freqSetmk := new(frequencySetMock)
+	freqSetmk := new(testutils.FrequencySetMock)
 	nodemk.On("GetFreqRanges").Return(power.CoreTypeList{freqSetmk})
 	freqSetmk.On("GetMax").Return(uint(9000000))
 	freqSetmk.On("GetMin").Return(uint(100000))
@@ -837,17 +838,17 @@ func TestTimeOfDayCronJob_Reconcile_ErrsSharedPoolExists(t *testing.T) {
 	}
 	tcases := []struct {
 		testCase      string
-		getNodemk     func() *hostMock
+		getNodemk     func() *testutils.MockHost
 		convertClient func(client.Client, powerv1.TimeOfDayCronJob) client.Client
 		validateErr   func(e error) bool
 	}{
 		{
 			testCase: "Test Case 1: set profile err",
-			getNodemk: func() *hostMock {
-				nodemk := new(hostMock)
-				poolmk := new(poolMock)
+			getNodemk: func() *testutils.MockHost {
+				nodemk := new(testutils.MockHost)
+				poolmk := new(testutils.MockPool)
 				nodemk.On("GetSharedPool").Return(poolmk)
-				freqSetmk := new(frequencySetMock)
+				freqSetmk := new(testutils.FrequencySetMock)
 				nodemk.On("GetFreqRanges").Return(power.CoreTypeList{freqSetmk})
 				freqSetmk.On("GetMax").Return(uint(9000000))
 				freqSetmk.On("GetMin").Return(uint(100000))
@@ -863,12 +864,12 @@ func TestTimeOfDayCronJob_Reconcile_ErrsSharedPoolExists(t *testing.T) {
 		},
 		{
 			testCase: "Test Case 2: client list err",
-			getNodemk: func() *hostMock {
-				nodemk := new(hostMock)
+			getNodemk: func() *testutils.MockHost {
+				nodemk := new(testutils.MockHost)
 				return nodemk
 			},
 			convertClient: func(c client.Client, cron powerv1.TimeOfDayCronJob) client.Client {
-				mkcl := new(errClient)
+				mkcl := new(testutils.ErrClient)
 				mkcl.On("Get", mock.Anything, mock.Anything, mock.AnythingOfType("*v1.TimeOfDayCronJob")).Return(nil).Run(func(args mock.Arguments) {
 					job := args.Get(2).(*powerv1.TimeOfDayCronJob)
 					cron.Status.LastScheduleTime = &metav1.Time{Time: time.Now()}
@@ -884,12 +885,12 @@ func TestTimeOfDayCronJob_Reconcile_ErrsSharedPoolExists(t *testing.T) {
 		},
 		{
 			testCase: "Test Case 3: client get err",
-			getNodemk: func() *hostMock {
-				nodemk := new(hostMock)
+			getNodemk: func() *testutils.MockHost {
+				nodemk := new(testutils.MockHost)
 				return nodemk
 			},
 			convertClient: func(c client.Client, cron powerv1.TimeOfDayCronJob) client.Client {
-				mkcl := new(errClient)
+				mkcl := new(testutils.ErrClient)
 				mkcl.On("Get", mock.Anything, mock.Anything, mock.AnythingOfType("*v1.TimeOfDayCronJob")).Return(nil).Run(func(args mock.Arguments) {
 					job := args.Get(2).(*powerv1.TimeOfDayCronJob)
 					cron.Status.LastScheduleTime = &metav1.Time{Time: time.Now()}
@@ -914,7 +915,7 @@ func TestTimeOfDayCronJob_Reconcile_ErrsSharedPoolExists(t *testing.T) {
 			Namespace: "intel-power",
 		},
 	}
-	_, teardown, err := fullDummySystem()
+	_, teardown, err := testutils.FullDummySystem()
 	assert.Nil(t, err)
 	defer teardown()
 	for _, tc := range tcases {
@@ -1045,14 +1046,14 @@ func TestTimeOfDayCronJob_Reconcile_ErrsPodTuning(t *testing.T) {
 	}
 	tcases := []struct {
 		testCase      string
-		getNodemk     func(r *TimeOfDayCronJobReconciler) *hostMock
+		getNodemk     func(r *TimeOfDayCronJobReconciler) *testutils.MockHost
 		convertClient func(client.Client, powerv1.TimeOfDayCronJob) client.Client
 		validateErr   func(e error) bool
 	}{
 		{
 			testCase: "Test Case 1: internal state mismatch",
-			getNodemk: func(r *TimeOfDayCronJobReconciler) *hostMock {
-				nodemk := new(hostMock)
+			getNodemk: func(r *TimeOfDayCronJobReconciler) *testutils.MockHost {
+				nodemk := new(testutils.MockHost)
 				return nodemk
 			},
 			convertClient: func(c client.Client, cron powerv1.TimeOfDayCronJob) client.Client {
@@ -1064,15 +1065,15 @@ func TestTimeOfDayCronJob_Reconcile_ErrsPodTuning(t *testing.T) {
 		},
 		{
 			testCase: "Test Case 2: client list err",
-			getNodemk: func(r *TimeOfDayCronJobReconciler) *hostMock {
-				nodemk := new(hostMock)
+			getNodemk: func(r *TimeOfDayCronJobReconciler) *testutils.MockHost {
+				nodemk := new(testutils.MockHost)
 				r.State.UpdateStateGuaranteedPods(guaranteedPod)
 				return nodemk
 			},
 			convertClient: func(c client.Client, cron powerv1.TimeOfDayCronJob) client.Client {
-				mkwriter := new(mockResourceWriter)
+				mkwriter := new(testutils.MockResourceWriter)
 				mkwriter.On("Update", mock.Anything, mock.Anything).Return(nil)
-				mkcl := new(errClient)
+				mkcl := new(testutils.ErrClient)
 				mkcl.On("Get", mock.Anything, mock.Anything, mock.AnythingOfType("*v1.TimeOfDayCronJob")).Return(nil).Run(func(args mock.Arguments) {
 					job := args.Get(2).(*powerv1.TimeOfDayCronJob)
 					cron.Status.LastScheduleTime = &metav1.Time{Time: time.Now()}
@@ -1088,15 +1089,15 @@ func TestTimeOfDayCronJob_Reconcile_ErrsPodTuning(t *testing.T) {
 		},
 		{
 			testCase: "Test Case 3: client workload retrieval err",
-			getNodemk: func(r *TimeOfDayCronJobReconciler) *hostMock {
-				nodemk := new(hostMock)
+			getNodemk: func(r *TimeOfDayCronJobReconciler) *testutils.MockHost {
+				nodemk := new(testutils.MockHost)
 				r.State.UpdateStateGuaranteedPods(guaranteedPod)
 				return nodemk
 			},
 			convertClient: func(c client.Client, cron powerv1.TimeOfDayCronJob) client.Client {
-				mkwriter := new(mockResourceWriter)
+				mkwriter := new(testutils.MockResourceWriter)
 				mkwriter.On("Update", mock.Anything, mock.Anything).Return(nil)
-				mkcl := new(errClient)
+				mkcl := new(testutils.ErrClient)
 				mkcl.On("Get", mock.Anything, mock.Anything, mock.AnythingOfType("*v1.TimeOfDayCronJob")).Return(nil).Run(func(args mock.Arguments) {
 					job := args.Get(2).(*powerv1.TimeOfDayCronJob)
 					cron.Status.LastScheduleTime = &metav1.Time{Time: time.Now()}
@@ -1122,7 +1123,7 @@ func TestTimeOfDayCronJob_Reconcile_ErrsPodTuning(t *testing.T) {
 			Namespace: "intel-power",
 		},
 	}
-	_, teardown, err := fullDummySystem()
+	_, teardown, err := testutils.FullDummySystem()
 	assert.Nil(t, err)
 	defer teardown()
 	for _, tc := range tcases {
@@ -1150,7 +1151,7 @@ func TestTimeOfDayCronJob_Reconcile_ErrsPodTuning(t *testing.T) {
 }
 
 func TestTimeOfDayCronJob_Reconcile_InvalidRequests(t *testing.T) {
-	_, teardown, err := fullDummySystem()
+	_, teardown, err := testutils.FullDummySystem()
 	assert.Nil(t, err)
 	defer teardown()
 	// incorrect namespace
@@ -1213,11 +1214,11 @@ func TestTimeOfDayCronJob_Reconcile_InvalidRequests(t *testing.T) {
 			Namespace: "intel-power",
 		},
 	}
-	nodemk := new(hostMock)
-	poolmk := new(poolMock)
+	nodemk := new(testutils.MockHost)
+	poolmk := new(testutils.MockPool)
 	poolmk.On("SetPowerProfile", mock.Anything).Return(nil)
 	nodemk.On("GetSharedPool").Return(poolmk)
-	freqSetmk := new(frequencySetMock)
+	freqSetmk := new(testutils.FrequencySetMock)
 	nodemk.On("GetFreqRanges").Return(power.CoreTypeList{freqSetmk})
 	freqSetmk.On("GetMax").Return(uint(9000000))
 	freqSetmk.On("GetMin").Return(uint(100000))
@@ -1292,13 +1293,13 @@ func TestTimeOfDayCronJob_Reconcile_InvalidRequests(t *testing.T) {
 func TestTimeOfDayCronJob_Reconcile_SetupPass(t *testing.T) {
 	r, err := createTODCronReconcilerObject([]client.Object{})
 	assert.Nil(t, err)
-	mgr := new(mgrMock)
+	mgr := new(testutils.MgrMock)
 	mgr.On("GetControllerOptions").Return(config.Controller{})
 	mgr.On("GetScheme").Return(r.Scheme)
 	mgr.On("GetLogger").Return(r.Log)
 	mgr.On("SetFields", mock.Anything).Return(nil)
 	mgr.On("Add", mock.Anything).Return(nil)
-	mgr.On("GetCache").Return(new(cacheMk))
+	mgr.On("GetCache").Return(new(testutils.CacheMk))
 	err = (&TimeOfDayCronJobReconciler{
 		Client: r.Client,
 		Scheme: r.Scheme,
@@ -1309,7 +1310,7 @@ func TestTimeOfDayCronJob_Reconcile_SetupPass(t *testing.T) {
 func TestCronReconcileSetupFail(t *testing.T) {
 	r, err := createTODCronReconcilerObject([]client.Object{})
 	assert.Nil(t, err)
-	mgr := new(mgrMock)
+	mgr := new(testutils.MgrMock)
 	mgr.On("GetControllerOptions").Return(config.Controller{})
 	mgr.On("GetScheme").Return(r.Scheme)
 	mgr.On("GetLogger").Return(r.Log)
@@ -1392,7 +1393,7 @@ func FuzzTimeOfDayCronController(f *testing.F) {
 				Namespace: "intel-power",
 			},
 		}
-		dummyFilesystemHost, teardown, err := fullDummySystem()
+		dummyFilesystemHost, teardown, err := testutils.FullDummySystem()
 		assert.Nil(t, err)
 		defer teardown()
 		r, err := createTODCronReconcilerObject(clientObjs)

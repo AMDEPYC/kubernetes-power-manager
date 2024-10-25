@@ -23,6 +23,8 @@ import (
 	"k8s.io/klog/v2"
 	"net"
 	"net/url"
+
+	"github.com/intel/power-optimization-library/pkg/power"
 )
 
 const (
@@ -125,5 +127,45 @@ func UnpackErrsToStrings(err error) *[]string {
 		return &stringErrs
 	default:
 		return &[]string{err.Error()}
+	}
+}
+
+func IterateOverCPUs(host power.Host, f func(cpu power.Cpu, core power.Core, die power.Die, pkg power.Package)) {
+	topology := host.Topology()
+	for _, pkg := range *topology.Packages() {
+		for _, die := range *pkg.Dies() {
+			for _, core := range *die.Cores() {
+				for _, cpu := range *core.CPUs() {
+					f(cpu, core, die, pkg)
+				}
+			}
+		}
+	}
+}
+
+func IterateOverCores(host power.Host, f func(core power.Core, die power.Die, pkg power.Package)) {
+	topology := host.Topology()
+	for _, pkg := range *topology.Packages() {
+		for _, die := range *pkg.Dies() {
+			for _, core := range *die.Cores() {
+				f(core, die, pkg)
+			}
+		}
+	}
+}
+
+func IterateOverDies(host power.Host, f func(die power.Die, pkg power.Package)) {
+	topology := host.Topology()
+	for _, pkg := range *topology.Packages() {
+		for _, die := range *pkg.Dies() {
+			f(die, pkg)
+		}
+	}
+}
+
+func IterateOverPackages(host power.Host, f func(pkg power.Package)) {
+	topology := host.Topology()
+	for _, pkg := range *topology.Packages() {
+		f(pkg)
 	}
 }
