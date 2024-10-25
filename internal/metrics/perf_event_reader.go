@@ -24,10 +24,10 @@ const (
 var syscallRead = syscall.Read
 
 type perfEventValues struct {
-	lastTimeEnabled      uint64
-	lastTimeRunning      uint64
-	lastRawValue         uint64
-	lastScaledValue      uint64
+	lastTimeEnabled uint64
+	lastTimeRunning uint64
+	lastRawValue    uint64
+	lastScaledValue uint64
 }
 
 type perfEventReader interface {
