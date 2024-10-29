@@ -2,9 +2,8 @@ package monitoring
 
 import (
 	"errors"
-	"strconv"
-
 	"golang.org/x/exp/constraints"
+	"strconv"
 
 	"github.com/intel/kubernetes-power-manager/internal/metrics"
 	"github.com/intel/kubernetes-power-manager/pkg/util"
@@ -18,8 +17,9 @@ import (
 const (
 	promNamespace string = "power"
 
-	logTopName    string = "monitoring"
+	LogTopName    string = "monitoring"
 	perfSubsystem string = "perf"
+	msrSubsystem  string = "msr"
 
 	logTypeKey      string = "type"
 	logTypeHardware string = "hardware"
@@ -27,12 +27,6 @@ const (
 	logTypeCache    string = "cache"
 	logTypeName     string = "name"
 )
-
-// logger passed to RegisterMetrics should not have any Names or Values attached.
-func RegisterMetrics(perfEventClient *metrics.PerfEventClient, host power.Host, logger logr.Logger) {
-	logger = logger.WithName(logTopName)
-	registerPerfEventCollectors(perfEventClient, host, logger.WithName(perfSubsystem))
-}
 
 type collectorImpl struct {
 	collectFunc  func(ch chan<- prom.Metric)
@@ -51,6 +45,9 @@ type number interface {
 	constraints.Integer | constraints.Float
 }
 
+// Add new metrics missing errors to this chain
+var metricReaderMissing = errors.Join(metrics.ErrPerfEventMissing, metrics.ErrMSRReaderMissing)
+
 // newPerCPUCollector is generic factory of prometheus Collectors for metrics that are CPU bound.
 // host is instance of power optimization library Host that exposes system topology.
 // readFunc is generic function which signature corresponds to methods of southbound telemetry clients.
@@ -68,7 +65,7 @@ func newPerCPUCollector[T number](metricName, metricDesc string, metricType prom
 
 	collectorFuncs := make([]func(ch chan<- prom.Metric), 0)
 	util.IterateOverCPUs(host, func(cpu power.Cpu, core power.Core, die power.Die, pkg power.Package) {
-		if _, err := readFunc(cpu); errors.Is(err, metrics.ErrPerfEventMissing) {
+		if _, err := readFunc(cpu); errors.Is(err, metricReaderMissing) {
 			log.Info("Not registering collection, client will not be able to read this metric", "cpu", cpu.GetID())
 		} else {
 			collectorFuncs = append(collectorFuncs, func(ch chan<- prom.Metric) {
@@ -120,7 +117,7 @@ func newPerCoreCollector[T number](metricName, metricDesc string, metricType pro
 
 	collectorFuncs := make([]func(ch chan<- prom.Metric), 0)
 	util.IterateOverCores(host, func(core power.Core, die power.Die, pkg power.Package) {
-		if _, err := readFunc(core); errors.Is(err, metrics.ErrPerfEventMissing) {
+		if _, err := readFunc(core); errors.Is(err, metricReaderMissing) {
 			log.Info("Not registering collection, client will not be able to read this metric", "core", core.GetID())
 		} else {
 			collectorFuncs = append(collectorFuncs, func(ch chan<- prom.Metric) {
@@ -172,7 +169,7 @@ func newPerDieCollector[T number](metricName, metricDesc string, metricType prom
 
 	collectorFuncs := make([]func(ch chan<- prom.Metric), 0)
 	util.IterateOverDies(host, func(die power.Die, pkg power.Package) {
-		if _, err := readFunc(die); errors.Is(err, metrics.ErrPerfEventMissing) {
+		if _, err := readFunc(die); errors.Is(err, metricReaderMissing) {
 			log.Info("Not registering collection, client will not be able to read this metric", "die", die.GetID())
 		} else {
 			collectorFuncs = append(collectorFuncs, func(ch chan<- prom.Metric) {
@@ -191,7 +188,7 @@ func newPerDieCollector[T number](metricName, metricDesc string, metricType prom
 			})
 		}
 	})
-	log.V(4).Info("New perCore prometheus Collector created")
+	log.V(4).Info("New perDie prometheus Collector created")
 
 	return collectorImpl{
 		describeFunc: func(ch chan<- *prom.Desc) {
@@ -222,7 +219,7 @@ func newPerPackageCollector[T number](metricName, metricDesc string, metricType 
 
 	collectorFuncs := make([]func(ch chan<- prom.Metric), 0)
 	util.IterateOverPackages(host, func(pkg power.Package) {
-		if _, err := readFunc(pkg); errors.Is(err, metrics.ErrPerfEventMissing) {
+		if _, err := readFunc(pkg); errors.Is(err, metricReaderMissing) {
 			log.Info("Not registering collection, client will not be able to read this metric", "package", pkg.GetID())
 		} else {
 			collectorFuncs = append(collectorFuncs, func(ch chan<- prom.Metric) {
@@ -240,7 +237,7 @@ func newPerPackageCollector[T number](metricName, metricDesc string, metricType 
 			})
 		}
 	})
-	log.V(4).Info("New perCore prometheus Collector created")
+	log.V(4).Info("New perPackage prometheus Collector created")
 
 	return collectorImpl{
 		describeFunc: func(ch chan<- *prom.Desc) {

@@ -175,7 +175,15 @@ func main() {
 	)
 	defer perfEventClient.Close()
 
-	monitoring.RegisterMetrics(perfEventClient, powerLibrary, ctrl.Log)
+	msrClient := metrics.NewMSRClient(
+		ctrl.Log.WithName("clients").WithName("MSRClient"),
+		powerLibrary,
+	)
+	defer msrClient.Close()
+
+	logger := ctrl.Log.WithName(monitoring.LogTopName)
+	monitoring.RegisterPerfEventCollectors(perfEventClient, powerLibrary, logger)
+	monitoring.RegisterMSRCollectors(msrClient, powerLibrary, logger)
 
 	if err = (&controller.PowerProfileReconciler{
 		Client:       mgr.GetClient(),
