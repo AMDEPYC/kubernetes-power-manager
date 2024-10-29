@@ -9,7 +9,9 @@ import (
 	ctrlMetrics "sigs.k8s.io/controller-runtime/pkg/metrics"
 )
 
-func registerPerfEventCollectors(perfEventClient *metrics.PerfEventClient, host power.Host, logger logr.Logger) {
+func RegisterPerfEventCollectors(perfEventClient *metrics.PerfEventClient, host power.Host, logger logr.Logger) {
+	logger = logger.WithName(perfSubsystem)
+
 	// Type hardware
 	ctrlMetrics.Registry.MustRegister(
 		newPerCPUCollector(
