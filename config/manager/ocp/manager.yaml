@@ -67,7 +67,6 @@ spec:
               name: cgroup
               mountPropagation: HostToContainer
               readOnly: true
-      serviceAccountName: controller-manager
       terminationGracePeriodSeconds: 10
       volumes:
         - name: cgroup
