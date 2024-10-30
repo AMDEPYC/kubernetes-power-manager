@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-agent-metrics-local-service
+  namespace: intel-power
+spec:
+  selector:
+    name: power-node-agent-pod
+  ports:
+    - protocol: TCP
+      port: 10001
+      targetPort: 10001
+  internalTrafficPolicy: Local

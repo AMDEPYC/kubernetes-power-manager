@@ -18,6 +18,8 @@
 ---
 {{- include "manager-chart-library.deployment" . }}
 ---
+{{- include "manager-chart-library.agent-metrics-service" . }}
+---
 {{- include "manager-chart-library.powerconfig" . }}
 ---
 {{- if  eq (semver "2.2.0" | (semver .Chart.Version).Compare) 1}}

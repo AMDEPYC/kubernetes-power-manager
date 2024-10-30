@@ -78,6 +78,14 @@ operator:
       limits: 30Mi
       requests: 30Mi
 
+# Values for exposing metrics from node-agent locally
+agentmetricsservice:
+  name: node-agent-metrics-local-service
+  namespace: intel-power
+  selectorname: power-node-agent-pod
+  port: 10001
+  targetport: 10001
+
 # Values for the PowerConfig
 powerconfig:
   name: power-config

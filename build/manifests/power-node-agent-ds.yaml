@@ -27,6 +27,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+          ports:
+            - containerPort: 10001
           resources:
             limits:
               cpu: 500m
