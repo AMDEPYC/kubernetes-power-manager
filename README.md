@@ -1,10 +1,3 @@
-# DISCONTINUATION OF PROJECT  
-This project will no longer be maintained by Intel.  
-Intel has ceased development and contributions including, but not limited to, maintenance, bug fixes, new releases, or updates, to this project.  
-Intel no longer accepts patches to this project.  
-If you have an ongoing need to use this project, are interested in independently developing it, or would like to maintain patches for the open source software community, please create your own fork of this project.  
-
-
 # Kubernetes Power Manager
 
 ## Introduction
@@ -106,6 +99,11 @@ specifically Intel SST.
   Power Manager now makes this dynamic and through a cloud native pattern. The implication is that the cluster-level
   capacity for the workload can then configured dynamically, as well as scaled dynamically. Uncore frequency applies to
   Xeon scalable and D processors could save up to 40% of CPU power or improved performance gains.
+
+- **Metric reporting**
+
+  Processor-related metrics are available for scraping by Telegraf or similar metrics agent. Metrics are provided in Prometheus exposition format.
+  Metrics are collected from various sources, like Linux PMU, MSR, or dedicated libraries.
 
 ## Future planned additions to the Kubernetes Power Manager
 
@@ -755,6 +753,135 @@ kind: CStates
 status:
   errors: []
 ````
+### Metrics
+
+Following metrics are provided by Power Node Agent:
+
+| Metric name | Description | Unit | Type | Labels | Source | Note | Restriction |
+| ----------- | ----------- | ---- | ---- | ------ | ------ | ---- | ----------- |
+| power_perf_cycles_total | Counter of cycles on specific CPU | | counter | package, die, core, cpu | perf | Be wary of what happens during CPU frequency scaling. | |
+| power_perf_instructions_total | Counter of retired instructions on specific CPU | | counter | package, die, core, cpu | perf | Be careful, these can be affected by various issues, most notably hardware interrupt counts. | |
+| power_perf_stalled_cycles_frontend_total | Counter of stalled cycles during issue on specific CPU | | counter | package, die, core, cpu | perf | | |
+| power_perf_bpf_output_total | Counter of BPF outputs on specific CPU | | counter | package, die, core, cpu | perf | This is used to generate raw sample data from BPF. BPF programs can write to this even using bpf_perf_event_output helper. | |
+| power_perf_branch_instructions_total | Counter of retired branch instructions on specific CPU | | counter | package, die, core, cpu | perf | Prior to Linux 2.6.35, this used the wrong event on AMD processors. | |
+| power_perf_branch_misses_total | Counter of mispredicted branch instructions on specific CPU | | counter | package, die, core, cpu | perf | | |
+| power_perf_bus_cycles_total | Counter of bus cycles on specific CPU | | counter | package, die, core, cpu | perf | | not tested, not supported by linux kernel as of 2024/11 |
+| power_perf_stalled_cycles_backend_total | Counter of stalled cycles during retirement on specific CPU | | counter | package, die, core, cpu | perf | | not tested, not supported by linux kernel as of 2024/11 |
+| power_perf_ref_cycles_total | Counter of cycles not affected by frequency scaling on specific CPU | | counter | package, die, core, cpu | perf | | not tested, not supported by linux kernel as of 2024/11 |
+| power_perf_cache_accesses_total | Counter of cache accesses on specific CPU | | counter | package, die, core, cpu | perf | Cache accesses. Usually this indicates Last Level Cache accesses but this may vary depending on your CPU. This may include prefetches and coherency messages; again this depends on the design of your CPU. | |
+| power_perf_cache_bpu_read_accesses_total | Counter of branch prediction unit cache total read accesses | | counter | package, die, core, cpu | perf | | |
+| power_perf_cache_bpu_read_misses_total | Counter of branch prediction unit cache total read misses | | counter | package, die, core, cpu | perf | Cache misses. Usually this indicates Last Level Cache misses; this is intended to be used in conjunction with the power_perf_cache_accesses_total event to calculate cache miss rates. | |
+| power_perf_cache_bpu_write_accesses_total | Counter of branch prediction unit cache total write accesses | | counter | package, die, core, cpu | perf | | not tested, not supported by linux kernel as of 2024/11 |
+| power_perf_cache_bpu_write_misses_total | Counter of branch prediction unit cache total write misses | | counter | package, die, core, cpu | perf | | not tested, not supported by linux kernel as of 2024/11 |
+| power_perf_cache_bpu_prefetch_accesses_total | Counter of branch prediction unit cache total prefetch accesses | | counter | package, die, core, cpu | perf | | not tested, not supported by linux kernel as of 2024/11 |
+| power_perf_cache_bpu_prefetch_misses_total | Counter of branch prediction unit cache total prefetch misses | | counter | package, die, core, cpu | perf | | not tested, not supported by linux kernel as of 2024/11 |
+| power_perf_cache_l1d_read_accesses_total | Counter of level 1 data cache total read accesses | | counter | package, die, core, cpu | perf | | |
+| power_perf_cache_l1d_read_misses_total | Counter of level 1 data cache total read misses | | counter | package, die, core, cpu | perf | | |
+| power_perf_cache_l1d_write_accesses_total | Counter of level 1 data cache total write accesses | | counter | package, die, core, cpu | perf | | not tested, not supported by linux kernel as of 2024/11 |
+| power_perf_cache_l1d_write_misses_total | Counter of level 1 data cache total write misses | | counter | package, die, core, cpu | perf | | not tested, not supported by linux kernel as of 2024/11 |
+| power_perf_cache_l1d_prefetch_accesses_total | Counter of level 1 data cache total prefetch accesses | | counter | package, die, core, cpu | perf | | |
+| power_perf_cache_l1d_prefetch_accesses_total | Counter of level 1 data cache total prefetch misses | | counter | package, die, core, cpu | perf | | not tested, not supported by linux kernel as of 2024/11 |
+| power_perf_cache_l1i_read_accesses_total | Counter of level 1 instruction cache total read accesses | | counter | package, die, core, cpu | perf | | |
+| power_perf_cache_l1i_read_misses_total | Counter of level 1 instruction cache total read misses | | counter | package, die, core, cpu | perf | | |
+| power_perf_cache_l1i_write_accesses_total | Counter of level 1 instruction cache total write accesses | | counter | package, die, core, cpu | perf | | not tested, not supported by linux kernel as of 2024/11 |
+| power_perf_cache_l1i_write_misses_total | Counter of level 1 instruction cache total write misses | | counter | package, die, core, cpu | perf | | not tested, not supported by linux kernel as of 2024/11 |
+| power_perf_cache_l1i_prefetch_accesses_total | Counter of level 1 instruction cache total prefetch accesses | | counter | package, die, core, cpu | perf | | not tested, not supported by linux kernel as of 2024/11 |
+| power_perf_cache_l1i_prefetch_misses_total | Counter of level 1 instruction cache total prefetch misses | | counter | package, die, core, cpu | perf | | not tested, not supported by linux kernel as of 2024/11 |
+| power_perf_cache_node_read_accesses_total | Counter of node cache total read accesses | | counter | package, die, core, cpu | perf | | not tested, not supported by linux kernel as of 2024/11 |
+| power_perf_cache_node_read_misses_total | Counter of node cache total read misses | | counter | package, die, core, cpu | perf | | not tested, not supported by linux kernel as of 2024/11 |
+| power_perf_cache_node_write_accesses_total | Counter of node cache total write accesses | | counter | package, die, core, cpu | perf | | not tested, not supported by linux kernel as of 2024/11 |
+| power_perf_cache_node_write_misses_total | Counter of node cache total write misses | | counter | package, die, core, cpu | perf | | not tested, not supported by linux kernel as of 2024/11 |
+| power_perf_cache_node_prefetch_accesses_total | Counter of node cache total prefetch accesses | | counter | package, die, core, cpu | perf | | not tested, not supported by linux kernel as of 2024/11 |
+| power_perf_cache_node_prefetch_misses_total | Counter of node cache total prefetch misses | | counter | package, die, core, cpu | perf | | not tested, not supported by linux kernel as of 2024/11 |
+| power_perf_cache_ll_read_accesses_total | Counter of last level cache total read accesses | | counter | package, die | perf | | not tested, not supported by linux kernel as of 2024/11 |
+| power_perf_cache_ll_read_misses_total | Counter of last level cache total read misses | | counter | package, die | perf | | not tested, not supported by linux kernel as of 2024/11 |
+| power_perf_cache_ll_write_accesses_total | Counter of last level cache total write accesses | | counter | package, die | perf | | not tested, not supported by linux kernel as of 2024/11 |
+| power_perf_cache_ll_write_misses_total | Counter of last level cache total write misses | | counter | package, die | perf | | not tested, not supported by linux kernel as of 2024/11 |
+| power_perf_cache_ll_prefetch_accesses_total | Counter of last level cache total prefetch accesses | | counter | package, die | perf | | not tested, not supported by linux kernel as of 2024/11 |
+| power_perf_cache_ll_prefetch_misses_total | Counter of last level cache total prefetch misses | | counter | package, die | perf | | not tested, not supported by linux kernel as of 2024/11 |
+| power_perf_cache_misses_total | Counter of cache misses on specific CPU | | counter | package, die, core, cpu | perf | | |
+| package_energy_consumption_joules_total | Counter of total package energy consumption in joules | joule | counter | package | perf | | |
+| power_msr_c0_residency_percent | Gauge of CPU residency in C0 | percent | gauge | package, die, core, cpu | MSR | | |
+| power_msr_core_energy_consumption_joules_total | Counter of total core energy consumption in joules | joule | counter | package, die, core | MSR | | |
+| power_msr_cx_residency_percent | Gauge of CPU residency in C-states other than C0 | percent | gauge | package, die, core, cpu | MSR | | |
+| power_msr_package_energy_consumption_joules_total | Counter of total package energy consumption in joules | joule | counter | package | MSR | | |
+| power_esmi_core_energy_consumption_joules_total | Counter of total core energy consumption in joules. | joule | counter | package, die, core | E-SMI | | |
+| power_esmi_data_fabric_clock_megahertz | Gauge of data fabric clock in megahertz. | megahertz | gauge | package | E-SMI | | |
+| power_esmi_memory_clock_megahertz | Gauge of memory clock in megahertz. | megahertz | gauge | package | E-SMI | | |
+| power_esmi_core_clock_throttle_limit_megahertz | Gauge of package core clock throttle limit in megahertz. | megahertz | gauge | package | E-SMI | | |
+| power_esmi_package_frequency_limit_megahertz | Gauge of package frequency limit in megahertz. | megahertz | gauge | package | E-SMI | | |
+| power_esmi_package_min_frequency_megahertz | Gauge of package minimum frequency in megahertz. | megahertz | gauge | package | E-SMI | | |
+| power_esmi_package_max_frequency_megahertz | Gauge of package maximum frequency in megahertz. | megahertz | gauge | package | E-SMI | | |
+| power_esmi_core_frequency_limit_megahertz | Gauge of core frequency limit in megahertz. | megahertz | gauge | package, die, core | E-SMI | | |
+| power_esmi_rail_frequency_limit | Gauge of package rail frequency limit policy. | | gauge | package | E-SMI | Values: 1 = all cores on both rails have same frequency limit, 0 = each rail has different independent frequency limit. | |
+| power_esmi_df_cstate_enabling_control | Gauge of package DF C-state enabling control. | | gauge | package | E-SMI | Values: 1 = DFC enabled, 0 = DFC disabled. | |
+| power_esmi_package_power_watt | Gauge of package power in watts. | watt | gauge | package | E-SMI | | |
+| power_esmi_package_power_cap_watt | Gauge of package power cap in watts. | watt | gauge | package | E-SMI | | |
+| power_esmi_package_power_max_cap_watt | Gauge of package power max cap in watts. | watt | gauge | package | E-SMI | | |
+| power_esmi_power_efficiency_mode | Gauge of package power efficiency mode. | | gauge | package | E-SMI | Values: 0 = high performance mode, 1 = power efficient mode, 2 = IO performance mode, 3 = balanced memory performance mode, 4 = balanced core performance mode, 5 = balanced core and memory performance mode. | |
+| power_esmi_core_boost_limit_megahertz | Gauge of core frequency boost limit in megahertz. | megahertz | gauge | package, die, core | E-SMI | | |
+| power_esmi_c0_residency_percent | Gauge of package residency in C0. | percent | gauge | package | E-SMI | | |
+| power_esmi_package_temperature_celsius | Gauge of package temperature in degree Celsius. | degree celsius | gauge | package | E-SMI | | |
+| power_esmi_ddr_bandwidth_utilization_gigabytes_per_second | Gauge of DDR bandwidth utilization in GB/s. | gb/s | gauge | | E-SMI | | |
+| power_esmi_ddr_bandwidth_utilization_percent | Gauge of DDR bandwidth utilization in percent of max bandwidth. | percent | gauge | | E-SMI | | |
+| power_esmi_dimm_power_watts | Gauge of DIMM power in watts. | watt | gauge | | E-SMI | | |
+| power_esmi_dimm_temperature_celsius | Gauge of DIMM temperature in degree Celsius. | degree celsius | gauge | | E-SMI | | |
+| power_esmi_lclk_dpm_min_level | gauge of minimum lclk dpm level. | | gauge | | e-smi | Values: either 0 or 1 | |
+| power_esmi_lclk_dpm_max_level | Gauge of maximum LCLK DPM level. | | gauge | | E-SMI | Values: either 0 or 1 | |
+| power_esmi_io_link_bandwidth_utilization_megabits_per_second | Gauge of IO link bandwidth utilization in Mb/s. | mb/s | gauge | | E-SMI | | |
+| power_esmi_xgmi_aggregate_bandwidth_utilization_megabits_per_second | Gauge of xGMI aggregate bandwidth utilization in Mb/s. | mb/s | gauge | | E-SMI | | |
+| power_esmi_xgmi_read_bandwidth_utilization_megabits_per_second | Gauge of xGMI read bandwidth utilization in Mb/s. | mb/s | gauge | | E-SMI | | |
+| power_esmi_xgmi_write_bandwidth_utilization_megabits_per_second | Gauge of xGMI write bandwidth utilization in Mb/s. | mb/s | gauge | | E-SMI | | |
+| power_esmi_processor_family | Gauge of processor family. | | gauge | | E-SMI | | |
+| power_esmi_processor_model | Gauge of processor model. | | gauge | | E-SMI | | |
+| power_esmi_cpus_per_core | Gauge of CPUs per core. | | gauge | | E-SMI | | |
+| power_esmi_cpus | Gauge of total number of CPUs in the system. | | gauge | | E-SMI | | |
+| power_esmi_packages | Gauge of total number of packages in the system. | | gauge | | E-SMI | | |
+| power_esmi_smu_firmware_major_version | Gauge of SMU firmware major version. | | gauge | | E-SMI | | |
+| power_esmi_smu_firmware_minor_version | Gauge of SMU firmware minor version. | | gauge | | E-SMI | | |
+
+#### Telegraf configuration for metrics scraping
+
+Metrics are provided in Prometheus exposition format. Metrics endpoint is exposed by Power Node Agent Pod and is accessible from Pods residing on the same worker node using the following URL:
+http://node-agent-metrics-local-service.power-manager.svc.cluster.local:10001/metrics
+
+For metrics scraping, it is recommended to deploy [Telegraf](https://github.com/influxdata/telegraf) as a Pod on each worker node that is required to collect metrics. Prometheus input plugin can be used,
+with configured endpoint:
+
+````
+urls = ["http://node-agent-metrics-local-service.power-manager.svc.cluster.local:10001/metrics"]
+````
+
+#### Prometheus configuration for metrics scraping
+
+Prometheus can scrape metrics from Power Node Agent either via Telegraf or directly via metrics port.
+In case that Prometheus is deployed as an Kubernetes Operator, metrics scraping can be set up using PodMonitor.
+Example of PodMonitor manifest:
+
+````
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: node-agent-monitor
+  namespace: monitoring   # same namespace as prometheus operator
+  labels:
+    release: prometheus-operator  # same as release label of prometheus operator
+spec:
+  namespaceSelector:
+    matchNames:
+    - power-manager
+  podMetricsEndpoints:
+  - interval: 30s
+    path: /metrics
+    port: metrics
+    scheme: http
+  selector:
+    matchLabels:
+      name: power-node-agent-pod
+````
+
+In case that Prometheus is not deployed as a Kubernetes Operator, metrics scraping can be configured using [Pod role](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#pod).
+
 ### Node Agent Pod
 
 The Pod Controller watches for pods. When a pod comes along the Pod Controller checks if the pod is in the guaranteed
