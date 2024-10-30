@@ -3,7 +3,7 @@ kind: TimeOfDay
 metadata:
   # Replace <NODE_NAME> with the name of the node to use TOD on
   name: <NODE_NAME>
-  namespace: intel-power
+  namespace: power-manager
 spec:
   timeZone: "Eire"
   schedule:

@@ -60,7 +60,7 @@ func (r *PowerWorkloadReconciler) Reconcile(c context.Context, req ctrl.Request)
 	logger := r.Log.WithValues("powerworkload", req.NamespacedName)
 	if req.Namespace != IntelPowerNamespace {
 		err := fmt.Errorf("incorrect namespace")
-		logger.Error(err, "resource is not in the intel-power namespace, ignoring")
+		logger.Error(err, "resource is not in the power-manager namespace, ignoring")
 		return ctrl.Result{Requeue: false}, err
 	}
 	nodeName := os.Getenv("NODE_NAME")

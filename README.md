@@ -203,7 +203,7 @@ supported with helm charts:
 
 When set up using the provided helm charts, the following will be deployed:
 
-* The intel-power namespace
+* The power-manager namespace
 * The RBAC rules for the operator and node agent
 * The operator deployment itself
 * The operator's power config
@@ -297,7 +297,7 @@ apiVersion: "power.intel.com/v1"
 kind: PowerConfig
 metadata:
   name: power-config
-  namespace: intel-power
+  namespace: power-manager
 spec:
   powerNodeSelector:
     feature.node.kubernetes.io/power-node: "true"
@@ -329,7 +329,7 @@ apiVersion: "power.intel.com/v1"
 kind: PowerWorkload
 metadata:
     name: performance-example-node-workload
-    namespace: intel-power
+    namespace: power-manager
 spec:
    name: "performance-example-node-workload"
    nodeInfo:
@@ -373,7 +373,7 @@ apiVersion: "power.intel.com/v1"
 kind: PowerWorkload
 metadata:
   name: shared-example-node-workload
-  namespace: intel-power
+  namespace: power-manager
 spec:
   name: "shared-example-node-workload"
   allCores: true
@@ -652,7 +652,7 @@ kind: TimeOfDay
 metadata:
   # Replace <NODE_NAME> with the name of the node to use TOD on
   name: <NODE_NAME>
-  namespace: intel-power
+  namespace: power-manager
 spec:
   timeZone: "Eire"
   schedule:
@@ -719,7 +719,7 @@ apiVersion: power.intel.com/v1
 kind: Uncore
 metadata:
   name: <NODE_NAME>
-  namespace: intel-power
+  namespace: power-manager
 spec:
   sysMax: 2300000
   sysMin: 1300000
@@ -823,7 +823,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: controller-manager
-  namespace: intel-power
+  namespace: power-manager
   labels:
     control-plane: controller-manager
 spec:
@@ -907,7 +907,7 @@ apiVersion: power.intel.com/v1
 kind: PowerProfile
 metadata:
   name: shared
-  namespace: intel-power
+  namespace: power-manager
 spec:
   name: "shared"
   max: 1000
@@ -930,7 +930,7 @@ kind: PowerWorkload
 metadata:
   # Replace <NODE_NAME> with the Node associated with PowerWorkload 
   name: shared-<NODE_NAME>-workload
-  namespace: intel-power
+  namespace: power-manager
 spec:
   # Replace <NODE_NAME> with the Node associated with PowerWorkload 
   name: "shared-<NODE_NAME>-workload"
@@ -995,7 +995,7 @@ Replace the placeholder values with the PowerProfile you require and apply the P
 At this point, if only the ‘performance’ PowerProfile was selected in the PowerConfig, the user’s cluster will contain
 three PowerProfiles and two PowerWorkloads:
 
-`kubectl get powerprofiles -n intel-power`
+`kubectl get powerprofiles -n power-manager`
 
 ````
 NAME                          AGE
@@ -1004,7 +1004,7 @@ performance-<NODE_NAME>       58m
 shared-<NODE_NAME>            60m
 ````
 
-`kubectl get powerworkloads -n intel-power`
+`kubectl get powerworkloads -n power-manager`
 
 ````
 NAME                                   AGE

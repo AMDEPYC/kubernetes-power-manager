@@ -2,14 +2,14 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: power-node-agent
-  namespace: intel-power
+  namespace: power-manager
 spec:
   selector:
     matchLabels:
       name: power-node-agent-pod
   template:
     metadata:
-      namespace: intel-power
+      namespace: power-manager
       labels:
         name: power-node-agent-pod
     spec:

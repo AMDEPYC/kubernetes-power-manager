@@ -217,7 +217,7 @@ func TestTimeOfDayCronJob_Reconcile_CronProfile(t *testing.T) {
 		&powerv1.TimeOfDayCronJob{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "timeofday-test",
-				Namespace: "intel-power",
+				Namespace: "power-manager",
 			},
 			Spec: powerv1.TimeOfDayCronJobSpec{
 				Hour:     hour,
@@ -232,13 +232,13 @@ func TestTimeOfDayCronJob_Reconcile_CronProfile(t *testing.T) {
 	req := reconcile.Request{
 		NamespacedName: client.ObjectKey{
 			Name:      "timeofday-test",
-			Namespace: "intel-power",
+			Namespace: "power-manager",
 		},
 	}
 	workloadReq := reconcile.Request{
 		NamespacedName: client.ObjectKey{
 			Name:      "shared-TestNode",
-			Namespace: "intel-power",
+			Namespace: "power-manager",
 		},
 	}
 	nodemk := new(testutils.MockHost)
@@ -368,7 +368,7 @@ func TestTimeOfDayCronJob_Reconcile_CronPods(t *testing.T) {
 		&powerv1.TimeOfDayCronJob{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "timeofday-test",
-				Namespace: "intel-power",
+				Namespace: "power-manager",
 			},
 			Status: powerv1.TimeOfDayCronJobStatus{},
 			Spec: powerv1.TimeOfDayCronJobSpec{
@@ -389,7 +389,7 @@ func TestTimeOfDayCronJob_Reconcile_CronPods(t *testing.T) {
 	req := reconcile.Request{
 		NamespacedName: client.ObjectKey{
 			Name:      "timeofday-test",
-			Namespace: "intel-power",
+			Namespace: "power-manager",
 		},
 	}
 	performanceReq := reconcile.Request{
@@ -480,7 +480,7 @@ func TestTimeOfDayCronJob_Reconcile_Cstates(t *testing.T) {
 		&powerv1.TimeOfDayCronJob{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "timeofday-test",
-				Namespace: "intel-power",
+				Namespace: "power-manager",
 			},
 			Spec: powerv1.TimeOfDayCronJobSpec{
 				Hour:     hour,
@@ -566,7 +566,7 @@ func TestTimeOfDayCronJob_Reconcile_ExistingCstates(t *testing.T) {
 		&powerv1.CStates{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      nodename,
-				Namespace: "intel-power",
+				Namespace: "power-manager",
 			},
 			Spec: powerv1.CStatesSpec{
 				ExclusivePoolCStates: map[string]map[string]bool{"performance": {"C1": false, "C1E": true}},
@@ -575,7 +575,7 @@ func TestTimeOfDayCronJob_Reconcile_ExistingCstates(t *testing.T) {
 		&powerv1.TimeOfDayCronJob{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "timeofday-test",
-				Namespace: "intel-power",
+				Namespace: "power-manager",
 			},
 			Spec: powerv1.TimeOfDayCronJobSpec{
 				Hour:     hour,
@@ -669,7 +669,7 @@ func TestTimeOfDayCronJob_Reconcile_NoExistingWorkload_Lib_Err(t *testing.T) {
 		&powerv1.TimeOfDayCronJob{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "timeofday-test",
-				Namespace: "intel-power",
+				Namespace: "power-manager",
 			},
 			Spec: powerv1.TimeOfDayCronJobSpec{
 				Hour:         hour,
@@ -684,13 +684,13 @@ func TestTimeOfDayCronJob_Reconcile_NoExistingWorkload_Lib_Err(t *testing.T) {
 	req := reconcile.Request{
 		NamespacedName: client.ObjectKey{
 			Name:      "timeofday-test",
-			Namespace: "intel-power",
+			Namespace: "power-manager",
 		},
 	}
 	workloadReq := reconcile.Request{
 		NamespacedName: client.ObjectKey{
 			Name:      "shared-TestNode",
-			Namespace: "intel-power",
+			Namespace: "power-manager",
 		},
 	}
 	_, teardown, err := testutils.FullDummySystem()
@@ -746,7 +746,7 @@ func TestTimeOfDayCronJob_Reconcile_MissedDeadline(t *testing.T) {
 		&powerv1.TimeOfDayCronJob{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "timeofday-test",
-				Namespace: "intel-power",
+				Namespace: "power-manager",
 			},
 			Spec: powerv1.TimeOfDayCronJobSpec{
 				Hour:         hour,
@@ -763,7 +763,7 @@ func TestTimeOfDayCronJob_Reconcile_MissedDeadline(t *testing.T) {
 	req := reconcile.Request{
 		NamespacedName: client.ObjectKey{
 			Name:      "timeofday-test",
-			Namespace: "intel-power",
+			Namespace: "power-manager",
 		},
 	}
 	r, err := createTODCronReconcilerObject(clientObjs)
@@ -787,7 +787,7 @@ func TestTimeOfDayCronJob_Reconcile_ErrsSharedPoolExists(t *testing.T) {
 	cronjob := &powerv1.TimeOfDayCronJob{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "timeofday-test",
-			Namespace: "intel-power",
+			Namespace: "power-manager",
 		},
 		Spec: powerv1.TimeOfDayCronJobSpec{
 			TimeZone:     &zone,
@@ -912,7 +912,7 @@ func TestTimeOfDayCronJob_Reconcile_ErrsSharedPoolExists(t *testing.T) {
 	req := reconcile.Request{
 		NamespacedName: client.ObjectKey{
 			Name:      "timeofday-test",
-			Namespace: "intel-power",
+			Namespace: "power-manager",
 		},
 	}
 	_, teardown, err := testutils.FullDummySystem()
@@ -952,7 +952,7 @@ func TestTimeOfDayCronJob_Reconcile_ErrsPodTuning(t *testing.T) {
 	cronjob := &powerv1.TimeOfDayCronJob{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "timeofday-test",
-			Namespace: "intel-power",
+			Namespace: "power-manager",
 		},
 		Spec: powerv1.TimeOfDayCronJobSpec{
 			TimeZone: &zone,
@@ -1120,7 +1120,7 @@ func TestTimeOfDayCronJob_Reconcile_ErrsPodTuning(t *testing.T) {
 	req := reconcile.Request{
 		NamespacedName: client.ObjectKey{
 			Name:      "timeofday-test",
-			Namespace: "intel-power",
+			Namespace: "power-manager",
 		},
 	}
 	_, teardown, err := testutils.FullDummySystem()
@@ -1169,7 +1169,7 @@ func TestTimeOfDayCronJob_Reconcile_InvalidRequests(t *testing.T) {
 	req = reconcile.Request{
 		NamespacedName: client.ObjectKey{
 			Name:      "wrong-node",
-			Namespace: "intel-power",
+			Namespace: "power-manager",
 		},
 	}
 	_, err = r.Reconcile(context.TODO(), req)
@@ -1202,7 +1202,7 @@ func TestTimeOfDayCronJob_Reconcile_InvalidRequests(t *testing.T) {
 		&powerv1.TimeOfDayCronJob{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "timeofday-test",
-				Namespace: "intel-power",
+				Namespace: "power-manager",
 			},
 			Spec: *cronSpec,
 		},
@@ -1211,7 +1211,7 @@ func TestTimeOfDayCronJob_Reconcile_InvalidRequests(t *testing.T) {
 	req = reconcile.Request{
 		NamespacedName: client.ObjectKey{
 			Name:      "timeofday-test",
-			Namespace: "intel-power",
+			Namespace: "power-manager",
 		},
 	}
 	nodemk := new(testutils.MockHost)
@@ -1244,7 +1244,7 @@ func TestTimeOfDayCronJob_Reconcile_InvalidRequests(t *testing.T) {
 	clientObjs[1] = &powerv1.TimeOfDayCronJob{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "timeofday-test",
-			Namespace: "intel-power",
+			Namespace: "power-manager",
 		},
 		Spec: *cronSpec,
 	}
@@ -1273,7 +1273,7 @@ func TestTimeOfDayCronJob_Reconcile_InvalidRequests(t *testing.T) {
 	clientObjs[1] = &powerv1.TimeOfDayCronJob{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "timeofday-test",
-			Namespace: "intel-power",
+			Namespace: "power-manager",
 		},
 		Spec: *cronSpec,
 	}
@@ -1355,7 +1355,7 @@ func FuzzTimeOfDayCronController(f *testing.F) {
 		todObj := &powerv1.TimeOfDayCronJob{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      testNode,
-				Namespace: "intel-power",
+				Namespace: "power-manager",
 			},
 			Spec: powerv1.TimeOfDayCronJobSpec{
 				TimeZone:     &timeZone,
@@ -1390,7 +1390,7 @@ func FuzzTimeOfDayCronController(f *testing.F) {
 		req := reconcile.Request{
 			NamespacedName: client.ObjectKey{
 				Name:      testNode,
-				Namespace: "intel-power",
+				Namespace: "power-manager",
 			},
 		}
 		dummyFilesystemHost, teardown, err := testutils.FullDummySystem()

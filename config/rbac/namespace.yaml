@@ -5,4 +5,4 @@ metadata:
     control-plane: controller-manager
     app.kubernetes.io/name: intel-kubernetes-power-manager
     app.kubernetes.io/managed-by: kustomize
-  name: intel-power
+  name: power-manager

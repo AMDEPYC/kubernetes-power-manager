@@ -5,31 +5,31 @@
 # Intel Power namespace
 namespace:
   label: controller-manager
-  name: intel-power
+  name: power-manager
 
 # Service Account for the overarching operator
 operatorserviceaccount:
   name: intel-power-operator
-  namespace: intel-power
+  namespace: power-manager
 
 # Service Account for the Power Node Agent
 agentserviceaccount:
   name: intel-power-node-agent
-  namespace: intel-power
+  namespace: power-manager
 
 # Role for the overarching operator
 operatorrole:
   name: operator-custom-resource-definitions-role
-  namespace: intel-power
+  namespace: power-manager
   resources: ["powerconfigs", "powerconfigs/status", "powerprofiles", "powerprofiles/status", "events", "daemonsets", "configmaps", "configmaps/status", "leases", "uncores"]
 
 # Role Binding for the overarching operator
 operatorrolebinding:
   name: operator-custom-resource-definitions-role-binding
-  namespace: intel-power
+  namespace: power-manager
   serviceaccount:
     name: intel-power-operator
-    namespace: intel-power
+    namespace: power-manager
   rolename: operator-custom-resource-definitions-role
 
 # Cluster Role for the overarching operator
@@ -42,7 +42,7 @@ operatorclusterrolebinding:
   name: operator-nodes-binding
   serviceaccount:
     name: intel-power-operator
-    namespace: intel-power
+    namespace: power-manager
   clusterrolename: operator-nodes
 
 # Cluster Role for the Power Node Agent
@@ -54,13 +54,13 @@ agentclusterrolebinding:
   name: node-agent-cluster-resources-binding
   serviceaccount:
     name: intel-power-node-agent
-    namespace: intel-power
+    namespace: power-manager
   clusterrolename: node-agent-cluster-resources
 
 # Deployment for the overarching operator
 operator:
   name: controller-manager
-  namespace: intel-power
+  namespace: power-manager
   labels:
     controlplane: controller-manager
   replicas: 1
@@ -81,7 +81,7 @@ operator:
 # Values for exposing metrics from node-agent locally
 agentmetricsservice:
   name: node-agent-metrics-local-service
-  namespace: intel-power
+  namespace: power-manager
   selectorname: power-node-agent-pod
   port: 10001
   targetport: 10001
@@ -89,7 +89,7 @@ agentmetricsservice:
 # Values for the PowerConfig
 powerconfig:
   name: power-config
-  namespace: intel-power
+  namespace: power-manager
   nodeselector:
     label: "feature.node.kubernetes.io/power-node"
     value: 'true'
@@ -97,7 +97,7 @@ powerconfig:
 # Values for the Shared PowerProfile
 sharedprofile:
   name: shared
-  namespace: intel-power
+  namespace: power-manager
   spec:
     name: "shared"
     max: 1000

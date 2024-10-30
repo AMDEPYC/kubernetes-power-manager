@@ -2,7 +2,7 @@ apiVersion: power.intel.com/v1
 kind: Uncore
 metadata:
   name: <NODE_NAME>
-  namespace: intel-power
+  namespace: power-manager
 spec:
   sysMax: 2300000
   sysMin: 1300000

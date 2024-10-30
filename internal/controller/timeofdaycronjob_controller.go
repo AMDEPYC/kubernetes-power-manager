@@ -64,7 +64,7 @@ func (r *TimeOfDayCronJobReconciler) Reconcile(c context.Context, req ctrl.Reque
 	logger := r.Log.WithValues("timeofdaycronjob", req.NamespacedName)
 	if req.Namespace != IntelPowerNamespace {
 		err := fmt.Errorf("incorrect namespace")
-		logger.Error(err, "resource is not in the intel-power namespace, ignoring")
+		logger.Error(err, "resource is not in the power-manager namespace, ignoring")
 		return ctrl.Result{Requeue: false}, err
 	}
 	logger.Info("reconciling time-of-day cron job")

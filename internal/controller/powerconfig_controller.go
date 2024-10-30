@@ -43,7 +43,7 @@ import (
 const (
 	ExtendedResourcePrefix = "power.intel.com/"
 	NodeAgentDSName        = "power-node-agent"
-	IntelPowerNamespace    = "intel-power"
+	IntelPowerNamespace    = "power-manager"
 )
 
 var NodeAgentDaemonSetPath = "/power-manifests/power-node-agent-ds.yaml"
@@ -66,7 +66,7 @@ func (r *PowerConfigReconciler) Reconcile(c context.Context, req ctrl.Request) (
 
 	if req.Namespace != IntelPowerNamespace {
 		err := fmt.Errorf("incorrect namespace")
-		logger.Error(err, "resource is not in the intel-power namespace, ignoring")
+		logger.Error(err, "resource is not in the power-manager namespace, ignoring")
 		return ctrl.Result{Requeue: false}, err
 	}
 

@@ -3,7 +3,7 @@ kind: CStates
 metadata:
   # Replace <NODE_NAME> with the name of the node to configure the C-States on that node
   name: <NODE_NAME>
-  namespace: intel-power
+  namespace: power-manager
 spec:
   sharedPoolCStates:
     C1: true

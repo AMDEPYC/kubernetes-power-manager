@@ -47,7 +47,7 @@ const (
 	PowerProfileAnnotation = "PowerProfile"
 	ResourcePrefix         = "power.intel.com/"
 	CPUResource            = "cpu"
-	PowerNamespace         = "intel-power"
+	PowerNamespace         = "power-manager"
 )
 
 // PowerPodReconciler reconciles a PowerPod object

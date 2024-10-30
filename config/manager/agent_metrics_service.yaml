@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: node-agent-metrics-local-service
-  namespace: intel-power
+  namespace: power-manager
 spec:
   selector:
     name: power-node-agent-pod

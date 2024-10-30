@@ -57,7 +57,7 @@ func (r *CStatesReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	logger := r.Log.WithValues("cStates", req.NamespacedName)
 	if req.Namespace != IntelPowerNamespace {
 		err = fmt.Errorf("incorrect namespace")
-		logger.Error(err, "resource is not in the intel-power namespace, ignoring")
+		logger.Error(err, "resource is not in the power-manager namespace, ignoring")
 		return ctrl.Result{Requeue: false}, err
 	}
 	nodeName := os.Getenv("NODE_NAME")

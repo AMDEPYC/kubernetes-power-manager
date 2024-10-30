@@ -8,7 +8,7 @@ metadata:
       app.kubernetes.io/managed-by: kustomize
       app.kubernetes.io/created-by: kubernetes-power-manager
   name: timeofday-sample
-  namespace: intel-power
+  namespace: power-manager
 spec:
   timeZone: "Eire"
   schedule:

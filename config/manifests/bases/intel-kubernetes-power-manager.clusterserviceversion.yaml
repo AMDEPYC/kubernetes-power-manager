@@ -16,7 +16,7 @@ metadata:
               "app.kubernetes.io/part-of": "kubernetes-power-manager"
             },
             "name": "\u003cNODE_NAME\u003e",
-            "namespace": "intel-power"
+            "namespace": "power-manager"
           },
           "spec": {
             "exclusivePoolCStates": {
@@ -47,7 +47,7 @@ metadata:
               "app.kubernetes.io/part-of": "kubernetes-power-manager"
             },
             "name": "power-config",
-            "namespace": "intel-power"
+            "namespace": "power-manager"
           },
           "spec": {
             "powerNodeSelector": {
@@ -72,7 +72,7 @@ metadata:
               "app.kubernetes.io/part-of": "kubernetes-power-manager"
             },
             "name": "shared",
-            "namespace": "intel-power"
+            "namespace": "power-manager"
           },
           "spec": {
             "epp": "power",
@@ -95,7 +95,7 @@ metadata:
               "app.kubernetes.io/part-of": "kubernetes-power-manager"
             },
             "name": "shared-\u003cNODE_NAME\u003e-workload",
-            "namespace": "intel-power"
+            "namespace": "power-manager"
           },
           "spec": {
             "allCores": true,
@@ -122,7 +122,7 @@ metadata:
               "app.kubernetes.io/part-of": "kubernetes-power-manager"
             },
             "name": "timeofday-sample",
-            "namespace": "intel-power"
+            "namespace": "power-manager"
           },
           "spec": {
             "reservedCPUs": [
@@ -206,7 +206,7 @@ metadata:
               "app.kubernetes.io/part-of": "kubernetes-power-manager"
             },
             "name": "\u003cNODE_NAME\u003e",
-            "namespace": "intel-power"
+            "namespace": "power-manager"
           },
           "spec": {
             "dieSelector": [
@@ -224,7 +224,7 @@ metadata:
       ]
     capabilities: Basic Install
   name: intel-kubernetes-power-manager.v0.0.0
-  namespace: intel-power
+  namespace: power-manager
 spec:
   apiservicedefinitions: {}
   customresourcedefinitions:

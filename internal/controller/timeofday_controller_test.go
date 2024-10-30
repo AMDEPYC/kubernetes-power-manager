@@ -117,7 +117,7 @@ func TestTimeOfDay_Reconcile(t *testing.T) {
 	todObj = &powerv1.TimeOfDay{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      testNode,
-			Namespace: "intel-power",
+			Namespace: "power-manager",
 		},
 		Spec: powerv1.TimeOfDaySpec{
 			TimeZone:     "Eire",
@@ -140,7 +140,7 @@ func TestTimeOfDay_Reconcile(t *testing.T) {
 	todObj = &powerv1.TimeOfDay{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      testNode,
-			Namespace: "intel-power",
+			Namespace: "power-manager",
 		},
 		Spec: powerv1.TimeOfDaySpec{
 			TimeZone:     "Eire",
@@ -186,7 +186,7 @@ func FuzzTimeOfDayController(f *testing.F) {
 		todObj := &powerv1.TimeOfDay{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      testNode,
-				Namespace: "intel-power",
+				Namespace: "power-manager",
 			},
 			Spec: powerv1.TimeOfDaySpec{
 				TimeZone:     timeZone,
@@ -242,7 +242,7 @@ func FuzzTimeOfDayController(f *testing.F) {
 		req := reconcile.Request{
 			NamespacedName: client.ObjectKey{
 				Name:      testNode,
-				Namespace: "intel-power",
+				Namespace: "power-manager",
 			},
 		}
 		r, err := createTimeOfDayReconcilerObject(clientObjs)
@@ -275,7 +275,7 @@ func TestTimeOfDay_Reconcile_InvalidTODRequests(t *testing.T) {
 	todObj := &powerv1.TimeOfDay{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      testNode,
-			Namespace: "intel-power",
+			Namespace: "power-manager",
 		},
 		Spec: powerv1.TimeOfDaySpec{
 			TimeZone:     "Eire",
@@ -308,7 +308,7 @@ func TestTimeOfDay_Reconcile_InvalidTODRequests(t *testing.T) {
 	todObj = &powerv1.TimeOfDay{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      testNode,
-			Namespace: "intel-power",
+			Namespace: "power-manager",
 		},
 		Spec: powerv1.TimeOfDaySpec{
 			TimeZone:     "made up",
@@ -337,7 +337,7 @@ func TestTimeOfDay_Reconcile_InvalidTODRequests(t *testing.T) {
 	todObj1 := &powerv1.TimeOfDay{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      testNode,
-			Namespace: "intel-power",
+			Namespace: "power-manager",
 		},
 		Spec: powerv1.TimeOfDaySpec{
 			TimeZone:     "Eire",
@@ -387,7 +387,7 @@ func TestTimeOfDay_Reconcile_ClientErrs(t *testing.T) {
 	todObj := &powerv1.TimeOfDay{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      testNode,
-			Namespace: "intel-power",
+			Namespace: "power-manager",
 		},
 		Spec: powerv1.TimeOfDaySpec{
 			TimeZone:     timeZone,

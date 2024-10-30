@@ -2,7 +2,7 @@ apiVersion: power.intel.com/v1
 kind: PowerConfig
 metadata:
   name: power-config
-  namespace: intel-power
+  namespace: power-manager
 spec:
   powerNodeSelector:
     # Add labels here for the Nodes you want the PowerNodeAgent to be applied to
