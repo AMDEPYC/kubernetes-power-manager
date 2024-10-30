@@ -1,0 +1,82 @@
+@startuml
+
+<style>
+node {
+  BackGroundColor effbda
+  LineThickness 2
+  LineColor black
+  FontSize 20
+}
+
+rectangle {
+  BackGroundColor #d1ffff
+  LineThickness 2
+  LineColor black
+  FontSize 25
+  FontStyle italic
+}
+
+agent {
+  BackGroundColor #d1ffff
+  LineThickness 1
+  LineColor black
+}
+</style>
+
+
+
+title <b>Power node agent metrics component diagram
+skinparam roundCorner 15
+
+node "Prometheus" {
+}
+
+node "Telegraf" {
+rectangle "Prometheus Output Plugin"
+rectangle "Prometheus Input Plugin"
+
+"Prometheus Output Plugin" --> "Prometheus Input Plugin"
+"Prometheus" --> "Prometheus Output Plugin"
+}
+
+node "Power Node Agent" {
+
+rectangle "Metrics Server"
+rectangle "Global Metrics Registry"
+rectangle "E-SMI Collectors"
+rectangle "E-SMI Client"
+rectangle "E-SMI In-band Library"
+rectangle "MSR Collectors"
+rectangle "MSR Client"
+rectangle "MSR Readers"
+rectangle "Perf Event Collectors"
+rectangle "Perf Event Client"
+rectangle "Perf Event Readers"
+
+
+"Metrics Server" --> "Global Metrics Registry"
+"Global Metrics Registry" --> "E-SMI Collectors"
+"Global Metrics Registry" --> "MSR Collectors"
+"Global Metrics Registry" --> "Perf Event Collectors"
+
+"E-SMI Collectors" --> "E-SMI Client"
+"E-SMI Client" --> "E-SMI In-band Library"
+"MSR Collectors" --> "MSR Client"
+"MSR Client"--> "MSR Readers"
+"Perf Event Collectors" --> "Perf Event Client"
+"Perf Event Client" --> "Perf Event Readers"
+"Prometheus Input Plugin" --> "Metrics Server"
+}
+
+node "Linux OS" {
+rectangle "HSMP Device"
+rectangle "MSR Device"
+rectangle "Perf Events"
+
+"E-SMI In-band Library" --> "HSMP Device"
+"E-SMI In-band Library" --> "MSR Device"
+"MSR Readers" --> "MSR Device"
+"Perf Event Readers" --> "Perf Events"
+}
+
+@enduml
