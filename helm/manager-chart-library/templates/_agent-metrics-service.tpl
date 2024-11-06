@@ -10,6 +10,6 @@ spec:
   ports:
     - protocol: TCP
       port: {{ .Values.agentmetricsservice.port }}
-      targetPort: {{ .Values.agentmetricsservice.targetport }}
+      targetPort: metrics
   internalTrafficPolicy: Local
 {{- end -}}

@@ -28,7 +28,8 @@ spec:
                 fieldRef:
                   fieldPath: spec.nodeName
           ports:
-            - containerPort: 10001
+            - name: metrics
+              containerPort: 10001
           resources:
             limits:
               cpu: 500m

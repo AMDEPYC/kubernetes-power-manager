@@ -84,7 +84,6 @@ agentmetricsservice:
   namespace: power-manager
   selectorname: power-node-agent-pod
   port: 10001
-  targetport: 10001
 
 # Values for the PowerConfig
 powerconfig:
