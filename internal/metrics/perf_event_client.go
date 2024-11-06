@@ -19,6 +19,7 @@ var (
 const (
 	cpuLogKey     = "cpu"
 	coreLogKey    = "core"
+	dieLogKey     = "die"
 	packageLogKey = "package"
 )
 
@@ -39,13 +40,13 @@ var hwPerfEvents = map[int][]int{
 		unix.PERF_COUNT_HW_CACHE_MISSES,
 		unix.PERF_COUNT_HW_BRANCH_INSTRUCTIONS,
 		unix.PERF_COUNT_HW_BRANCH_MISSES,
-		// TODO: not working in the lab, to be clarified
-		// unix.PERF_COUNT_HW_BUS_CYCLES,
+		// not verified, not supported by linux kernel as of 2024/11
+		unix.PERF_COUNT_HW_BUS_CYCLES,
 		unix.PERF_COUNT_HW_STALLED_CYCLES_FRONTEND,
-		// TODO: not working in the lab, to be clarified
-		// unix.PERF_COUNT_HW_STALLED_CYCLES_BACKEND,
-		// TODO: not working in the lab, to be clarified
-		// unix.PERF_COUNT_HW_REF_CPU_CYCLES,
+		// not verified, not supported by linux kernel as of 2024/11
+		unix.PERF_COUNT_HW_STALLED_CYCLES_BACKEND,
+		// not verified, not supported by linux kernel as of 2024/11
+		unix.PERF_COUNT_HW_REF_CPU_CYCLES,
 	},
 }
 
@@ -96,45 +97,44 @@ const (
 	cacheLLPrefetchMisses   = unix.PERF_COUNT_HW_CACHE_LL | unix.PERF_COUNT_HW_CACHE_OP_PREFETCH<<8 | unix.PERF_COUNT_HW_CACHE_RESULT_MISS<<16
 )
 
-// TODO: commented out ones that does not work in the lab, to be clarified
 // Helper map for iterations, new supported cache measurements must be added here.
 var cachePerfEvents = map[int][]int{
 	perCPU: {
 		cacheL1DReadAccesses,
 		cacheL1DReadMisses,
-		// cacheL1DWriteAccesses,
-		// cacheL1DWriteMisses,
+		cacheL1DWriteAccesses, // not verified, not supported by linux kernel as of 2024/11
+		cacheL1DWriteMisses, // not verified, not supported by linux kernel as of 2024/11
 		cacheL1DPrefetchAccesses,
-		// cacheBPUPrefetchMisses,
+		cacheL1DPrefetchMisses, // not verified, not supported by linux kernel as of 2024/11
 
 		cacheL1IReadAccesses,
 		cacheL1IReadMisses,
-		// cacheL1IWriteAccesses,
-		// cacheL1IWriteMisses,
-		// cacheL1IPrefetchAccesses,
-		// cacheL1IPrefetchMisses,
+		cacheL1IWriteAccesses, // not verified, not supported by linux kernel as of 2024/11
+		cacheL1IWriteMisses, // not verified, not supported by linux kernel as of 2024/11
+		cacheL1IPrefetchAccesses, // not verified, not supported by linux kernel as of 2024/11
+		cacheL1IPrefetchMisses, // not verified, not supported by linux kernel as of 2024/11
 
 		cacheBPUReadAccesses,
 		cacheBPUReadMisses,
-		// cacheBPUWriteAccesses,
-		// cacheBPUWriteMisses,
-		// cacheBPUPrefetchAccesses,
-		// cacheBPUPrefetchMisses,
+		cacheBPUWriteAccesses, // not verified, not supported by linux kernel as of 2024/11
+		cacheBPUWriteMisses, // not verified, not supported by linux kernel as of 2024/11
+		cacheBPUPrefetchAccesses, // not verified, not supported by linux kernel as of 2024/11
+		cacheBPUPrefetchMisses, // not verified, not supported by linux kernel as of 2024/11
 
-		// cacheNodeReadAccesses,
-		// cacheNodeReadMisses,
-		// cacheNodeWriteAccesses,
-		// cacheNodeWriteMisses,
-		// cacheNodePrefetchAccesses,
-		// cacheNodePrefetchMisses,
+		cacheNodeReadAccesses, // not verified, not supported by linux kernel as of 2024/11
+		cacheNodeReadMisses, // not verified, not supported by linux kernel as of 2024/11
+		cacheNodeWriteAccesses, // not verified, not supported by linux kernel as of 2024/11
+		cacheNodeWriteMisses, // not verified, not supported by linux kernel as of 2024/11
+		cacheNodePrefetchAccesses, // not verified, not supported by linux kernel as of 2024/11
+		cacheNodePrefetchMisses, // not verified, not supported by linux kernel as of 2024/11
 	},
 	perDie: {
-		// cacheLLReadAccesses,
-		// cacheLLReadMisses,
-		// cacheLLWriteAccesses,
-		// cacheLLWriteMisses,
-		// cacheLLPrefetchAccesses,
-		// cacheLLPrefetchMisses,
+		cacheLLReadAccesses, // not verified, not supported by linux kernel as of 2024/11
+		cacheLLReadMisses, // not verified, not supported by linux kernel as of 2024/11
+		cacheLLWriteAccesses, // not verified, not supported by linux kernel as of 2024/11
+		cacheLLWriteMisses, // not verified, not supported by linux kernel as of 2024/11
+		cacheLLPrefetchAccesses, // not verified, not supported by linux kernel as of 2024/11
+		cacheLLPrefetchMisses, // not verified, not supported by linux kernel as of 2024/11
 	},
 }
 
@@ -227,6 +227,7 @@ func (pc *PerfEventClient) GetBranchMisses(cpu power.Cpu) (uint64, error) {
 	)
 }
 
+// not verified, not supported by linux kernel as of 2024/11
 func (pc *PerfEventClient) GetBusCycles(cpu power.Cpu) (uint64, error) {
 	return pc.readEvent(
 		cpu.GetID(), pc.getKey(unix.PERF_TYPE_HARDWARE, unix.PERF_COUNT_HW_BUS_CYCLES),
@@ -241,6 +242,7 @@ func (pc *PerfEventClient) GetStalledCyclesFrontend(cpu power.Cpu) (uint64, erro
 	)
 }
 
+// not verified, not supported by linux kernel as of 2024/11
 func (pc *PerfEventClient) GetStalledCyclesBackend(cpu power.Cpu) (uint64, error) {
 	return pc.readEvent(
 		cpu.GetID(), pc.getKey(unix.PERF_TYPE_HARDWARE, unix.PERF_COUNT_HW_STALLED_CYCLES_BACKEND),
@@ -248,6 +250,7 @@ func (pc *PerfEventClient) GetStalledCyclesBackend(cpu power.Cpu) (uint64, error
 	)
 }
 
+// not verified, not supported by linux kernel as of 2024/11
 func (pc *PerfEventClient) GetRefCycles(cpu power.Cpu) (uint64, error) {
 	return pc.readEvent(
 		cpu.GetID(), pc.getKey(unix.PERF_TYPE_HARDWARE, unix.PERF_COUNT_HW_REF_CPU_CYCLES),
@@ -274,10 +277,31 @@ func (pc *PerfEventClient) GetL1DCacheReadMisses(cpu power.Cpu) (uint64, error) 
 		cpuLogKey, "l1 data cache read misses")
 }
 
+// not verified, not supported by linux kernel as of 2024/11
+func (pc *PerfEventClient) GetL1DCacheWriteAccesses(cpu power.Cpu) (uint64, error) {
+        return pc.readEvent(
+                cpu.GetID(), pc.getKey(unix.PERF_TYPE_HW_CACHE, cacheL1DWriteAccesses),
+                cpuLogKey, "l1 data cache write accesses")
+}
+
+// not verified, not supported by linux kernel as of 2024/11
+func (pc *PerfEventClient) GetL1DCacheWriteMisses(cpu power.Cpu) (uint64, error) {
+        return pc.readEvent(
+                cpu.GetID(), pc.getKey(unix.PERF_TYPE_HW_CACHE, cacheL1DWriteMisses),
+                cpuLogKey, "l1 data cache write misses")
+}
+
 func (pc *PerfEventClient) GetL1DCachePrefetchAccesses(cpu power.Cpu) (uint64, error) {
 	return pc.readEvent(
 		cpu.GetID(), pc.getKey(unix.PERF_TYPE_HW_CACHE, cacheL1DPrefetchAccesses),
 		cpuLogKey, "l1 data cache prefetch accesses")
+}
+
+// not verified, not supported by linux kernel as of 2024/11
+func (pc *PerfEventClient) GetL1DCachePrefetchMisses(cpu power.Cpu) (uint64, error) {
+	return pc.readEvent(
+		cpu.GetID(), pc.getKey(unix.PERF_TYPE_HW_CACHE, cacheL1DPrefetchMisses),
+		cpuLogKey, "l1 data cache prefetch misses")
 }
 
 func (pc *PerfEventClient) GetL1ICacheReadAccesses(cpu power.Cpu) (uint64, error) {
@@ -292,6 +316,34 @@ func (pc *PerfEventClient) GetL1ICacheReadMisses(cpu power.Cpu) (uint64, error) 
 		cpuLogKey, "l1 instruction cache read misses")
 }
 
+// not verified, not supported by linux kernel as of 2024/11
+func (pc *PerfEventClient) GetL1ICacheWriteAccesses(cpu power.Cpu) (uint64, error) {
+	return pc.readEvent(
+		cpu.GetID(), pc.getKey(unix.PERF_TYPE_HW_CACHE, cacheL1IWriteAccesses),
+		cpuLogKey, "l1 instruction cache write accesses")
+}
+
+// not verified, not supported by linux kernel as of 2024/11
+func (pc *PerfEventClient) GetL1ICacheWriteMisses(cpu power.Cpu) (uint64, error) {
+	return pc.readEvent(
+		cpu.GetID(), pc.getKey(unix.PERF_TYPE_HW_CACHE, cacheL1IWriteMisses),
+		cpuLogKey, "l1 instruction cache write misses")
+}
+
+// not verified, not supported by linux kernel as of 2024/11
+func (pc *PerfEventClient) GetL1ICachePrefetchAccesses(cpu power.Cpu) (uint64, error) {
+	return pc.readEvent(
+		cpu.GetID(), pc.getKey(unix.PERF_TYPE_HW_CACHE, cacheL1IPrefetchAccesses),
+		cpuLogKey, "l1 instruction cache prefetch accesses")
+}
+
+// not verified, not supported by linux kernel as of 2024/11
+func (pc *PerfEventClient) GetL1ICachePrefetchMisses(cpu power.Cpu) (uint64, error) {
+	return pc.readEvent(
+		cpu.GetID(), pc.getKey(unix.PERF_TYPE_HW_CACHE, cacheL1IPrefetchMisses),
+		cpuLogKey, "l1 instruction cache prefetch misses")
+}
+
 func (pc *PerfEventClient) GetBPUCacheReadAccesses(cpu power.Cpu) (uint64, error) {
 	return pc.readEvent(
 		cpu.GetID(), pc.getKey(unix.PERF_TYPE_HW_CACHE, cacheBPUReadAccesses),
@@ -302,6 +354,118 @@ func (pc *PerfEventClient) GetBPUCacheReadMisses(cpu power.Cpu) (uint64, error) 
 	return pc.readEvent(
 		cpu.GetID(), pc.getKey(unix.PERF_TYPE_HW_CACHE, cacheBPUReadMisses),
 		cpuLogKey, "branch prediction unit cache read misses")
+}
+
+// not verified, not supported by linux kernel as of 2024/11
+func (pc *PerfEventClient) GetBPUCacheWriteAccesses(cpu power.Cpu) (uint64, error) {
+	return pc.readEvent(
+		cpu.GetID(), pc.getKey(unix.PERF_TYPE_HW_CACHE, cacheBPUWriteAccesses),
+		cpuLogKey, "branch prediction unit cache write accesses")
+}
+
+// not verified, not supported by linux kernel as of 2024/11
+func (pc *PerfEventClient) GetBPUCacheWriteMisses(cpu power.Cpu) (uint64, error) {
+	return pc.readEvent(
+		cpu.GetID(), pc.getKey(unix.PERF_TYPE_HW_CACHE, cacheBPUWriteMisses),
+		cpuLogKey, "branch prediction unit cache write misses")
+}
+
+// not verified, not supported by linux kernel as of 2024/11
+func (pc *PerfEventClient) GetBPUCachePrefetchAccesses(cpu power.Cpu) (uint64, error) {
+	return pc.readEvent(
+		cpu.GetID(), pc.getKey(unix.PERF_TYPE_HW_CACHE, cacheBPUPrefetchAccesses),
+		cpuLogKey, "branch prediction unit cache prefetch accesses")
+}
+
+// not verified, not supported by linux kernel as of 2024/11
+func (pc *PerfEventClient) GetBPUCachePrefetchMisses(cpu power.Cpu) (uint64, error) {
+	return pc.readEvent(
+		cpu.GetID(), pc.getKey(unix.PERF_TYPE_HW_CACHE, cacheBPUPrefetchMisses),
+		cpuLogKey, "branch prediction unit cache prefetch misses")
+}
+
+// not verified, not supported by linux kernel as of 2024/11
+func (pc *PerfEventClient) GetNodeCacheReadAccesses(cpu power.Cpu) (uint64, error) {
+	return pc.readEvent(
+		cpu.GetID(), pc.getKey(unix.PERF_TYPE_HW_CACHE, cacheNodeReadAccesses),
+		cpuLogKey, "node cache read accesses")
+}
+
+// not verified, not supported by linux kernel as of 2024/11
+func (pc *PerfEventClient) GetNodeCacheReadMisses(cpu power.Cpu) (uint64, error) {
+	return pc.readEvent(
+		cpu.GetID(), pc.getKey(unix.PERF_TYPE_HW_CACHE, cacheNodeReadMisses),
+		cpuLogKey, "node cache read misses")
+}
+
+// not verified, not supported by linux kernel as of 2024/11
+func (pc *PerfEventClient) GetNodeCacheWriteAccesses(cpu power.Cpu) (uint64, error) {
+	return pc.readEvent(
+		cpu.GetID(), pc.getKey(unix.PERF_TYPE_HW_CACHE, cacheNodeWriteAccesses),
+		cpuLogKey, "node cache write accesses")
+}
+
+// not verified, not supported by linux kernel as of 2024/11
+func (pc *PerfEventClient) GetNodeCacheWriteMisses(cpu power.Cpu) (uint64, error) {
+	return pc.readEvent(
+		cpu.GetID(), pc.getKey(unix.PERF_TYPE_HW_CACHE, cacheNodeWriteMisses),
+		cpuLogKey, "node cache write misses")
+}
+
+// not verified, not supported by linux kernel as of 2024/11
+func (pc *PerfEventClient) GetNodeCachePrefetchAccesses(cpu power.Cpu) (uint64, error) {
+	return pc.readEvent(
+		cpu.GetID(), pc.getKey(unix.PERF_TYPE_HW_CACHE, cacheNodePrefetchAccesses),
+		cpuLogKey, "node cache prefetch accesses")
+}
+
+// not verified, not supported by linux kernel as of 2024/11
+func (pc *PerfEventClient) GetNodeCachePrefetchMisses(cpu power.Cpu) (uint64, error) {
+	return pc.readEvent(
+		cpu.GetID(), pc.getKey(unix.PERF_TYPE_HW_CACHE, cacheNodePrefetchMisses),
+		cpuLogKey, "node cache prefetch misses")
+}
+
+// not verified, not supported by linux kernel as of 2024/11
+func (pc *PerfEventClient) GetLLCacheReadAccesses(die power.Die) (uint64, error) {
+	return pc.readEvent(
+		die.GetID(), pc.getKey(unix.PERF_TYPE_HW_CACHE, cacheLLReadAccesses),
+		dieLogKey, "last level cache read accesses")
+}
+
+// not verified, not supported by linux kernel as of 2024/11
+func (pc *PerfEventClient) GetLLCacheReadMisses(die power.Die) (uint64, error) {
+	return pc.readEvent(
+		die.GetID(), pc.getKey(unix.PERF_TYPE_HW_CACHE, cacheLLReadMisses),
+		dieLogKey, "last level cache read misses")
+}
+
+// not verified, not supported by linux kernel as of 2024/11
+func (pc *PerfEventClient) GetLLCacheWriteAccesses(die power.Die) (uint64, error) {
+	return pc.readEvent(
+		die.GetID(), pc.getKey(unix.PERF_TYPE_HW_CACHE, cacheLLWriteAccesses),
+		dieLogKey, "last level cache write accesses")
+}
+
+// not verified, not supported by linux kernel as of 2024/11
+func (pc *PerfEventClient) GetLLCacheWriteMisses(die power.Die) (uint64, error) {
+	return pc.readEvent(
+		die.GetID(), pc.getKey(unix.PERF_TYPE_HW_CACHE, cacheLLWriteMisses),
+		dieLogKey, "last level cache write misses")
+}
+
+// not verified, not supported by linux kernel as of 2024/11
+func (pc *PerfEventClient) GetLLCachePrefetchAccesses(die power.Die) (uint64, error) {
+	return pc.readEvent(
+		die.GetID(), pc.getKey(unix.PERF_TYPE_HW_CACHE, cacheLLPrefetchAccesses),
+		dieLogKey, "last level cache prefetch accesses")
+}
+
+// not verified, not supported by linux kernel as of 2024/11
+func (pc *PerfEventClient) GetLLCachePrefetchMisses(die power.Die) (uint64, error) {
+	return pc.readEvent(
+		die.GetID(), pc.getKey(unix.PERF_TYPE_HW_CACHE, cacheLLPrefetchMisses),
+		dieLogKey, "last level cache prefetch misses")
 }
 
 // scopeName and eventName are passed for user friendly logs

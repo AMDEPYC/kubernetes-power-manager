@@ -58,6 +58,8 @@ func initializeHostMock() *testutils.MockHost {
 	mockPkg.On("CPUs").Return(&cpuList)
 	mockPkg.On("GetID").Return(uint(0))
 	mockDie.On("Cores").Return(&coreList)
+	mockDie.On("CPUs").Return(&cpuList)
+	mockDie.On("GetID").Return(uint(0))
 	mockCore.On("CPUs").Return(&cpuList)
 	mockCore.On("GetID").Return(uint(0))
 	for id, mockedCPU := range cpuList {
