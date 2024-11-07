@@ -38,7 +38,7 @@ func newDefaultPerfEventReader(cpu, kind, config int) (perfEventReader, error) {
 		Type:        uint32(dp.kind),
 		Config:      uint64(dp.config),
 		Size:        uint32(unsafe.Sizeof(unix.PerfEventAttr{})),
-		Bits:        unix.PerfBitDisabled | unix.PerfBitExcludeHv | unix.PerfBitInherit,
+		Bits:        unix.PerfBitDisabled,
 		Sample_type: perfSampleIdentifier,
 	}
 	fd, err := unix.PerfEventOpen(eventAttr, -1, cpu, -1, 0)

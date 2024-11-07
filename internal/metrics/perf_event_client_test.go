@@ -3,6 +3,8 @@ package metrics
 import (
 	"fmt"
 	"math/rand/v2"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"golang.org/x/sys/unix"
@@ -69,22 +71,47 @@ func initializeHostMock() *testutils.MockHost {
 	return mockHost
 }
 
+func setupDummySysfs(t *testing.T) string {
+	testPMUPath := t.TempDir()
+	origDynamicPMUPath := dynamicPMUPath
+	dynamicPMUPath = testPMUPath
+	t.Cleanup(func() {
+		dynamicPMUPath = origDynamicPMUPath
+	})
+
+	// Setup mocked energy-pkg in power PMU
+	os.MkdirAll(filepath.Join(testPMUPath, powerPMUName, eventsDirName), 0777)
+	os.WriteFile(filepath.Join(testPMUPath, powerPMUName, "type"), []byte("999"), 0777)
+	os.WriteFile(filepath.Join(testPMUPath, powerPMUName, eventsDirName, powerPMUEnergyPkg),
+		[]byte("event=0x999"), 0777,
+	)
+	os.WriteFile(filepath.Join(testPMUPath, powerPMUName, eventsDirName, powerPMUEnergyPkg+".scale"),
+		[]byte("1.23456789e-10"), 0777,
+	)
+
+	return testPMUPath
+}
+
+func setupNewTestReaderFunc(t *testing.T, f func(int, int, int) (perfEventReader, error)) {
+	origNewDefaultPerfEventReaderFunc := newDefaultPerfEventReaderFunc
+	newDefaultPerfEventReaderFunc = f
+	t.Cleanup(func() {
+		newDefaultPerfEventReaderFunc = origNewDefaultPerfEventReaderFunc
+	})
+}
+
 func TestNewPerfEventClient(t *testing.T) {
 	log.SetLogger(zap.New(zap.UseDevMode(true), func(opts *zap.Options) {
 		opts.TimeEncoder = zapcore.ISO8601TimeEncoder
 	}))
-	origFunc := newDefaultPerfEventReaderFunc
-	defer func() {
-		newDefaultPerfEventReaderFunc = origFunc
-	}()
-
-	newDefaultPerfEventReaderFunc = newTestPerfEventReader
 	powerLibMock := initializeHostMock()
+	setupNewTestReaderFunc(t, newTestPerfEventReader)
+	setupDummySysfs(t)
 
 	client := NewPerfEventClient(ctrl.Log.WithName("testing"), powerLibMock)
 
-	// Assert all defined events were added properly
-	for _, scope := range []int{perCPU, perCore, perPackage} {
+	// Assert all defined static events were added properly
+	for _, scope := range []int{perDie, perPackage} {
 		for _, event := range hwPerfEvents[scope] {
 			key := client.getKey(unix.PERF_TYPE_HARDWARE, event)
 			assert.Contains(t, client.readers, key)
@@ -99,6 +126,25 @@ func TestNewPerfEventClient(t *testing.T) {
 		}
 	}
 
+	// Assert dynamic events were discovered properly
+	key := client.getDynamicKey(powerPMUName, powerPMUEnergyPkg)
+	assert.Contains(t, client.dynamicEvents, key)
+	assert.Equal(t, 999, client.dynamicEvents[key].kindID)
+	assert.Equal(t, 0x999, client.dynamicEvents[key].eventID)
+	assert.Equal(t, 1.23456789e-10, client.dynamicEvents[key].scale)
+
+	// Assert all defined dynamic events were added properly
+	for _, scope := range []int{perPackage} {
+		for _, eventName := range powerPerfEvents[scope] {
+			key := client.getDynamicKey(powerPMUName, eventName)
+			readersKey := client.getKey(
+				client.dynamicEvents[key].kindID,
+				client.dynamicEvents[key].eventID,
+			)
+			assert.Contains(t, client.readers, readersKey)
+		}
+	}
+
 	// Assert all defined events were started
 	for _, eventReaders := range client.readers {
 		for _, reader := range eventReaders {
@@ -108,36 +154,63 @@ func TestNewPerfEventClient(t *testing.T) {
 	}
 }
 
-func TestNewPerfEventClientWithErrors(t *testing.T) {
+func TestNewPerfEventClientWithReadersErrors(t *testing.T) {
 	log.SetLogger(zap.New(zap.UseDevMode(true), func(opts *zap.Options) {
 		opts.TimeEncoder = zapcore.ISO8601TimeEncoder
 	}))
-	origFunc := newDefaultPerfEventReaderFunc
-	defer func() {
-		newDefaultPerfEventReaderFunc = origFunc
-	}()
-
-	newDefaultPerfEventReaderFunc = func(_, _, _ int) (perfEventReader, error) {
-		return nil, fmt.Errorf("reader startup error")
-	}
 	powerLibMock := initializeHostMock()
+	setupNewTestReaderFunc(t, func(_, _, _ int) (perfEventReader, error) {
+		return nil, fmt.Errorf("reader startup error")
+	})
+	setupDummySysfs(t)
 
 	client := NewPerfEventClient(ctrl.Log.WithName("testing"), powerLibMock)
 	// Assert no events were added
 	assert.Empty(t, client.readers)
 }
 
+func TestNewPerfEventClientWithPowerDiscoveryErrors(t *testing.T) {
+	log.SetLogger(zap.New(zap.UseDevMode(true), func(opts *zap.Options) {
+		opts.TimeEncoder = zapcore.ISO8601TimeEncoder
+	}))
+	powerLibMock := initializeHostMock()
+	setupNewTestReaderFunc(t, newTestPerfEventReader)
+
+	// Damage 'type' dynamic power PMU file
+	testPMUPath := setupDummySysfs(t)
+	os.WriteFile(filepath.Join(testPMUPath, powerPMUName, "type"), []byte("nan"), 0777)
+	client := NewPerfEventClient(ctrl.Log.WithName("testing"), powerLibMock)
+	dynamicKey := client.getDynamicKey(powerPMUName, powerPMUEnergyPkg)
+	// Assert power PMU events were not added at all - when more events of the same PMU are added, check it here
+	assert.NotContains(t, client.dynamicEvents, dynamicKey)
+
+	// Damage 'energy-pkg' dynamic power PMU file
+	testPMUPath = setupDummySysfs(t)
+	os.WriteFile(filepath.Join(testPMUPath, powerPMUName, eventsDirName, powerPMUEnergyPkg),
+		[]byte("event=0x99,somethingelse=0x21"), 0777,
+	)
+	client = NewPerfEventClient(ctrl.Log.WithName("testing"), powerLibMock)
+	// Assert energy-pkg event was not added at all
+	assert.NotContains(t, client.dynamicEvents, dynamicKey)
+
+	// Damage 'energy-pkg.scale' dynamic power PMU file
+	testPMUPath = setupDummySysfs(t)
+	os.WriteFile(filepath.Join(testPMUPath, powerPMUName, eventsDirName, powerPMUEnergyPkg+".scale"),
+		[]byte("nan"), 0777,
+	)
+	client = NewPerfEventClient(ctrl.Log.WithName("testing"), powerLibMock)
+	// Assert energy-pkg event was not added at all
+	assert.NotContains(t, client.dynamicEvents, dynamicKey)
+}
+
 func TestPerfEventClientGetMethods(t *testing.T) {
 	log.SetLogger(zap.New(zap.UseDevMode(true), func(opts *zap.Options) {
 		opts.TimeEncoder = zapcore.ISO8601TimeEncoder
 	}))
-	origFunc := newDefaultPerfEventReaderFunc
-	defer func() {
-		newDefaultPerfEventReaderFunc = origFunc
-	}()
-
-	newDefaultPerfEventReaderFunc = newTestPerfEventReader
 	powerLibMock := initializeHostMock()
+	setupNewTestReaderFunc(t, newTestPerfEventReader)
+	setupDummySysfs(t)
+
 	client := NewPerfEventClient(ctrl.Log.WithName("testing"), powerLibMock)
 
 	// Methods with repeated logic are not tested
@@ -155,19 +228,47 @@ func TestPerfEventClientGetMethods(t *testing.T) {
 			assert.Greater(t, res2, res1)
 		})
 	}
+	// Die scoped
+	for _, method := range []func(power.Die) (uint64, error){
+		client.GetLLCacheReadAccesses,
+	} {
+		util.IterateOverDies(powerLibMock, func(die power.Die, _ power.Package) {
+			res1, err := method(die)
+			assert.Nil(t, err)
+			assert.Greater(t, res1, uint64(0))
+
+			res2, err := method(die)
+			assert.Nil(t, err)
+			assert.Greater(t, res2, res1)
+		})
+	}
+}
+
+func TestGetPackageEnergyConsumption(t *testing.T) {
+	log.SetLogger(zap.New(zap.UseDevMode(true), func(opts *zap.Options) {
+		opts.TimeEncoder = zapcore.ISO8601TimeEncoder
+	}))
+	powerLibMock := initializeHostMock()
+	setupNewTestReaderFunc(t, newTestPerfEventReader)
+	setupDummySysfs(t)
+
+	client := NewPerfEventClient(ctrl.Log.WithName("testing"), powerLibMock)
+
+	util.IterateOverPackages(powerLibMock, func(pkg power.Package) {
+		res, err := client.GetPackageEnergyConsumption(pkg)
+		assert.Nil(t, err)
+		assert.NotEqual(t, 0, res)
+	})
 }
 
 func TestPerfEventClientClose(t *testing.T) {
 	log.SetLogger(zap.New(zap.UseDevMode(true), func(opts *zap.Options) {
 		opts.TimeEncoder = zapcore.ISO8601TimeEncoder
 	}))
-	origFunc := newDefaultPerfEventReaderFunc
-	defer func() {
-		newDefaultPerfEventReaderFunc = origFunc
-	}()
-
-	newDefaultPerfEventReaderFunc = newTestPerfEventReader
 	powerLibMock := initializeHostMock()
+	setupNewTestReaderFunc(t, newTestPerfEventReader)
+	setupDummySysfs(t)
+
 	client := NewPerfEventClient(ctrl.Log.WithName("testing"), powerLibMock)
 
 	for _, eventReaders := range client.readers {

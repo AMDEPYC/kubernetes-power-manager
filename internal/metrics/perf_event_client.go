@@ -2,6 +2,11 @@ package metrics
 
 import (
 	"fmt"
+	"math"
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
 
 	"github.com/go-logr/logr"
 	"github.com/intel/kubernetes-power-manager/pkg/util"
@@ -12,22 +17,6 @@ import (
 // Func definitions for unit testing
 var (
 	newDefaultPerfEventReaderFunc func(int, int, int) (perfEventReader, error) = newDefaultPerfEventReader
-)
-
-// Internal helper constants for logging
-const (
-	cpuLogKey     = "cpu"
-	coreLogKey    = "core"
-	dieLogKey     = "die"
-	packageLogKey = "package"
-)
-
-// Enum for identifying scope of standard measurements
-const (
-	perCPU = iota
-	perCore
-	perDie
-	perPackage
 )
 
 // Helper map for iterations, new supported hardware measurements must be added here
@@ -102,48 +91,79 @@ var cachePerfEvents = map[int][]int{
 		cacheL1DReadAccesses,
 		cacheL1DReadMisses,
 		cacheL1DWriteAccesses, // not verified, not supported by linux kernel as of 2024/11
-		cacheL1DWriteMisses, // not verified, not supported by linux kernel as of 2024/11
+		cacheL1DWriteMisses,   // not verified, not supported by linux kernel as of 2024/11
 		cacheL1DPrefetchAccesses,
 		cacheL1DPrefetchMisses, // not verified, not supported by linux kernel as of 2024/11
 
 		cacheL1IReadAccesses,
 		cacheL1IReadMisses,
-		cacheL1IWriteAccesses, // not verified, not supported by linux kernel as of 2024/11
-		cacheL1IWriteMisses, // not verified, not supported by linux kernel as of 2024/11
+		cacheL1IWriteAccesses,    // not verified, not supported by linux kernel as of 2024/11
+		cacheL1IWriteMisses,      // not verified, not supported by linux kernel as of 2024/11
 		cacheL1IPrefetchAccesses, // not verified, not supported by linux kernel as of 2024/11
-		cacheL1IPrefetchMisses, // not verified, not supported by linux kernel as of 2024/11
+		cacheL1IPrefetchMisses,   // not verified, not supported by linux kernel as of 2024/11
 
 		cacheBPUReadAccesses,
 		cacheBPUReadMisses,
-		cacheBPUWriteAccesses, // not verified, not supported by linux kernel as of 2024/11
-		cacheBPUWriteMisses, // not verified, not supported by linux kernel as of 2024/11
+		cacheBPUWriteAccesses,    // not verified, not supported by linux kernel as of 2024/11
+		cacheBPUWriteMisses,      // not verified, not supported by linux kernel as of 2024/11
 		cacheBPUPrefetchAccesses, // not verified, not supported by linux kernel as of 2024/11
-		cacheBPUPrefetchMisses, // not verified, not supported by linux kernel as of 2024/11
+		cacheBPUPrefetchMisses,   // not verified, not supported by linux kernel as of 2024/11
 
-		cacheNodeReadAccesses, // not verified, not supported by linux kernel as of 2024/11
-		cacheNodeReadMisses, // not verified, not supported by linux kernel as of 2024/11
-		cacheNodeWriteAccesses, // not verified, not supported by linux kernel as of 2024/11
-		cacheNodeWriteMisses, // not verified, not supported by linux kernel as of 2024/11
+		cacheNodeReadAccesses,     // not verified, not supported by linux kernel as of 2024/11
+		cacheNodeReadMisses,       // not verified, not supported by linux kernel as of 2024/11
+		cacheNodeWriteAccesses,    // not verified, not supported by linux kernel as of 2024/11
+		cacheNodeWriteMisses,      // not verified, not supported by linux kernel as of 2024/11
 		cacheNodePrefetchAccesses, // not verified, not supported by linux kernel as of 2024/11
-		cacheNodePrefetchMisses, // not verified, not supported by linux kernel as of 2024/11
+		cacheNodePrefetchMisses,   // not verified, not supported by linux kernel as of 2024/11
 	},
 	perDie: {
-		cacheLLReadAccesses, // not verified, not supported by linux kernel as of 2024/11
-		cacheLLReadMisses, // not verified, not supported by linux kernel as of 2024/11
-		cacheLLWriteAccesses, // not verified, not supported by linux kernel as of 2024/11
-		cacheLLWriteMisses, // not verified, not supported by linux kernel as of 2024/11
+		cacheLLReadAccesses,     // not verified, not supported by linux kernel as of 2024/11
+		cacheLLReadMisses,       // not verified, not supported by linux kernel as of 2024/11
+		cacheLLWriteAccesses,    // not verified, not supported by linux kernel as of 2024/11
+		cacheLLWriteMisses,      // not verified, not supported by linux kernel as of 2024/11
 		cacheLLPrefetchAccesses, // not verified, not supported by linux kernel as of 2024/11
-		cacheLLPrefetchMisses, // not verified, not supported by linux kernel as of 2024/11
+		cacheLLPrefetchMisses,   // not verified, not supported by linux kernel as of 2024/11
 	},
+}
+
+// Helper maps defined below are holding strings instead of ints as event id needs to be queried from filename.
+// See 'dynamic PMU' section for more info: man7.org/linux/man-pages/man2/perf_event_open.2.html.
+
+const (
+	typeFileName  string = "type"
+	eventsDirName string = "events"
+
+	powerPMUName      string = "power"
+	powerPMUEnergyPkg string = "energy-pkg"
+)
+
+var dynamicPMUPath string = "/sys/bus/event_source/devices/"
+
+// Helper map for iterations, new supported dynamic-power measurements must be added here.
+var powerPerfEvents = map[int][]string{
+	perPackage: {
+		powerPMUEnergyPkg,
+	},
+}
+
+// dynamicEvent holds data about dynamic PMU event discovered from sysfs.
+type dynamicEvent struct {
+	// Sourced from the /sys/bus/event_sources/devices/<pmu>/type file.
+	kindID int
+	// Sourced from the /sys/bus/event_sources/devices/<pmu>/events/<event> file.
+	eventID int
+	// Sourced from the /sys/bus/event_sources/devices/<pmu>/events/<event>.scale file.
+	scale float64
 }
 
 // PerfEventClient is thread safe client to perf_event_open counters.
 // Single instance should be created using constructor and passed as
 // a pointer.
 type PerfEventClient struct {
-	readers map[string]map[uint]perfEventReader
-	host    power.Host
-	log     logr.Logger
+	readers       map[string]map[uint]perfEventReader
+	dynamicEvents map[string]dynamicEvent
+	host          power.Host
+	log           logr.Logger
 }
 
 // By default, all supported perf measurements are enabled.
@@ -153,14 +173,18 @@ type PerfEventClient struct {
 // Return pointer to PerfEventClient that should be the only instance created within binary.
 func NewPerfEventClient(log logr.Logger, host power.Host) *PerfEventClient {
 	pc := PerfEventClient{
-		readers: make(map[string]map[uint]perfEventReader),
-		host:    host,
-		log:     log,
+		readers:       make(map[string]map[uint]perfEventReader),
+		dynamicEvents: make(map[string]dynamicEvent),
+		host:          host,
+		log:           log,
 	}
 
+	// Static events
 	pc.addEventGroup(hwPerfEvents, unix.PERF_TYPE_HARDWARE, pc.addDefaultEvent)
 	pc.addEventGroup(swPerfEvents, unix.PERF_TYPE_SOFTWARE, pc.addDefaultEvent)
 	pc.addEventGroup(cachePerfEvents, unix.PERF_TYPE_HW_CACHE, pc.addDefaultEvent)
+	// Dynamic events
+	pc.addDynamicEventGroup(powerPerfEvents, powerPMUName, pc.addDefaultEvent)
 
 	pc.log.V(4).Info("New PerfEventClient created")
 
@@ -274,16 +298,16 @@ func (pc *PerfEventClient) GetL1DCacheReadMisses(cpu power.Cpu) (uint64, error) 
 
 // not verified, not supported by linux kernel as of 2024/11
 func (pc *PerfEventClient) GetL1DCacheWriteAccesses(cpu power.Cpu) (uint64, error) {
-        return pc.readEvent(
-                cpu.GetID(), pc.getKey(unix.PERF_TYPE_HW_CACHE, cacheL1DWriteAccesses),
-                cpuLogKey, "l1 data cache write accesses")
+	return pc.readEvent(
+		cpu.GetID(), pc.getKey(unix.PERF_TYPE_HW_CACHE, cacheL1DWriteAccesses),
+		cpuLogKey, "l1 data cache write accesses")
 }
 
 // not verified, not supported by linux kernel as of 2024/11
 func (pc *PerfEventClient) GetL1DCacheWriteMisses(cpu power.Cpu) (uint64, error) {
-        return pc.readEvent(
-                cpu.GetID(), pc.getKey(unix.PERF_TYPE_HW_CACHE, cacheL1DWriteMisses),
-                cpuLogKey, "l1 data cache write misses")
+	return pc.readEvent(
+		cpu.GetID(), pc.getKey(unix.PERF_TYPE_HW_CACHE, cacheL1DWriteMisses),
+		cpuLogKey, "l1 data cache write misses")
 }
 
 func (pc *PerfEventClient) GetL1DCachePrefetchAccesses(cpu power.Cpu) (uint64, error) {
@@ -463,6 +487,44 @@ func (pc *PerfEventClient) GetLLCachePrefetchMisses(die power.Die) (uint64, erro
 		dieLogKey, "last level cache prefetch misses")
 }
 
+func (pc *PerfEventClient) GetPackageEnergyConsumption(pkg power.Package) (float64, error) {
+	return pc.readDynamicEvent(
+		pkg.GetID(),
+		pc.getDynamicKey(powerPMUName, powerPMUEnergyPkg),
+		packageLogKey, "package energy consumption")
+}
+
+// getDynamicKey creates string identifier for dynamic perf event.
+// Key is created by combining pmuName with eventName seperated by delimeter.
+func (pc *PerfEventClient) getDynamicKey(pmuName, eventName string) string {
+	return fmt.Sprintf("%s:%s", pmuName, eventName)
+}
+
+// getKey creates string identifier for specific perf event reader.
+// Key is created by combining kindID with eventID seperated by delimeter.
+func (pc *PerfEventClient) getKey(kindID, eventID int) string {
+	return fmt.Sprintf("%d:%d", kindID, eventID)
+}
+
+// scopeName and eventName are passed for user friendly logs
+func (pc *PerfEventClient) readDynamicEvent(scopeID uint, eventKey string, scopeName, eventName string,
+) (float64, error) {
+	logger := pc.log.WithValues("event key", eventKey, "event name", eventName, "scope", scopeName, "scope ID", scopeID)
+
+	event, ok := pc.dynamicEvents[eventKey]
+	if !ok {
+		logger.V(5).Info(fmt.Sprintf("err: %v", ErrMetricMissing))
+		return 0, ErrMetricMissing
+	}
+
+	counterVal, err := pc.readEvent(scopeID, pc.getKey(event.kindID, event.eventID), scopeName, eventName)
+	if err != nil {
+		return 0, err
+	}
+
+	return float64(counterVal) * event.scale, nil
+}
+
 // scopeName and eventName are passed for user friendly logs
 func (pc *PerfEventClient) readEvent(scopeID uint, eventKey string, scopeName, eventName string) (uint64, error) {
 	logger := pc.log.WithValues("event key", eventKey, "event name", eventName, "scope", scopeName, "scope ID", scopeID)
@@ -480,27 +542,47 @@ func (pc *PerfEventClient) readEvent(scopeID uint, eventKey string, scopeName, e
 	return val, nil
 }
 
+func (pc *PerfEventClient) addDynamicEventGroup(kindMap map[int][]string, pmuName string,
+	addEvent func(scopeID uint, cpuID uint, eventID, kind int, scopeName string),
+) {
+	logger := pc.log.WithValues("dynamic PMU name", pmuName)
+
+	kindID, err := pc.getDynamicPMUTypeID(pmuName)
+	if err != nil {
+		logger.Error(err, "failed to use dynamic PMU")
+		return
+	}
+
+	if pkgScoped, ok := kindMap[perPackage]; ok {
+		for _, eventName := range pkgScoped {
+			util.IterateOverPackages(pc.host, func(pkg power.Package) {
+				logger = logger.WithValues("event name", eventName)
+
+				eventID, err := pc.getDynamicPMUEventConfig(pmuName, eventName)
+				if err != nil {
+					logger.Error(err, "error while adding event")
+					return
+				}
+				scale, err := pc.getDynamicEventScale(pmuName, eventName)
+				if err != nil {
+					logger.Error(err, "error while adding event")
+					return
+				}
+
+				pc.dynamicEvents[pc.getDynamicKey(pmuName, eventName)] = dynamicEvent{kindID, eventID, scale}
+				addEvent(pkg.GetID(), pkg.CPUs().IDs()[0], eventID, kindID, packageLogKey)
+			})
+		}
+	}
+}
+
 func (pc *PerfEventClient) addEventGroup(kindMap map[int][]int, kind int,
 	addEvent func(scopeID uint, cpuID uint, eventID, kind int, scopeName string),
 ) {
-	if pkgScoped, ok := kindMap[perPackage]; ok {
-		for _, eventID := range pkgScoped {
-			util.IterateOverPackages(pc.host, func(pkg power.Package) {
-				addEvent(pkg.GetID(), pkg.CPUs().IDs()[0], eventID, kind, packageLogKey)
-			})
-		}
-	}
 	if dieScoped, ok := kindMap[perDie]; ok {
 		for _, eventID := range dieScoped {
 			util.IterateOverDies(pc.host, func(die power.Die, _ power.Package) {
-				addEvent(die.GetID(), die.CPUs().IDs()[0], eventID, kind, packageLogKey)
-			})
-		}
-	}
-	if coreScoped, ok := kindMap[perCore]; ok {
-		for _, eventID := range coreScoped {
-			util.IterateOverCores(pc.host, func(core power.Core, _ power.Die, _ power.Package) {
-				addEvent(core.GetID(), core.CPUs().IDs()[0], eventID, kind, coreLogKey)
+				addEvent(die.GetID(), die.CPUs().IDs()[0], eventID, kind, dieLogKey)
 			})
 		}
 	}
@@ -539,8 +621,61 @@ func (pc *PerfEventClient) addDefaultEvent(scopeID uint, cpuID uint, eventID, ki
 	}
 }
 
-// getKey creates string identifier for specific perf event reader.
-// Key is created by combining kindID with eventID seperated by delimeter.
-func (pc *PerfEventClient) getKey(kindID, eventID int) string {
-	return fmt.Sprintf("%d-%d", kindID, eventID)
+func (pc *PerfEventClient) getDynamicPMUTypeID(pmuName string) (int, error) {
+	typeFilepath := filepath.Join(dynamicPMUPath, pmuName, typeFileName)
+	typeBytes, err := os.ReadFile(typeFilepath)
+	if err != nil {
+		err = fmt.Errorf("failed to read content of dynamic PMU file %s: %w", typeFilepath, err)
+		return 0, err
+	}
+	typeContent := strings.Trim(string(typeBytes), "\n ")
+	kindID, err := strconv.Atoi(typeContent)
+	if err != nil {
+		err = fmt.Errorf("failed to convert content '%s' of dynamic PMU file %s to integer: %w",
+			typeContent, typeFilepath, err)
+		return 0, err
+	}
+
+	return kindID, nil
+}
+
+func (pc *PerfEventClient) getDynamicEventScale(pmuName string, eventName string) (float64, error) {
+	scaleFilepath := filepath.Join(dynamicPMUPath, pmuName, eventsDirName, eventName+".scale")
+	scaleBytes, err := os.ReadFile(scaleFilepath)
+	if err != nil {
+		err = fmt.Errorf("failed to read content of dynamic PMU file %s: %w", scaleFilepath, err)
+		return 0.0, err
+	}
+	scaleContent := strings.Trim(string(scaleBytes), "\n ")
+	scale, err := strconv.ParseFloat(scaleContent, 64)
+	if err != nil || math.IsNaN(scale) || math.IsInf(scale, 0) {
+		err = fmt.Errorf("failed to convert content '%s' of dynamic PMU file %s to float64: %w",
+			scaleContent, scaleFilepath, err,
+		)
+		return 0.0, err
+	}
+
+	return scale, nil
+}
+
+func (pc *PerfEventClient) getDynamicPMUEventConfig(pmuName, eventName string) (int, error) {
+	configFilepath := filepath.Join(dynamicPMUPath, pmuName, eventsDirName, eventName)
+	configBytes, err := os.ReadFile(configFilepath)
+	if err != nil {
+		pc.log.Error(err, "failed to read content of dynamic PMU file", "file", configFilepath)
+		return 0, err
+	}
+	configStr := strings.Trim(string(configBytes), "\n ")
+
+	var eventID int
+	for _, pair := range strings.Split(configStr, ",") {
+		var val int
+		if n, err := fmt.Sscanf(pair, "event=0x%x", &val); err == nil && n == 1 {
+			eventID = val
+			continue
+		}
+		return 0, fmt.Errorf("%s key-value pair found in %s not supported/recognized", pair, configFilepath)
+	}
+
+	return eventID, nil
 }

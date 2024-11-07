@@ -370,5 +370,13 @@ func RegisterPerfEventCollectors(perfEventClient *metrics.PerfEventClient, host 
 			perfEventClient.GetLLCachePrefetchMisses,
 			logger.WithValues(logTypeKey, logTypeCache, logNameKey, "cache_ll_prefetch_misses_total"),
 		),
+		newPerPackageCollector(
+			prom.BuildFQName(promNamespace, perfSubsystem, "package_energy_consumption_joules_total"),
+			"Counter of total package energy consumption in joules",
+			prom.CounterValue,
+			host,
+			perfEventClient.GetPackageEnergyConsumption,
+			logger.WithValues(logTypeKey, logTypePower, logNameKey, "package_energy_consumption_joules_total"),
+		),
 	)
 }

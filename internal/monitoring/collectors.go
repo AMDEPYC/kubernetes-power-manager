@@ -28,6 +28,7 @@ const (
 	logTypeHardware string = "hardware"
 	logTypeSoftware string = "software"
 	logTypeCache    string = "cache"
+	logTypePower    string = "power"
 	logNameKey      string = "name"
 )
 
