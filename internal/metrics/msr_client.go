@@ -281,7 +281,7 @@ func (msr *MSRClient) c0ResidencyWorker(cpu power.Cpu, ctx context.Context) {
 			}
 
 			c0ResPercentFloat := (float64(mperf-prevMPERF) / float64(tsc-prevTSC)) * 100
-			// Both TSC and MPERF counters are going up by a lot every milisecond. MPERF is retrieved after TSC so
+			// Both TSC and MPERF counters are going up by a lot every millisecond. MPERF is retrieved after TSC so
 			// in situation when C0-state residency is close to 100% those nanoseconds between retrieval of both values
 			// might cause MPERF > TSC which will yield value >100%. The same could happen when C0-state residency
 			// is close to 0%, then the calculated value will be a little larger than actual. Since we want to return %,

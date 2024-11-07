@@ -157,6 +157,8 @@ typedef enum {
 	ESMI_INVALID_INPUT,	//!< Input value is invalid
 	ESMI_HSMP_TIMEOUT,	//!< HSMP message is timedout
 	ESMI_NO_HSMP_MSG_SUP,	//!< HSMP message/feature not supported.
+	ESMI_PRE_REQ_NOT_SAT,	//!< Prerequisite to execute the command not satisfied
+	ESMI_SMU_BUSY,		//!< SMU is busy
 } esmi_status_t;
 
 /****************************************************************************/
@@ -245,6 +247,99 @@ esmi_status_t esmi_socket_energy_get(uint32_t socket_idx, uint64_t *penergy);
  *
  */
 esmi_status_t esmi_all_energies_get(uint64_t *penergy);
+
+/**
+ *  @brief Get the RAPL units through HSMP mailbox.
+ *
+ *  @param[in] sock_ind a socket index
+ *
+ *  @param[inout] tu Input buffer to return the time units.
+ *  @param[inout] esu Input buffer to return the energy units.
+ *  actual energy will be calculated by multiplying the
+ *  energy counter value with (1/2)^ESU
+ *
+ *  @retval ::ESMI_SUCCESS is returned upon successful call.
+ *  @retval None-zero is returned upon failure.
+ *
+ */
+esmi_status_t esmi_rapl_units_hsmp_mailbox_get(uint32_t sock_ind, uint8_t *tu, uint8_t *esu);
+
+/**
+ *  @brief Get the socket energy counter values for a given socket through mailbox.
+ *
+ *  @details Updates the @p counter0 and @p counter1 with lower 32 bit and upper 32 bit of
+ *  socket energy counter respectively.
+ *  Please note these units need to be multiplied with energy units to get actual energy
+ *  consumption.
+ *
+ *  @param[in] sock_ind a socket index
+ *
+ *  @param[inout] counter0 Input buffer to return the lower 32 bit of socket energy counter.
+ *  @param[inout] counter1 Input buffer to return the upper 32 bit of socket energy counter.
+ *
+ *  @retval ::ESMI_SUCCESS is returned upon successful call.
+ *  @retval None-zero is returned upon failure.
+ *
+ */
+esmi_status_t esmi_rapl_package_counter_hsmp_mailbox_get(uint32_t sock_ind, uint32_t *counter1,
+							 uint32_t *counter0);
+/**
+ *  @brief Get the core energy counter values for a given socket through mailbox.
+ *
+ *  @details Updates the @p counter0 and @p counter1 with lower 32 bit and upper 32 bit of
+ *  core energy counter respectively.
+ *  Please note these units need to be multiplied with energy units to get actual energy
+ *  consumption.
+ *
+ *  @param[in] core_ind a core index
+ *
+ *  @param[inout] counter0 Input buffer to return the lower 32 bit of core energy.
+ *  @param[inout] counter1 Input buffer to return the upper 32 bit of core energy.
+ *
+ *  @retval ::ESMI_SUCCESS is returned upon successful call.
+ *  @retval None-zero is returned upon failure.
+ *
+ */
+esmi_status_t esmi_rapl_core_counter_hsmp_mailbox_get(uint32_t core_ind, uint32_t *counter1,
+						      uint32_t *counter0);
+
+/**
+ *  @brief Get the core energy for a given core through HSMP mailbox.
+ *
+ *  @details Given a core index @p core_ind, this function will calculate
+ *  the energy of that particular cpu by multiplying counter values obtained from
+ *  esmi_rapl_core_counter_hsmp_mailbox_get() with ESU values from
+ *  esmi_rapl_units_hsmp_mailbox_get()(counter value * 1/2^ESU)
+ *  and updates the @p penergy in micro Joules.
+ *
+ *  @param[in] core_ind is a core index
+ *
+ *  @param[inout] penergy Input buffer to return the core energy.
+ *
+ *  @retval ::ESMI_SUCCESS is returned upon successful call.
+ *  @retval None-zero is returned upon failure.
+ *
+ */
+esmi_status_t esmi_core_energy_hsmp_mailbox_get(uint32_t core_ind, uint64_t *penergy);
+
+/**
+ *  @brief Get the socket energy for a given socket through mailbox.
+ *
+ *  @details Given a socket index @p sock_ind, this function will calculate
+ *  the energy of that particular socket by multiplying counter values obtained from
+ *  esmi_rapl_package_counter_hsmp_mailbox_get() with ESU values from
+ *  esmi_rapl_units_hsmp_mailbox_get()(counter value * 1/2^ESU) and
+ *  returns it in @p penergy in micro joules.
+ *
+ *  @param[in] sock_ind a socket index
+ *
+ *  @param[inout] penergy Input buffer to return the socket energy.
+ *
+ *  @retval ::ESMI_SUCCESS is returned upon successful call.
+ *  @retval None-zero is returned upon failure.
+ *
+ */
+esmi_status_t esmi_package_energy_hsmp_mailbox_get(uint32_t sock_ind, uint64_t *penergy);
 
 /** @} */  // end of EnergyQuer
 
@@ -365,7 +460,7 @@ esmi_status_t esmi_socket_current_active_freq_limit_get(uint32_t sock_ind,
  *
  *  @details This function returns the socket frequency range, fmax
  *  and fmin.
- *  Supported only on hsmp protocol version-5
+ *  Supported only on hsmp protocol version 5 and 7.
  *
  *  @param[in] sock_ind Socket index.
  *
@@ -383,7 +478,7 @@ esmi_status_t esmi_socket_freq_range_get(uint8_t sock_ind, uint16_t *fmax, uint1
  *  @brief Get the current active frequency limit of the core.
  *
  *  @details This function returns the core frequency limit for the specified core.
- *  Supported only on hsmp protocol version-5
+ *  Supported only on hsmp protocol version 5 and 7.
  *
  *  @param[in] core_id Core index.
  *
@@ -394,6 +489,42 @@ esmi_status_t esmi_socket_freq_range_get(uint8_t sock_ind, uint16_t *fmax, uint1
  *
  */
 esmi_status_t esmi_current_freq_limit_core_get(uint32_t core_id, uint32_t *freq);
+
+/**
+ *  @brief Get the CpuRailIsoFreqPolicy.
+ *
+ *  @details This function gets the CpuRailIsoFreqPolicy.
+ *
+ *  @param[in] sock_ind a socket index
+ *
+ *  @param[in] val Input buffer containing boolean value which indicates whether all cores on both
+ *  rails have same frequency limit or different frequency limit.
+ *  All cores on both rails have same freq limit - 1
+ *  Each rail has different independent frequency limit - 0
+ *
+ *  @retval ::ESMI_SUCCESS is returned upon successful call.
+ *  @retval None-zero is returned upon failure.
+ *
+ */
+esmi_status_t esmi_cpurail_isofreq_policy_get(uint8_t sock_ind, bool *val);
+
+/**
+ *  @brief get the DfcEnable.
+ *
+ *  @details This function gets DF C-state enabling control.
+ *  DF C-state is a low power state for IOD.
+ *
+ *  @param[in] sock_ind a socket index
+ *
+ *  @param[in] val Input buffer holds a boolean which indicates whether DFC is enabled or disabled.
+ *  Enable DFC - 1
+ *  Disable DFC - 0
+ *
+ *  @retval ::ESMI_SUCCESS is returned upon successful call.
+ *  @retval None-zero is returned upon failure.
+ *
+ */
+esmi_status_t esmi_dfc_ctrl_setting_get(uint8_t sock_ind, bool *val);
 
 /** @} */  // end of SystemStatisticsQuer
 
@@ -465,7 +596,7 @@ esmi_status_t esmi_socket_power_cap_max_get(uint32_t socket_idx,
  *  @brief Get the SVI based power telemetry for all rails.
  *
  *  @details This function returns the SVI based power telemetry for all rails.
- *  Supported only on hsmp protocol version-5
+ *  Supported only on hsmp protocol version 5 and 7.
  *
  *  @param[in] sock_ind Socket index.
  *
@@ -477,6 +608,22 @@ esmi_status_t esmi_socket_power_cap_max_get(uint32_t socket_idx,
  */
 esmi_status_t esmi_pwr_svi_telemetry_all_rails_get(uint32_t sock_ind, uint32_t *power);
 
+/**
+ *  @brief Get the current power efficiency mode.
+ *
+ *  @details This function returns the current power
+ *  efficiency mode.
+ *
+ *  @param[in] sock_ind Socket index.
+ *
+ *  @param[inout] mode Input buffer to return the mode.
+ *  Refer \ref esmi_pwr_efficiency_mode_set for details on the modes
+ *
+ *  @retval ::ESMI_SUCCESS is returned upon successful call.
+ *  @retval None-zero is returned upon failure.
+ *
+ */
+esmi_status_t esmi_pwr_efficiency_mode_get(uint8_t sock_ind, uint8_t *mode);
 
 /** @} */  // end of PowerQuer
 
@@ -515,7 +662,7 @@ esmi_status_t esmi_socket_power_cap_set(uint32_t socket_idx, uint32_t pcap);
  *  @brief Set the power efficiency profile policy
  *
  *  @details This function will set the power efficiency mode.
- *  Supported only on hsmp protocol version-5
+ *  Supported only on hsmp protocol version 5 and 7.
  *
  *  Power efficiency modes are:
  *
@@ -538,6 +685,20 @@ esmi_status_t esmi_socket_power_cap_set(uint32_t socket_idx, uint32_t pcap);
  *  mode. With higher memory and fabric load, the system becomes similar in performance
  *  to the default high performance mode.
  *
+ *  4 = Balanced Core Performance Mode: This mode biases toward consistent core performance across varying core
+ *  utilization levels, by preventing active cores from using the power budget of inactive cores. This mode allows
+ *  core "boosting" as in the default high performance mode, but does not allow core boost to take advantage of the
+ *  power budget of inactive cores, resulting in a more efficient operating point for the active cores. The memory
+ *  subsystem and Infinity Fabric behavior is unaffected. There may be a performance impact under light core
+ *  utilization conditions compared to the default high performance mode. With high core utilization levels, the
+ *  performance is similar to the default high performance mode.
+ *
+ *  5 = Balanced Core and Memory Performance Mode.
+ *  This mode combines the Balanced Memory Performance and the
+ *  Balanced Core Performance mode and may result in lower performance under light loads compared to the default
+ *  high performance mode, but with significant increase in efficiency under light loads. Performance in this mode
+ *  will be similar to the default high performance mode as the system load increases.
+ *
  *  @param[in] sock_ind A socket index.
  *
  *  @param[in] mode Power efficiency mode to be set.
@@ -547,6 +708,48 @@ esmi_status_t esmi_socket_power_cap_set(uint32_t socket_idx, uint32_t pcap);
  *
  */
 esmi_status_t esmi_pwr_efficiency_mode_set(uint8_t sock_ind, uint8_t mode);
+
+/**
+ *  @brief Set the CpuRailIsoFreqPolicy.
+ *
+ *  @details This function sets the CpuRailIsoFreqPolicy.
+ *
+ *  If a socket wide limit (e.g. PPT)is setting the core clock frequency, then this setting has
+ *  no effect.
+ *  For other limiters specific to CPU power rails (e.g. TDC), this policy allows or disables
+ *  independent core clocks per rail(VDDCR_CPU0 or VDDCR_CPU1).
+ *
+ *  @param[in] sock_ind a socket index
+ *
+ *  @param[in] val Input buffer to contian a boolean which indicates whether all cores on both
+ *  rails have same frequency limit or different frequency limit.
+ *  All cores on both rails have same freq limit - 1
+ *  Each rail has different independent frequency limit - 0
+ *
+ *  @retval ::ESMI_SUCCESS is returned upon successful call.
+ *  @retval None-zero is returned upon failure.
+ *
+ */
+esmi_status_t esmi_cpurail_isofreq_policy_set(uint8_t sock_ind, bool *val);
+
+/**
+ *  @brief Set the DfcEnable.
+ *
+ *  @details This function sets DF C-state enabling control.
+ *  DF C-state is a low power state for IOD.
+ *
+ *  @param[in] sock_ind a socket index
+ *
+ *  @param[in] val Input buffer holds a boolean which indicates whether to
+ *  disable DFC or to enable DFC.
+ *  Enable DFC - 1
+ *  Disable DFC - 0
+ *
+ *  @retval ::ESMI_SUCCESS is returned upon successful call.
+ *  @retval None-zero is returned upon failure.
+ *
+ */
+esmi_status_t esmi_dfc_enable_set(uint8_t sock_ind, bool *val);
 
 /** @} */  // end of PowerCont
 
@@ -720,7 +923,7 @@ esmi_status_t esmi_socket_temperature_get(uint32_t sock_ind, uint32_t *ptmon);
  *
  *  @details This function returns the per DIMM temperature range and
  *  refresh rate from the MR4 register.
- *  Supported only on hsmp protocol version-5
+ *  Supported only on hsmp protocol version 5 and 7.
  *
  *  @param[in] sock_ind Socket index through which the DIMM can be accessed
  *
@@ -740,7 +943,7 @@ esmi_status_t esmi_dimm_temp_range_and_refresh_rate_get(uint8_t sock_ind, uint8_
  *  @brief Get dimm power consumption and update rate
  *
  *  @details This function returns the DIMM power and update rate
- *  Supported only on hsmp protocol version-5
+ *  Supported only on hsmp protocol version 5 and 7.
  *
  *  @param[in] sock_ind Socket index through which the DIMM can be accessed.
  *
@@ -761,7 +964,7 @@ esmi_status_t esmi_dimm_power_consumption_get(uint8_t sock_ind, uint8_t dimm_add
  *
  *  @details This function will return the DIMM thermal sensor(2 sensors per DIMM)
  *  and update rate
- *  Supported only on hsmp protocol version-5
+ *  Supported only on hsmp protocol version 5 and 7.
  *
  *  @param[in] sock_ind Socket index through which the DIMM can be accessed.
  *
@@ -832,7 +1035,7 @@ esmi_status_t esmi_xgmi_width_set(uint8_t min, uint8_t max);
  *
  *  2 => Full width
  *
- *  Supported only on hsmp protocol version-5
+ *  Supported only on hsmp protocol version 5 and 7.
  *
  *  @param[in] sock_ind Socket index.
  *
@@ -929,7 +1132,7 @@ esmi_status_t esmi_socket_lclk_dpm_level_set(uint32_t sock_ind, uint8_t nbio_id,
  *  DPM levels can be set from APML also. This API gives current levels which may
  *  have been set from either APML or HSMP.
  *
- *  Supported in hsmp protocol version-5.
+ *  Supported in hsmp protocol version 5 and 7.
  *
  *  @param[in] sock_ind Socket index
  *
@@ -956,7 +1159,7 @@ esmi_status_t esmi_socket_lclk_dpm_level_get(uint8_t sock_ind, uint8_t nbio_id,
  *
  *  2 => Limit at gen5 rate
  *
- *  Supported only on hsmp protocol version-5
+ *  Supported only on hsmp protocol version 5 and 7.
  *
  *  @param[in] sock_ind Socket index.
  *
@@ -978,7 +1181,7 @@ esmi_status_t esmi_pcie_link_rate_set(uint8_t sock_ind, uint8_t rate_ctrl, uint8
  *  max <= min.
  *  DF pstate range can be set from both HSMP and APML, the most
  *  recent of the two is enforced.
- *  Supported only on hsmp protocol version-5
+ *  Supported only on hsmp protocol version 5 and 7.
  *
  *  @param[in] sock_ind a socket index.
  *
@@ -992,6 +1195,25 @@ esmi_status_t esmi_pcie_link_rate_set(uint8_t sock_ind, uint8_t rate_ctrl, uint8
  */
 esmi_status_t esmi_df_pstate_range_set(uint8_t sock_ind, uint8_t max_pstate, uint8_t min_pstate);
 
+/**
+ *  @brief Set xgmi pstate range.
+ *
+ *  @details This function will set the max and min xgmi pstate.
+ *  Acceptable values for the P-state are 0(high performance) and 1(low performance) with
+ *  max_state <= min_state.
+ *  XGMI pstate range can be set from both HSMP and APML, the most
+ *  recent of the two is enforced.
+ *
+ *  @param[in] max_pstate Maximum pstate value to be set.
+ *
+ *  @param[in] min_pstate Minimum pstate value to be set.
+ *
+ *  @retval ::ESMI_SUCCESS is returned upon successful call.
+ *  @retval None-zero is returned upon failure.
+ *
+ */
+esmi_status_t esmi_xgmi_pstate_range_set(uint8_t max_pstate, uint8_t min_pstate);
+
 /** @} */  // end of PStateCont
 
 /*****************************************************************************/
@@ -1004,7 +1226,7 @@ esmi_status_t esmi_df_pstate_range_set(uint8_t sock_ind, uint8_t max_pstate, uin
  *  @brief Get IO bandwidth on IO link.
  *
  *  @details This function returns the IO Aggregate bandwidth for the given link id.
- *  Supported only on hsmp protocol version-5
+ *  Supported only on hsmp protocol version 5 and 7.
  *
  *  @param[in] sock_ind Socket index.
  *
@@ -1025,7 +1247,7 @@ esmi_status_t esmi_current_io_bandwidth_get(uint8_t sock_ind, struct link_id_bw_
  *
  *  @details This function will read xGMI bandwidth in Mbps for the specified link
  *  and bandwidth type in a multi socket system.
- *  Supported only on hsmp protocol version-5
+ *  Supported only on hsmp protocol version 5 and 7.
  *
  *  @param[in] link  structure containing link_id(Link encoding values of given link) and bwtype
  *  info.
@@ -1101,8 +1323,8 @@ esmi_status_t esmi_dram_address_metrics_table_get(uint8_t sock_ind, uint64_t *dr
  *  @details
  *  [31:0] = input value
  *
- *  @param[in] sock_ind :Socket index.
- *  @param[in/out] data : input buffer to send input value and to get the output value
+ *  @param[in] sock_ind Socket index.
+ *  @param[inout] data  input buffer to send input value and to get the output value
  *
  *  @retval ::ESMI_SUCCESS is returned upon successful call.
  *  @retval Non-zero is returned upon failure.

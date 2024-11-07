@@ -181,9 +181,16 @@ func main() {
 	)
 	defer msrClient.Close()
 
+	esmiClient, esmiErr := metrics.NewESMIClient(
+		ctrl.Log.WithName("clients").WithName("ESMIClient"),
+	)
+
 	logger := ctrl.Log.WithName(monitoring.LogTopName)
 	monitoring.RegisterPerfEventCollectors(perfEventClient, powerLibrary, logger)
 	monitoring.RegisterMSRCollectors(msrClient, powerLibrary, logger)
+	if esmiErr == nil {
+		monitoring.RegisterESMICollectors(esmiClient, powerLibrary, logger)
+	}
 
 	if err = (&controller.PowerProfileReconciler{
 		Client:       mgr.GetClient(),

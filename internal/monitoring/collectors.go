@@ -22,6 +22,7 @@ const (
 	LogTopName    string = "monitoring"
 	perfSubsystem string = "perf"
 	msrSubsystem  string = "msr"
+	esmiSubsystem string = "esmi"
 
 	logTypeKey      string = "type"
 	logTypeHardware string = "hardware"
@@ -69,7 +70,7 @@ func newPerCPUCollector[T number](metricName, metricDesc string, metricType prom
 				"error", err.Error(), "cpu", cpu.GetID())
 		} else {
 			collectorFuncs = append(collectorFuncs, func(ch chan<- prom.Metric) {
-				log.V(5).Info("Collecting metrics for prometheus", "cpu", cpu.GetID())
+				log.V(5).Info("Collecting metrics for reporting", "cpu", cpu.GetID())
 				if val, err := readFunc(cpu); err == nil {
 					ch <- prom.MustNewConstMetric(
 						desc,
@@ -122,7 +123,7 @@ func newPerCoreCollector[T number](metricName, metricDesc string, metricType pro
 				"error", err.Error(), "core", core.GetID())
 		} else {
 			collectorFuncs = append(collectorFuncs, func(ch chan<- prom.Metric) {
-				log.V(5).Info("Collecting metrics for prometheus", "core", core.GetID())
+				log.V(5).Info("Collecting metrics for reporting", "core", core.GetID())
 				if val, err := readFunc(core); err == nil {
 					ch <- prom.MustNewConstMetric(
 						desc,
@@ -175,7 +176,7 @@ func newPerDieCollector[T number](metricName, metricDesc string, metricType prom
 				"error", err.Error(), "die", die.GetID())
 		} else {
 			collectorFuncs = append(collectorFuncs, func(ch chan<- prom.Metric) {
-				log.V(5).Info("Collecting metrics for prometheus", "die", die.GetID())
+				log.V(5).Info("Collecting metrics for reporting", "die", die.GetID())
 				if val, err := readFunc(die); err == nil {
 					ch <- prom.MustNewConstMetric(
 						desc,
@@ -226,7 +227,7 @@ func newPerPackageCollector[T number](metricName, metricDesc string, metricType 
 				"error", err.Error(), "package", pkg.GetID())
 		} else {
 			collectorFuncs = append(collectorFuncs, func(ch chan<- prom.Metric) {
-				log.V(5).Info("Collecting metrics for prometheus", "package", pkg.GetID())
+				log.V(5).Info("Collecting metrics for reporting", "package", pkg.GetID())
 				if val, err := readFunc(pkg); err == nil {
 					ch <- prom.MustNewConstMetric(
 						desc,
@@ -241,6 +242,51 @@ func newPerPackageCollector[T number](metricName, metricDesc string, metricType 
 		}
 	})
 	log.V(4).Info("New perPackage prometheus Collector created")
+
+	return collectorImpl{
+		describeFunc: func(ch chan<- *prom.Desc) {
+			ch <- desc
+		},
+		collectFunc: func(ch chan<- prom.Metric) {
+			for _, collectFunc := range collectorFuncs {
+				collectFunc(ch)
+			}
+		},
+	}
+}
+
+// newPerSystemCollector is generic factory of prometheus Collectors for metrics that are system scoped.
+// readFunc is generic function which signature corresponds to methods of southbound telemetry clients.
+// log is Logger that should have all Names, KeysValues and other... already attached.
+// return prometheus Collector that is ready for registration
+func newPerSystemCollector[T number](metricName, metricDesc string, metricType prom.ValueType,
+	readFunc func() (T, error), log logr.Logger,
+) prom.Collector {
+	desc := prom.NewDesc(
+		metricName,
+		metricDesc,
+		nil,
+		nil,
+	)
+
+	collectorFuncs := make([]func(ch chan<- prom.Metric), 0)
+	if _, err := readFunc(); errors.Is(err, metrics.ErrMetricMissing) {
+		log.Info("Not registering collection, client will not be able to read this metric", "error", err.Error())
+	} else {
+		collectorFuncs = append(collectorFuncs, func(ch chan<- prom.Metric) {
+			log.V(5).Info("Collecting metrics for reporting")
+			if val, err := readFunc(); err == nil {
+				ch <- prom.MustNewConstMetric(
+					desc,
+					metricType,
+					float64(val),
+				)
+			} else {
+				log.V(5).Info(fmt.Sprintf("error reading metric value, err: %v", err))
+			}
+		})
+	}
+	log.V(4).Info("New perSystem prometheus Collector created")
 
 	return collectorImpl{
 		describeFunc: func(ch chan<- *prom.Desc) {
