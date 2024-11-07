@@ -1,7 +1,6 @@
 package metrics
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/go-logr/logr"
@@ -138,11 +137,6 @@ var cachePerfEvents = map[int][]int{
 	},
 }
 
-// ErrPerfEventMissing is returned when called perf event is not
-// actively monitored due to event reader startup error and not due
-// to single event read error of active reader.
-var ErrPerfEventMissing error = errors.New("event reader is not running")
-
 // PerfEventClient is thread safe client to perf_event_open counters.
 // Single instance should be created using constructor and passed as
 // a pointer.
@@ -179,7 +173,8 @@ func (pc *PerfEventClient) Close() {
 	for eventID, eventReaders := range pc.readers {
 		for scopeID, reader := range eventReaders {
 			if err := reader.close(); err != nil {
-				pc.log.V(5).Error(err, "error while closing reader", "event ID", eventID, "scope ID", scopeID)
+				pc.log.V(5).Info(fmt.Sprintf("error while closing reader, err: %v", err),
+					"event ID", eventID, "scope ID", scopeID)
 			}
 		}
 	}
@@ -474,8 +469,8 @@ func (pc *PerfEventClient) readEvent(scopeID uint, eventKey string, scopeName, e
 
 	reader, ok := pc.readers[eventKey][scopeID]
 	if !ok {
-		logger.V(5).Error(ErrPerfEventMissing, "")
-		return 0, ErrPerfEventMissing
+		logger.V(5).Info(fmt.Sprintf("err: %v", ErrMetricMissing))
+		return 0, ErrMetricMissing
 	}
 	val, err := reader.read()
 	if err != nil {

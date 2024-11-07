@@ -28,7 +28,7 @@ func (p *testPerfEventClient) GetPerCPUMetric(id power.Cpu) (uint64, error) {
 
 func (p *testPerfEventClient) GetNotStartedPerCPUMetric(power.Cpu) (uint64, error) {
 	p.Called()
-	return 0, metrics.ErrPerfEventMissing
+	return 0, metrics.ErrMetricMissing
 }
 
 func (p *testPerfEventClient) GetPerCoreMetric(id power.Core) (uint64, error) {
@@ -37,7 +37,7 @@ func (p *testPerfEventClient) GetPerCoreMetric(id power.Core) (uint64, error) {
 
 func (p *testPerfEventClient) GetNotStartedPerCoreMetric(power.Core) (uint64, error) {
 	p.Called()
-	return 0, metrics.ErrPerfEventMissing
+	return 0, metrics.ErrMetricMissing
 }
 
 func (p *testPerfEventClient) GetPerPackageMetric(id power.Package) (uint64, error) {
@@ -46,7 +46,7 @@ func (p *testPerfEventClient) GetPerPackageMetric(id power.Package) (uint64, err
 
 func (p *testPerfEventClient) GetNotStartedPerPackageMetric(power.Package) (uint64, error) {
 	p.Called()
-	return 0, metrics.ErrPerfEventMissing
+	return 0, metrics.ErrMetricMissing
 }
 
 func initializeHostMock() *testutils.MockHost {

@@ -115,7 +115,7 @@ func TestNewMSRClientWithErrors(t *testing.T) {
 		result, ok := client.c0ResPercentResults.Load(cpu.GetID())
 		assert.True(t, ok)
 		r := result.(c0ResidencyResult)
-		assert.ErrorIs(t, r.err, ErrMSRReaderMissing)
+		assert.ErrorIs(t, r.err, ErrMetricMissing)
 	})
 }
 

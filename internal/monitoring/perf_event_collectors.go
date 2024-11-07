@@ -20,7 +20,7 @@ func RegisterPerfEventCollectors(perfEventClient *metrics.PerfEventClient, host 
 			prom.CounterValue,
 			host,
 			perfEventClient.GetCycles,
-			logger.WithValues(logTypeKey, logTypeHardware, logTypeName, "cycles_total"),
+			logger.WithValues(logTypeKey, logTypeHardware, logNameKey, "cycles_total"),
 		),
 		newPerCPUCollector(
 			prom.BuildFQName(promNamespace, perfSubsystem, "instructions_total"),
@@ -28,7 +28,7 @@ func RegisterPerfEventCollectors(perfEventClient *metrics.PerfEventClient, host 
 			prom.CounterValue,
 			host,
 			perfEventClient.GetInstructions,
-			logger.WithValues(logTypeKey, logTypeHardware, logTypeName, "instructions_total"),
+			logger.WithValues(logTypeKey, logTypeHardware, logNameKey, "instructions_total"),
 		),
 		newPerCPUCollector(
 			prom.BuildFQName(promNamespace, perfSubsystem, "cache_accesses_total"),
@@ -36,7 +36,7 @@ func RegisterPerfEventCollectors(perfEventClient *metrics.PerfEventClient, host 
 			prom.CounterValue,
 			host,
 			perfEventClient.GetCacheAccesses,
-			logger.WithValues(logTypeKey, logTypeHardware, logTypeName, "cache_accesses_total"),
+			logger.WithValues(logTypeKey, logTypeHardware, logNameKey, "cache_accesses_total"),
 		),
 		newPerCPUCollector(
 			prom.BuildFQName(promNamespace, perfSubsystem, "cache_misses_total"),
@@ -44,7 +44,7 @@ func RegisterPerfEventCollectors(perfEventClient *metrics.PerfEventClient, host 
 			prom.CounterValue,
 			host,
 			perfEventClient.GetCacheMisses,
-			logger.WithValues(logTypeKey, logTypeHardware, logTypeName, "cache_misses_total"),
+			logger.WithValues(logTypeKey, logTypeHardware, logNameKey, "cache_misses_total"),
 		),
 		newPerCPUCollector(
 			prom.BuildFQName(promNamespace, perfSubsystem, "branch_instructions_total"),
@@ -52,7 +52,7 @@ func RegisterPerfEventCollectors(perfEventClient *metrics.PerfEventClient, host 
 			prom.CounterValue,
 			host,
 			perfEventClient.GetBranchInstructions,
-			logger.WithValues(logTypeKey, logTypeHardware, logTypeName, "branch_instructions_total"),
+			logger.WithValues(logTypeKey, logTypeHardware, logNameKey, "branch_instructions_total"),
 		),
 		newPerCPUCollector(
 			prom.BuildFQName(promNamespace, perfSubsystem, "branch_misses_total"),
@@ -60,7 +60,7 @@ func RegisterPerfEventCollectors(perfEventClient *metrics.PerfEventClient, host 
 			prom.CounterValue,
 			host,
 			perfEventClient.GetBranchMisses,
-			logger.WithValues(logTypeKey, logTypeHardware, logTypeName, "branch_misses_total"),
+			logger.WithValues(logTypeKey, logTypeHardware, logNameKey, "branch_misses_total"),
 		),
 		// not verified, not supported by linux kernel as of 2024/11
 		newPerCPUCollector(
@@ -77,7 +77,7 @@ func RegisterPerfEventCollectors(perfEventClient *metrics.PerfEventClient, host 
 			prom.CounterValue,
 			host,
 			perfEventClient.GetStalledCyclesFrontend,
-			logger.WithValues(logTypeKey, logTypeHardware, logTypeName, "stalled_cycles_frontend_total"),
+			logger.WithValues(logTypeKey, logTypeHardware, logNameKey, "stalled_cycles_frontend_total"),
 		),
 		// not verified, not supported by linux kernel as of 2024/11
 		newPerCPUCollector(
@@ -104,7 +104,7 @@ func RegisterPerfEventCollectors(perfEventClient *metrics.PerfEventClient, host 
 			prom.CounterValue,
 			host,
 			perfEventClient.GetBPFOutput,
-			logger.WithValues(logTypeKey, logTypeSoftware, logTypeName, "bpf_output_total"),
+			logger.WithValues(logTypeKey, logTypeSoftware, logNameKey, "bpf_output_total"),
 		),
 		// Type cache
 		newPerCPUCollector(
@@ -113,7 +113,7 @@ func RegisterPerfEventCollectors(perfEventClient *metrics.PerfEventClient, host 
 			prom.CounterValue,
 			host,
 			perfEventClient.GetL1DCacheReadAccesses,
-			logger.WithValues(logTypeKey, logTypeCache, logTypeName, "cache_l1d_read_accesses_total"),
+			logger.WithValues(logTypeKey, logTypeCache, logNameKey, "cache_l1d_read_accesses_total"),
 		),
 		newPerCPUCollector(
 			prom.BuildFQName(promNamespace, perfSubsystem, "cache_l1d_read_misses_total"),
@@ -121,7 +121,7 @@ func RegisterPerfEventCollectors(perfEventClient *metrics.PerfEventClient, host 
 			prom.CounterValue,
 			host,
 			perfEventClient.GetL1DCacheReadMisses,
-			logger.WithValues(logTypeKey, logTypeCache, logTypeName, "cache_l1d_read_misses_total"),
+			logger.WithValues(logTypeKey, logTypeCache, logNameKey, "cache_l1d_read_misses_total"),
 		),
 		// not verified, not supported by linux kernel as of 2024/11
 		newPerCPUCollector(
@@ -147,7 +147,7 @@ func RegisterPerfEventCollectors(perfEventClient *metrics.PerfEventClient, host 
 			prom.CounterValue,
 			host,
 			perfEventClient.GetL1DCachePrefetchAccesses,
-			logger.WithValues(logTypeKey, logTypeCache, logTypeName, "cache_l1d_prefetch_accesses_total"),
+			logger.WithValues(logTypeKey, logTypeCache, logNameKey, "cache_l1d_prefetch_accesses_total"),
 		),
 		// not verified, not supported by linux kernel as of 2024/11
 		newPerCPUCollector(
@@ -164,7 +164,7 @@ func RegisterPerfEventCollectors(perfEventClient *metrics.PerfEventClient, host 
 			prom.CounterValue,
 			host,
 			perfEventClient.GetL1ICacheReadAccesses,
-			logger.WithValues(logTypeKey, logTypeCache, logTypeName, "cache_l1i_read_accesses_total"),
+			logger.WithValues(logTypeKey, logTypeCache, logNameKey, "cache_l1i_read_accesses_total"),
 		),
 		newPerCPUCollector(
 			prom.BuildFQName(promNamespace, perfSubsystem, "cache_l1i_read_misses_total"),
@@ -172,7 +172,7 @@ func RegisterPerfEventCollectors(perfEventClient *metrics.PerfEventClient, host 
 			prom.CounterValue,
 			host,
 			perfEventClient.GetL1ICacheReadMisses,
-			logger.WithValues(logTypeKey, logTypeCache, logTypeName, "cache_l1i_read_misses_total"),
+			logger.WithValues(logTypeKey, logTypeCache, logNameKey, "cache_l1i_read_misses_total"),
 		),
 		// not verified, not supported by linux kernel as of 2024/11
 		newPerCPUCollector(
@@ -216,7 +216,7 @@ func RegisterPerfEventCollectors(perfEventClient *metrics.PerfEventClient, host 
 			prom.CounterValue,
 			host,
 			perfEventClient.GetBPUCacheReadAccesses,
-			logger.WithValues(logTypeKey, logTypeCache, logTypeName, "cache_bpu_read_accesses_total"),
+			logger.WithValues(logTypeKey, logTypeCache, logNameKey, "cache_bpu_read_accesses_total"),
 		),
 		newPerCPUCollector(
 			prom.BuildFQName(promNamespace, perfSubsystem, "cache_bpu_read_misses_total"),
@@ -224,7 +224,7 @@ func RegisterPerfEventCollectors(perfEventClient *metrics.PerfEventClient, host 
 			prom.CounterValue,
 			host,
 			perfEventClient.GetBPUCacheReadMisses,
-			logger.WithValues(logTypeKey, logTypeCache, logTypeName, "cache_bpu_read_misses_total"),
+			logger.WithValues(logTypeKey, logTypeCache, logNameKey, "cache_bpu_read_misses_total"),
 		),
 		// not verified, not supported by linux kernel as of 2024/11
 		newPerCPUCollector(

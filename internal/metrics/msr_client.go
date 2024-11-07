@@ -3,6 +3,7 @@ package metrics
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math"
 	"sync"
 	"time"
@@ -33,11 +34,6 @@ const (
 )
 
 var (
-	// ErrMSRReaderMissing is returned when called MSR reader file handle couldn't
-	// be created due to startup error and not due to single offset read error of
-	// active handle.
-	ErrMSRReaderMissing error = errors.New("MSR reader missing")
-
 	// ErrCStateResidencyInsufficientData is returned when msrReader.read() method returned error
 	// during runtime. We assume that the issue is temporary since MSR file handle for that CPU
 	// was created properly and was readable.
@@ -92,7 +88,7 @@ func (msr *MSRClient) Close() {
 	msr.log.V(4).Info("Closing all registered readers")
 	for cpuId, reader := range msr.readers {
 		if err := reader.close(); err != nil {
-			msr.log.V(5).Error(err, "error while closing reader", "cpu id", cpuId)
+			msr.log.V(5).Info(fmt.Sprintf("error while closing reader, err: %v", err), "cpu id", cpuId)
 		}
 	}
 
@@ -107,8 +103,11 @@ func (msr *MSRClient) GetC0ResidencyPercent(cpu power.Cpu) (uint8, error) {
 	result, ok := msr.c0ResPercentResults.Load(cpu.GetID())
 	if !ok {
 		// Map keys are added on client creation so this branch should not happen at all.
-		logger.V(5).Error(ErrMSRReaderMissing, "unexpected behavior, ensure MSRClient was created using constructor")
-		return 0, ErrMSRReaderMissing
+		logger.V(5).Info(
+			fmt.Sprintf("unexpected behavior, ensure MSRClient was created using constructor, err: %v",
+				ErrMetricMissing),
+		)
+		return 0, ErrMetricMissing
 	}
 	r := result.(c0ResidencyResult)
 
@@ -121,8 +120,11 @@ func (msr *MSRClient) GetCxResidencyPercent(cpu power.Cpu) (uint8, error) {
 	result, ok := msr.c0ResPercentResults.Load(cpu.GetID())
 	if !ok {
 		// Map keys are added on client creation so this branch should not happen at all.
-		logger.V(5).Error(ErrMSRReaderMissing, "unexpected behavior, ensure MSRClient was created using constructor")
-		return 0, ErrMSRReaderMissing
+		logger.V(5).Info(
+			fmt.Sprintf("unexpected behavior, ensure MSRClient was created using constructor, err: %v",
+				ErrMetricMissing),
+		)
+		return 0, ErrMetricMissing
 	}
 	r := result.(c0ResidencyResult)
 
@@ -178,8 +180,8 @@ func (msr *MSRClient) readMetric(cpu uint, offset uint64, scopeId uint, scopeNam
 
 	reader, ok := msr.readers[cpu]
 	if !ok {
-		logger.V(5).Error(ErrMSRReaderMissing, "")
-		return 0, ErrMSRReaderMissing
+		logger.V(5).Info(fmt.Sprintf("err: %v", ErrMetricMissing))
+		return 0, ErrMetricMissing
 	}
 	val, err := reader.read(offset)
 	if err != nil {
@@ -213,9 +215,9 @@ func (msr *MSRClient) startC0ResidencyWorkers(ctx context.Context) {
 		// Test if MSR readers are active before starting worker goroutine
 		_, errTsc := msr.readMetric(cpu.GetID(), tscOffset, cpu.GetID(), cpuLogKey)
 		_, errMperf := msr.readMetric(cpu.GetID(), mperfOffset, cpu.GetID(), cpuLogKey)
-		if errMperf == ErrMSRReaderMissing || errTsc == ErrMSRReaderMissing {
-			logger.Error(ErrMSRReaderMissing, "not starting C-state residency worker goroutine")
-			msr.c0ResPercentResults.Store(cpu.GetID(), c0ResidencyResult{err: ErrMSRReaderMissing})
+		if errMperf == ErrMetricMissing || errTsc == ErrMetricMissing {
+			logger.Error(ErrMetricMissing, "not starting C-state residency worker goroutine")
+			msr.c0ResPercentResults.Store(cpu.GetID(), c0ResidencyResult{err: ErrMetricMissing})
 			return
 		}
 
@@ -255,14 +257,18 @@ func (msr *MSRClient) c0ResidencyWorker(cpu power.Cpu, ctx context.Context) {
 			prevTSC, prevTSCErr = tsc, tscErr
 			if tsc, tscErr = msr.readMetric(cpu.GetID(), tscOffset, cpu.GetID(), cpuLogKey); tscErr != nil {
 				msr.c0ResPercentResults.Store(cpu.GetID(), c0ResidencyResult{err: tscErr})
-				logger.V(5).Error(mperfErr, "error retrieving TSC value, continuing to next iteration")
+				logger.V(5).Info(
+					fmt.Sprintf("error retrieving TSC value, continuing to next iteration, err: %v", tscErr),
+				)
 				continue
 			}
 
 			prevMPERF, prevMPERFErr = mperf, mperfErr
 			if mperf, mperfErr = msr.readMetric(cpu.GetID(), mperfOffset, cpu.GetID(), cpuLogKey); mperfErr != nil {
 				msr.c0ResPercentResults.Store(cpu.GetID(), c0ResidencyResult{err: mperfErr})
-				logger.V(5).Error(mperfErr, "error retrieving MPERF value, continuing to next iteration")
+				logger.V(5).Info(
+					fmt.Sprintf("error retrieving MPERF value, continuing to next iteration, err: %v", mperfErr),
+				)
 				continue
 			}
 
