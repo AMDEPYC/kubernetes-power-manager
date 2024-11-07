@@ -72,11 +72,11 @@ operator:
     image: intel/power-operator:v2.5.0
     name: manager
     cpu:
-      limits: 100m
-      requests: 100m
+      limits: 200m
+      requests: 200m
     memory:
-      limits: 30Mi
-      requests: 30Mi
+      limits: 100Mi
+      requests: 100Mi
 
 # Values for exposing metrics from node-agent locally
 agentmetricsservice:

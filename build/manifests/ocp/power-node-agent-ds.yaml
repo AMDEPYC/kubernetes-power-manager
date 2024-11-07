@@ -32,10 +32,10 @@ spec:
               containerPort: 10001
           resources:
             limits:
-              cpu: 500m
+              cpu: 1000m
               memory: 128Mi
             requests:
-              cpu: 500m
+              cpu: 1000m
               memory: 128Mi
           volumeMounts:
             - mountPath: /sys/devices/system/cpu
