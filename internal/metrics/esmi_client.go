@@ -383,6 +383,11 @@ func (e *ESMIClient) GetDIMMPower(pkg power.Package, dimmAddr uint8) (float64, e
 		return 0, mapESMIError(esmiStatus)
 	}
 
+	// update_rate == 0 is indication of metric unavailability on the system
+	if dimmPower.update_rate == 0 {
+		return 0, ErrMetricMissing
+	}
+
 	return float64(dimmPower.power) * milliMultiplier, nil
 }
 
@@ -400,6 +405,11 @@ func (e *ESMIClient) GetDIMMTemp(pkg power.Package, dimmAddr uint8) (float32, er
 		&dimmThermal,
 	); esmiStatus != 0 {
 		return 0, mapESMIError(esmiStatus)
+	}
+
+	// update_rate == 0 is indication of metric unavailability on the system
+	if dimmThermal.update_rate == 0 {
+		return 0, ErrMetricMissing
 	}
 
 	return float32(dimmThermal.temp), nil

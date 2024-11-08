@@ -321,9 +321,8 @@ func newPackageDimmCollector[T, E number](metricName, metricDesc string, metricT
 
 	collectorFuncs := make([]func(ch chan<- prom.Metric), 0)
 	util.IterateOverPackages(host, func(pkg power.Package) {
-		for currentUMC := range supportedUMCNum {
-			umc := currentUMC + 1
-			for dimm, dimmAddr := range []int{dimm0StartAddr + currentUMC, dimm1StartAddr + currentUMC} {
+		for umc := range supportedUMCNum {
+			for dimm, dimmAddr := range []int{dimm0StartAddr + umc, dimm1StartAddr + umc} {
 				if _, err := readFunc(pkg, E(dimmAddr)); errors.Is(err, metrics.ErrMetricMissing) {
 					log.Info("Not registering collection, client will not be able to read this metric", "error",
 						err.Error(), "package", pkg.GetID(), "DIMM address", dimmAddr, "DIMM", dimm, "UMC", umc)

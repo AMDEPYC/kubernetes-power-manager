@@ -324,6 +324,8 @@ func TestNewPackageDimmCollector(t *testing.T) {
 	expected := `
 		# HELP power_test_test_package_dimm_metric1 test package & dimm metric1
 		# TYPE power_test_test_package_dimm_metric1 gauge
+		power_test_test_package_dimm_metric1{dimm="0",package="0",umc="0"} 6
+		power_test_test_package_dimm_metric1{dimm="1",package="0",umc="0"} 6
 		power_test_test_package_dimm_metric1{dimm="0",package="0",umc="1"} 6
 		power_test_test_package_dimm_metric1{dimm="1",package="0",umc="1"} 6
 		power_test_test_package_dimm_metric1{dimm="0",package="0",umc="2"} 6
@@ -332,8 +334,6 @@ func TestNewPackageDimmCollector(t *testing.T) {
 		power_test_test_package_dimm_metric1{dimm="1",package="0",umc="3"} 6
 		power_test_test_package_dimm_metric1{dimm="0",package="0",umc="4"} 6
 		power_test_test_package_dimm_metric1{dimm="1",package="0",umc="4"} 6
-		power_test_test_package_dimm_metric1{dimm="0",package="0",umc="5"} 6
-		power_test_test_package_dimm_metric1{dimm="1",package="0",umc="5"} 6
 	`
 	err := promtestutil.CollectAndCompare(workingPackageDIMMCollector, strings.NewReader(expected), metricName)
 	assert.Nil(t, err)
