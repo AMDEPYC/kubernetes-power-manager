@@ -1,16 +1,16 @@
-# permissions for end users to edit cpuperformancescalingprofiles.
+# permissions for end users to edit cpuscalingprofiles.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/name: intel-kubernetes-power-manager
     app.kubernetes.io/managed-by: kustomize
-  name: cpuperformancescalingprofile-editor-role
+  name: cpuscalingprofile-editor-role
 rules:
 - apiGroups:
   - power.intel.com
   resources:
-  - cpuperformancescalingprofiles
+  - cpuscalingprofiles
   verbs:
   - create
   - delete
@@ -22,6 +22,6 @@ rules:
 - apiGroups:
   - power.intel.com
   resources:
-  - cpuperformancescalingprofiles/status
+  - cpuscalingprofiles/status
   verbs:
   - get

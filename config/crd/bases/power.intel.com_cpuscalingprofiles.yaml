@@ -4,21 +4,20 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.14.0
-  name: cpuperformancescalingprofiles.power.intel.com
+  name: cpuscalingprofiles.power.intel.com
 spec:
   group: power.intel.com
   names:
-    kind: CPUPerformanceScalingProfile
-    listKind: CPUPerformanceScalingProfileList
-    plural: cpuperformancescalingprofiles
-    singular: cpuperformancescalingprofile
+    kind: CPUScalingProfile
+    listKind: CPUScalingProfileList
+    plural: cpuscalingprofiles
+    singular: cpuscalingprofile
   scope: Namespaced
   versions:
   - name: v1
     schema:
       openAPIV3Schema:
-        description: CPUPerformanceScalingProfile is the Schema for the cpuperformancescalingprofiles
-          API
+        description: CPUScalingProfile is the Schema for the cpuscalingprofiles API
         properties:
           apiVersion:
             description: |-
@@ -38,11 +37,10 @@ spec:
           metadata:
             type: object
           spec:
-            description: CPUPerformanceScalingProfileSpec defines the desired state
-              of CPUPerformanceScalingProfile
+            description: CPUScalingProfileSpec defines the desired state of CPUScalingProfile
             properties:
               epp:
-                description: The priority value associated with this CPUPerformanceScalingProfile
+                description: The priority value associated with this CPUScalingProfile
                 type: string
               max:
                 description: Maximum frequency cores can run at
@@ -51,7 +49,7 @@ spec:
                 description: Minimum frequency cores can run at
                 type: integer
               name:
-                description: Name of the CPUPerformanceScalingProfile
+                description: Name of the CPUScalingProfile
                 type: string
               samplePeriod:
                 default: 10ms
@@ -62,15 +60,14 @@ spec:
             - name
             type: object
           status:
-            description: CPUPerformanceScalingProfileStatus defines the observed state
-              of CPUPerformanceScalingProfile
+            description: CPUScalingProfileStatus defines the observed state of CPUScalingProfile
             properties:
               errors:
                 items:
                   type: string
                 type: array
               id:
-                description: The ID given to the CPUPerformanceScalingProfile
+                description: The ID given to the CPUScalingProfile
                 type: integer
             type: object
         type: object

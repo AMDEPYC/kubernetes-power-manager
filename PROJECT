@@ -71,7 +71,7 @@ resources:
   controller: true
   domain: intel.com
   group: power
-  kind: CPUPerformanceScalingProfile
+  kind: CPUScalingProfile
   path: github.com/intel/kubernetes-power-manager/api/v1
   version: v1
 version: "3"
