@@ -7,7 +7,7 @@ rules:
 - apiGroups:
   - power.intel.com
   resources:
-  - cpuperformancescalingprofiles
+  - cpuscalingprofiles
   verbs:
   - create
   - delete
@@ -19,13 +19,13 @@ rules:
 - apiGroups:
   - power.intel.com
   resources:
-  - cpuperformancescalingprofiles/finalizers
+  - cpuscalingprofiles/finalizers
   verbs:
   - update
 - apiGroups:
   - power.intel.com
   resources:
-  - cpuperformancescalingprofiles/status
+  - cpuscalingprofiles/status
   verbs:
   - get
   - patch

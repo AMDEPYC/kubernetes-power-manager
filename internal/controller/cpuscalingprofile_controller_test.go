@@ -30,7 +30,7 @@ import (
 	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
 )
 
-var _ = Describe("CPUPerformanceScalingProfile Controller", func() {
+var _ = Describe("CPUScalingProfile Controller", func() {
 	Context("When reconciling a resource", func() {
 		const resourceName = "test-resource"
 
@@ -40,13 +40,13 @@ var _ = Describe("CPUPerformanceScalingProfile Controller", func() {
 			Name:      resourceName,
 			Namespace: "default", // TODO(user):Modify as needed
 		}
-		cpuperformancescalingprofile := &powerv1.CPUPerformanceScalingProfile{}
+		cpuscalingprofile := &powerv1.CPUScalingProfile{}
 
 		BeforeEach(func() {
-			By("creating the custom resource for the Kind CPUPerformanceScalingProfile")
-			err := k8sClient.Get(ctx, typeNamespacedName, cpuperformancescalingprofile)
+			By("creating the custom resource for the Kind CPUScalingProfile")
+			err := k8sClient.Get(ctx, typeNamespacedName, cpuscalingprofile)
 			if err != nil && errors.IsNotFound(err) {
-				resource := &powerv1.CPUPerformanceScalingProfile{
+				resource := &powerv1.CPUScalingProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      resourceName,
 						Namespace: "default",
@@ -59,16 +59,16 @@ var _ = Describe("CPUPerformanceScalingProfile Controller", func() {
 
 		AfterEach(func() {
 			// TODO(user): Cleanup logic after each test, like removing the resource instance.
-			resource := &powerv1.CPUPerformanceScalingProfile{}
+			resource := &powerv1.CPUScalingProfile{}
 			err := k8sClient.Get(ctx, typeNamespacedName, resource)
 			Expect(err).NotTo(HaveOccurred())
 
-			By("Cleanup the specific resource instance CPUPerformanceScalingProfile")
+			By("Cleanup the specific resource instance CPUScalingProfile")
 			Expect(k8sClient.Delete(ctx, resource)).To(Succeed())
 		})
 		It("should successfully reconcile the resource", func() {
 			By("Reconciling the created resource")
-			controllerReconciler := &CPUPerformanceScalingProfileReconciler{
+			controllerReconciler := &CPUScalingProfileReconciler{
 				Client: k8sClient,
 				Scheme: k8sClient.Scheme(),
 			}

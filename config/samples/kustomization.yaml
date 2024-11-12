@@ -5,5 +5,5 @@ resources:
 - power_v1_shared_profile.yaml
 - power_v1_shared_workload.yaml
 - power_v1_timeofday.yaml
-- power_v1_cpuperformancescalingprofile.yaml
+- power_v1_cpuscalingprofile.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples

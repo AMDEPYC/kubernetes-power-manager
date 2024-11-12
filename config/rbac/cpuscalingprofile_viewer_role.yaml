@@ -1,16 +1,16 @@
-# permissions for end users to view cpuperformancescalingprofiles.
+# permissions for end users to view cpuscalingprofiles.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/name: intel-kubernetes-power-manager
     app.kubernetes.io/managed-by: kustomize
-  name: cpuperformancescalingprofile-viewer-role
+  name: cpuscalingprofile-viewer-role
 rules:
 - apiGroups:
   - power.intel.com
   resources:
-  - cpuperformancescalingprofiles
+  - cpuscalingprofiles
   verbs:
   - get
   - list
@@ -18,6 +18,6 @@ rules:
 - apiGroups:
   - power.intel.com
   resources:
-  - cpuperformancescalingprofiles/status
+  - cpuscalingprofiles/status
   verbs:
   - get
