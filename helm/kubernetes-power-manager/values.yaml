@@ -35,7 +35,7 @@ operatorrolebinding:
 # Cluster Role for the overarching operator
 operatorclusterrole:
   name: operator-nodes
-  resources: ["nodes", "nodes/status", "configmaps", "configmaps/status", "powerconfigs", "powerconfigs/status", "powerprofiles", "powerprofiles/status", "powerworkloads", "powerworkloads/status", "powernodes", "powernodes/status", "events", "daemonsets", "uncores", "cpuscalingprofiles"]
+  resources: ["nodes", "nodes/status", "configmaps", "configmaps/status", "powerconfigs", "powerconfigs/status", "powerprofiles", "powerprofiles/status", "powerworkloads", "powerworkloads/status", "powernodes", "powernodes/status", "events", "daemonsets", "uncores", "cpuscalingprofiles", "cpuscalingprofiles/status"]
 
 # Cluster Role Binding for the overarching operator
 operatorclusterrolebinding:
@@ -48,7 +48,7 @@ operatorclusterrolebinding:
 # Cluster Role for the Power Node Agent
 agentclusterrole:
   name: node-agent-cluster-resources
-  resources: ["nodes", "nodes/status", "pods", "pods/status", "cronjobs", "cronjobs/status", "powerprofiles", "powerprofiles/status", "powerworkloads", "powerworkloads/status", "powernodes", "powernodes/status", "cstates", "cstates/status", "timeofdays", "timeofdays/status", "timeofdaycronjobs", "timeofdaycronjobs/status", "uncores", "uncores/status", "cpuperformancescalingprofiles", "cpuperformancescalingprofiles/status"]
+  resources: ["nodes", "nodes/status", "pods", "pods/status", "cronjobs", "cronjobs/status", "powerprofiles", "powerprofiles/status", "powerworkloads", "powerworkloads/status", "powernodes", "powernodes/status", "cstates", "cstates/status", "timeofdays", "timeofdays/status", "timeofdaycronjobs", "timeofdaycronjobs/status", "uncores", "uncores/status", "cpuscalingprofiles", "cpuscalingprofiles/status"]
 
 # Cluster Role Binding for the Power Node Agent
 agentclusterrolebinding:
