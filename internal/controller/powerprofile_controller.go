@@ -191,12 +191,20 @@ func (r *PowerProfileReconciler) Reconcile(c context.Context, req ctrl.Request) 
 		return ctrl.Result{}, nil
 	}
 
-	logger.V(5).Info("making sure max value is higher than the min value")
-	if profile.Spec.Max < profile.Spec.Min {
-		maxLowerThanMaxError := errors.NewServiceUnavailable("max frequency value cannot be lower than the min frequency value")
-		logger.Error(maxLowerThanMaxError, fmt.Sprintf("error creating the profile '%s'", profile.Spec.Name))
-		return ctrl.Result{Requeue: false}, maxLowerThanMaxError
+	logger.V(5).Info("making sure max and min values are both specified or omitted")
+	if profile.Spec.Max != profile.Spec.Min && (profile.Spec.Max == 0 || profile.Spec.Min == 0) {
+		maxOrMinNotSpecifiedErr := errors.NewServiceUnavailable("max and min frequency values must be both specified or omitted")
+		logger.Error(maxOrMinNotSpecifiedErr, fmt.Sprintf("error creating the profile '%s'", profile.Spec.Name))
+		return ctrl.Result{Requeue: false}, maxOrMinNotSpecifiedErr
 	}
+
+	logger.V(5).Info("making sure max value is greater than or equal to min value")
+	if profile.Spec.Max < profile.Spec.Min {
+		maxLessThanMinErr := errors.NewServiceUnavailable("max frequency value cannot be lower than the min frequency value")
+		logger.Error(maxLessThanMinErr, fmt.Sprintf("error creating the profile '%s'", profile.Spec.Name))
+		return ctrl.Result{Requeue: false}, maxLessThanMinErr
+	}
+
 	absoluteMinimumFrequency, absoluteMaximumFrequency, err := getMaxMinFrequencyValues(r.PowerLibrary)
 	logger.V(5).Info("retrieving the max possible frequency and min possible frequency from the system")
 	if err != nil {
@@ -206,10 +214,15 @@ func (r *PowerProfileReconciler) Reconcile(c context.Context, req ctrl.Request) 
 
 	var profileMaxFreq int
 	var profileMinFreq int
-	// check if profile is a default one
-	if profile.Spec.Epp != "" && profile.Spec.Max == 0 && profile.Spec.Min == 0 {
-		profileMaxFreq = int(float64(absoluteMaximumFrequency) - (float64((absoluteMaximumFrequency - absoluteMinimumFrequency)) * profilePercentages[profile.Spec.Epp]["difference"]))
-		profileMinFreq = int(profileMaxFreq) - MinFreqOffset
+	// check if max and min frequency values are specified
+	if profile.Spec.Max == 0 && profile.Spec.Min == 0 {
+		if profile.Spec.Epp != "" {
+			profileMaxFreq = int(float64(absoluteMaximumFrequency) - (float64((absoluteMaximumFrequency - absoluteMinimumFrequency)) * profilePercentages[profile.Spec.Epp]["difference"]))
+			profileMinFreq = int(profileMaxFreq) - MinFreqOffset
+		} else {
+			profileMaxFreq = absoluteMaximumFrequency
+			profileMinFreq = absoluteMinimumFrequency
+		}
 	} else {
 		profileMaxFreq = profile.Spec.Max
 		profileMinFreq = profile.Spec.Min
@@ -251,7 +264,7 @@ func (r *PowerProfileReconciler) Reconcile(c context.Context, req ctrl.Request) 
 			return ctrl.Result{}, err
 		}
 		if profile.Spec.Shared {
-			logger.V(5).Info(fmt.Sprintf("shared power profile successfully created: name - %s max - %d min - %d EPP - %s", profile.Spec.Name, profile.Spec.Max, profile.Spec.Min, profile.Spec.Epp))
+			logger.V(5).Info(fmt.Sprintf("shared power profile successfully created: name - %s max - %d min - %d EPP - %s", profile.Spec.Name, profileMaxFreq, profileMinFreq, actualEpp))
 			workloadName := fmt.Sprintf("shared-%s-workload", nodeName)
 			// check if the current node has a shared workload
 			workload := &powerv1.PowerWorkload{}
@@ -293,7 +306,7 @@ func (r *PowerProfileReconciler) Reconcile(c context.Context, req ctrl.Request) 
 		}
 	}
 
-	logger.V(5).Info(fmt.Sprintf("power profile successfully created: name - %s max - %d min - %d EPP - %s", profile.Spec.Name, profileMaxFreq, profileMinFreq, profile.Spec.Epp))
+	logger.V(5).Info(fmt.Sprintf("power profile successfully created: name - %s max - %d min - %d EPP - %s", profile.Spec.Name, profileMaxFreq, profileMinFreq, actualEpp))
 
 	workloadName := fmt.Sprintf("%s-%s", profile.Spec.Name, nodeName)
 	logger.V(5).Info(fmt.Sprintf("configuring the workload name: %s", workloadName))

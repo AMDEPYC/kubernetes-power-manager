@@ -468,7 +468,7 @@ func TestPowerProfile_Reconcile_NonPowerProfileInLibrary(t *testing.T) {
 	}
 }
 
-func TestPowerProfile_Reconcile_MaxMinValuesZero(t *testing.T) {
+func TestPowerProfile_Reconcile_MaxOrMinValueZero(t *testing.T) {
 	tcases := []struct {
 		testCase    string
 		nodeName    string
@@ -481,7 +481,7 @@ func TestPowerProfile_Reconcile_MaxMinValuesZero(t *testing.T) {
 			nodeName:    "TestNode",
 			profileName: "user-created",
 			validateErr: func(e error) bool {
-				return assert.ErrorContains(t, e, "max frequency value cannot be lower than the min frequency value")
+				return assert.ErrorContains(t, e, "max and min frequency values must be both specified or omitted")
 			},
 			clientObjs: []runtime.Object{
 				&powerv1.PowerProfile{
@@ -503,7 +503,7 @@ func TestPowerProfile_Reconcile_MaxMinValuesZero(t *testing.T) {
 			nodeName:    "TestNode",
 			profileName: "user-created",
 			validateErr: func(e error) bool {
-				return assert.ErrorContains(t, e, "max and min frequency must be within the range")
+				return assert.ErrorContains(t, e, "max and min frequency values must be both specified or omitted")
 			},
 			clientObjs: []runtime.Object{
 				&powerv1.PowerProfile{
@@ -514,28 +514,6 @@ func TestPowerProfile_Reconcile_MaxMinValuesZero(t *testing.T) {
 					Spec: powerv1.PowerProfileSpec{
 						Name: "user-created",
 						Max:  3600,
-						Min:  0,
-						Epp:  "",
-					},
-				},
-			},
-		},
-		{
-			testCase:    "Test Case 3 - Max/Min value zero",
-			nodeName:    "TestNode",
-			profileName: "user-created",
-			validateErr: func(e error) bool {
-				return assert.ErrorContains(t, e, "max and min frequency must be within the range")
-			},
-			clientObjs: []runtime.Object{
-				&powerv1.PowerProfile{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "user-created",
-						Namespace: IntelPowerNamespace,
-					},
-					Spec: powerv1.PowerProfileSpec{
-						Name: "user-created",
-						Max:  0,
 						Min:  0,
 						Epp:  "",
 					},
@@ -897,7 +875,7 @@ func TestPowerProfile_Reconcile_DeleteProfile(t *testing.T) {
 	}
 }
 
-func TestPowerProfile_Reconcile_MaxValueLowerThanMinValue(t *testing.T) {
+func TestPowerProfile_Reconcile_MaxValueLessThanMinValue(t *testing.T) {
 	tcases := []struct {
 		testCase    string
 		nodeName    string
@@ -905,7 +883,7 @@ func TestPowerProfile_Reconcile_MaxValueLowerThanMinValue(t *testing.T) {
 		clientObjs  []runtime.Object
 	}{
 		{
-			testCase:    "Test 1 - Max value less then Min value",
+			testCase:    "Test Case 1 - Max value less than Min value",
 			nodeName:    "TestNode",
 			profileName: "user-created",
 			clientObjs: []runtime.Object{
@@ -959,7 +937,7 @@ func TestPowerProfile_Reconcile_MaxValueLowerThanMinValue(t *testing.T) {
 	}
 }
 
-func TestPowerProfile_Reconcile_SharedFrequencyValuesLessThanAbsoluteValue(t *testing.T) {
+func TestPowerProfile_Reconcile_MaxOrMinValueOutOfRange(t *testing.T) {
 	tcases := []struct {
 		testCase    string
 		nodeName    string
@@ -967,20 +945,47 @@ func TestPowerProfile_Reconcile_SharedFrequencyValuesLessThanAbsoluteValue(t *te
 		clientObjs  []runtime.Object
 	}{
 		{
-			testCase:    "Test 1 - Shared Frequency values less than absolute minimum",
+			testCase:    "Test Case 1 - Max value out of range",
 			nodeName:    "TestNode",
-			profileName: "shared",
+			profileName: "user-created",
 			clientObjs: []runtime.Object{
 				&powerv1.PowerProfile{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "shared",
+						Name:      "user-created",
 						Namespace: IntelPowerNamespace,
 					},
 					Spec: powerv1.PowerProfileSpec{
-						Name:   "shared",
-						Max:    100,
-						Min:    100,
-						Shared: true,
+						Name: "user-created",
+						Max:  9001,
+						Min:  1000,
+					},
+				},
+				&corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "TestNode",
+					},
+					Status: corev1.NodeStatus{
+						Capacity: map[corev1.ResourceName]resource.Quantity{
+							CPUResource: *resource.NewQuantity(42, resource.DecimalSI),
+						},
+					},
+				},
+			},
+		},
+		{
+			testCase:    "Test Case 2 - Min value out of range",
+			nodeName:    "TestNode",
+			profileName: "user-created",
+			clientObjs: []runtime.Object{
+				&powerv1.PowerProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "user-created",
+						Namespace: IntelPowerNamespace,
+					},
+					Spec: powerv1.PowerProfileSpec{
+						Name: "user-created",
+						Max:  9000,
+						Min:  999,
 					},
 				},
 				&corev1.Node{
@@ -1028,15 +1033,17 @@ func TestPowerProfile_Reconcile_SharedFrequencyValuesLessThanAbsoluteValue(t *te
 	}
 }
 
-func TestPowerProfile_Reconcile_MaxValueZeroMinValueGreaterThanZero(t *testing.T) {
+func TestPowerProfile_Reconcile_MaxAndMinValueHandling(t *testing.T) {
 	tcases := []struct {
 		testCase    string
 		nodeName    string
 		profileName string
 		clientObjs  []runtime.Object
+		expectedMax uint
+		expectedMin uint
 	}{
 		{
-			testCase:    "Test 1 - Max value less then Min value",
+			testCase:    "Test Case 1 - Max and Min value not zero, Epp value not empty",
 			nodeName:    "TestNode",
 			profileName: "user-created",
 			clientObjs: []runtime.Object{
@@ -1047,70 +1054,6 @@ func TestPowerProfile_Reconcile_MaxValueZeroMinValueGreaterThanZero(t *testing.T
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name: "user-created",
-						Max:  0,
-						Min:  2800,
-						Epp:  "performance",
-					},
-				},
-				&corev1.Node{
-					ObjectMeta: metav1.ObjectMeta{
-						Name: "TestNode",
-					},
-					Status: corev1.NodeStatus{
-						Capacity: map[corev1.ResourceName]resource.Quantity{
-							CPUResource: *resource.NewQuantity(42, resource.DecimalSI),
-						},
-					},
-				},
-			},
-		},
-	}
-	_, teardown, err := testutils.FullDummySystem()
-	assert.Nil(t, err)
-	defer teardown()
-	for _, tc := range tcases {
-		t.Setenv("NODE_NAME", tc.nodeName)
-
-		r, err := createProfileReconcilerObject(tc.clientObjs)
-		if err != nil {
-			t.Error(err)
-			t.Fatalf("%s - error creating the reconciler object", tc.testCase)
-		}
-
-		nodemk := new(testutils.MockHost)
-		r.PowerLibrary = nodemk
-
-		req := reconcile.Request{
-			NamespacedName: client.ObjectKey{
-				Name:      tc.profileName,
-				Namespace: IntelPowerNamespace,
-			},
-		}
-
-		_, err = r.Reconcile(context.TODO(), req)
-		assert.ErrorContains(t, err, "max frequency value cannot be lower than the min frequency value")
-	}
-}
-
-func TestPowerProfile_Reconcile_AcpiDriver(t *testing.T) {
-	tcases := []struct {
-		testCase    string
-		nodeName    string
-		profileName string
-		clientObjs  []runtime.Object
-	}{
-		{
-			testCase:    "Test Case 1 - Max|Min non zero, epp performance",
-			nodeName:    "TestNode",
-			profileName: "performance",
-			clientObjs: []runtime.Object{
-				&powerv1.PowerProfile{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "performance",
-						Namespace: IntelPowerNamespace,
-					},
-					Spec: powerv1.PowerProfileSpec{
-						Name: "performance",
 						Max:  3600,
 						Min:  3200,
 						Epp:  "performance",
@@ -1127,38 +1070,11 @@ func TestPowerProfile_Reconcile_AcpiDriver(t *testing.T) {
 					},
 				},
 			},
+			expectedMax: 3600000,
+			expectedMin: 3200000,
 		},
 		{
-			testCase:    "Test Case 2 - Max|Min zero, epp performance",
-			nodeName:    "TestNode",
-			profileName: "performance",
-			clientObjs: []runtime.Object{
-				&powerv1.PowerProfile{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "performance",
-						Namespace: IntelPowerNamespace,
-					},
-					Spec: powerv1.PowerProfileSpec{
-						Name: "performance",
-						Max:  0,
-						Min:  0,
-						Epp:  "performance",
-					},
-				},
-				&corev1.Node{
-					ObjectMeta: metav1.ObjectMeta{
-						Name: "TestNode",
-					},
-					Status: corev1.NodeStatus{
-						Capacity: map[corev1.ResourceName]resource.Quantity{
-							CPUResource: *resource.NewQuantity(42, resource.DecimalSI),
-						},
-					},
-				},
-			},
-		},
-		{
-			testCase:    "Test Case 3 - Max|Min non zero, epp empty",
+			testCase:    "Test Case 2 - Max and Min value not zero, Epp value empty",
 			nodeName:    "TestNode",
 			profileName: "user-created",
 			clientObjs: []runtime.Object{
@@ -1185,6 +1101,70 @@ func TestPowerProfile_Reconcile_AcpiDriver(t *testing.T) {
 					},
 				},
 			},
+			expectedMax: 3600000,
+			expectedMin: 3200000,
+		},
+		{
+			testCase:    "Test Case 3 - Max and Min value zero, Epp value not empty",
+			nodeName:    "TestNode",
+			profileName: "user-created",
+			clientObjs: []runtime.Object{
+				&powerv1.PowerProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "user-created",
+						Namespace: IntelPowerNamespace,
+					},
+					Spec: powerv1.PowerProfileSpec{
+						Name: "user-created",
+						Max:  0,
+						Min:  0,
+						Epp:  "performance",
+					},
+				},
+				&corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "TestNode",
+					},
+					Status: corev1.NodeStatus{
+						Capacity: map[corev1.ResourceName]resource.Quantity{
+							CPUResource: *resource.NewQuantity(42, resource.DecimalSI),
+						},
+					},
+				},
+			},
+			expectedMax: 3700000,
+			expectedMin: 3500000, // Max - MinFreqOffset
+		},
+		{
+			testCase:    "Test Case 4 - Max and Min value zero, Epp value empty",
+			nodeName:    "TestNode",
+			profileName: "user-created",
+			clientObjs: []runtime.Object{
+				&powerv1.PowerProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "user-created",
+						Namespace: IntelPowerNamespace,
+					},
+					Spec: powerv1.PowerProfileSpec{
+						Name: "user-created",
+						Max:  0,
+						Min:  0,
+						Epp:  "",
+					},
+				},
+				&corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "TestNode",
+					},
+					Status: corev1.NodeStatus{
+						Capacity: map[corev1.ResourceName]resource.Quantity{
+							CPUResource: *resource.NewQuantity(42, resource.DecimalSI),
+						},
+					},
+				},
+			},
+			expectedMax: 3700000,
+			expectedMin: 1000000,
 		},
 	}
 
@@ -1228,6 +1208,24 @@ func TestPowerProfile_Reconcile_AcpiDriver(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 			t.Fatalf("%s - error retrieving the power workload object", tc.testCase)
+		}
+
+		pool := host.GetExclusivePool("user-created")
+		if pool == nil {
+			t.Fatalf("exclusive pool not created")
+		}
+
+		powerProfile := pool.GetPowerProfile()
+		if powerProfile == nil {
+			t.Fatalf("power profile not set")
+		}
+
+		if powerProfile.MaxFreq() != tc.expectedMax {
+			t.Errorf("expected max to be %d, got %d", tc.expectedMax, powerProfile.MaxFreq())
+		}
+
+		if powerProfile.MinFreq() != tc.expectedMin {
+			t.Errorf("expected min to be %d, got %d", tc.expectedMin, powerProfile.MinFreq())
 		}
 	}
 }
