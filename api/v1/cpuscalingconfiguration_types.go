@@ -1,0 +1,78 @@
+/*
+
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+package v1
+
+import (
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
+// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+
+type ConfigItem struct {
+	// List of CPU IDs which should adhere to the configuration in this item
+	//+kubebuilder:validation:MinItems=1
+	CpuIDs []uint `json:"cpuIDs"`
+
+	// Minimum time to elapse between two CPU sample periods
+	//+kubebuilder:validation:Format=duration
+	SamplePeriod metav1.Duration `json:"samplePeriod"`
+}
+
+// CPUScalingConfigurationSpec defines the desired state of CPUScalingConfiguration
+type CPUScalingConfigurationSpec struct {
+	// List of configurations that should be applied on a node.
+	Items []ConfigItem `json:"items,omitempty"`
+}
+
+// CPUScalingConfigurationStatus defines the observed state of CPUScalingConfiguration
+type CPUScalingConfigurationStatus struct {
+	StatusErrors `json:",inline,omitempty"`
+}
+
+//+kubebuilder:object:root=true
+//+kubebuilder:subresource:status
+
+// CPUScalingConfiguration is the Schema for the cpuscalingconfiguration API
+type CPUScalingConfiguration struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	Spec   CPUScalingConfigurationSpec   `json:"spec,omitempty"`
+	Status CPUScalingConfigurationStatus `json:"status,omitempty"`
+}
+
+//+kubebuilder:object:root=true
+
+// CPUScalingConfigurationList contains a list of CPUScalingConfiguration
+type CPUScalingConfigurationList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+	Items           []CPUScalingConfiguration `json:"items"`
+}
+
+func (config *CPUScalingConfiguration) SetStatusErrors(errs *[]string) {
+	config.Status.Errors = *errs
+}
+
+func (config *CPUScalingConfiguration) GetStatusErrors() *[]string {
+	return &config.Status.Errors
+}
+
+func init() {
+	SchemeBuilder.Register(&CPUScalingConfiguration{}, &CPUScalingConfigurationList{})
+}

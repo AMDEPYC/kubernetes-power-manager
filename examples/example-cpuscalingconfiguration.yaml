@@ -1,0 +1,14 @@
+apiVersion: power.intel.com/v1
+kind: CPUScalingConfiguration
+metadata:
+  name: <NODE_NAME>
+  namespace: power-manager
+spec:
+  items:
+    - cpuIDs:
+        - 1
+        - 2
+      samplePeriod: 10ms
+    - cpuIDs:
+        - 3
+      samplePeriod: 200ms

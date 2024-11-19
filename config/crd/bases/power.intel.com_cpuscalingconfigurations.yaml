@@ -1,0 +1,78 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.14.0
+  name: cpuscalingconfigurations.power.intel.com
+spec:
+  group: power.intel.com
+  names:
+    kind: CPUScalingConfiguration
+    listKind: CPUScalingConfigurationList
+    plural: cpuscalingconfigurations
+    singular: cpuscalingconfiguration
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: CPUScalingConfiguration is the Schema for the cpuscalingconfiguration
+          API
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: CPUScalingConfigurationSpec defines the desired state of
+              CPUScalingConfiguration
+            properties:
+              items:
+                description: List of configurations that should be applied on a node.
+                items:
+                  properties:
+                    cpuIDs:
+                      description: List of CPU IDs which should adhere to the configuration
+                        in this item
+                      items:
+                        type: integer
+                      minItems: 1
+                      type: array
+                    samplePeriod:
+                      description: Minimum time to elapse between two CPU sample periods
+                      format: duration
+                      type: string
+                  required:
+                  - cpuIDs
+                  - samplePeriod
+                  type: object
+                type: array
+            type: object
+          status:
+            description: CPUScalingConfigurationStatus defines the observed state
+              of CPUScalingConfiguration
+            properties:
+              errors:
+                items:
+                  type: string
+                type: array
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
