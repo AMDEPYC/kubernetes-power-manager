@@ -19,7 +19,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -37,19 +36,25 @@ func createWorkloadReconcilerObject(objs []runtime.Object) (*PowerWorkloadReconc
 		},
 	),
 	)
-	// Register operator types with the runtime scheme.
-	s := scheme.Scheme
 
-	// Add route Openshift scheme
+	// Register operator types with the runtime scheme.
+	s := runtime.NewScheme()
+	if err := corev1.AddToScheme(s); err != nil {
+		return nil, err
+	}
 	if err := powerv1.AddToScheme(s); err != nil {
 		return nil, err
 	}
 
 	// Create a fake client to mock API calls.
-	cl := fake.NewClientBuilder().WithRuntimeObjects(objs...).WithScheme(s).Build()
+	client := fake.NewClientBuilder().WithScheme(s).WithRuntimeObjects(objs...).Build()
 
-	// Create a ReconcileNode object with the scheme and fake client.
-	r := &PowerWorkloadReconciler{cl, ctrl.Log.WithName("testing"), s, nil}
+	// Create a reconciler object with the scheme and fake client.
+	r := &PowerWorkloadReconciler{
+		Client: client,
+		Log:    ctrl.Log.WithName("testing"),
+		Scheme: s,
+	}
 
 	return r, nil
 }
@@ -709,12 +714,9 @@ func TestPowerWorkload_Reconcile_SetupPass(t *testing.T) {
 	mgr.On("SetFields", mock.Anything).Return(nil)
 	mgr.On("Add", mock.Anything).Return(nil)
 	mgr.On("GetCache").Return(new(testutils.CacheMk))
-	err = (&PowerWorkloadReconciler{
-		Client: r.Client,
-		Scheme: r.Scheme,
-	}).SetupWithManager(mgr)
-	assert.Nil(t, err)
 
+	err = r.SetupWithManager(mgr)
+	assert.Nil(t, err)
 }
 func TestPowerWorkload_Reconcile_SetupFail(t *testing.T) {
 	r, err := createPowerNodeReconcilerObject([]runtime.Object{})
@@ -725,10 +727,6 @@ func TestPowerWorkload_Reconcile_SetupFail(t *testing.T) {
 	mgr.On("GetLogger").Return(r.Log)
 	mgr.On("Add", mock.Anything).Return(fmt.Errorf("setup fail"))
 
-	err = (&PowerWorkloadReconciler{
-		Client: r.Client,
-		Scheme: r.Scheme,
-	}).SetupWithManager(mgr)
+	err = r.SetupWithManager(mgr)
 	assert.Error(t, err)
-
 }

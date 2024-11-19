@@ -91,5 +91,4 @@ func Test_writeStatusErrors(t *testing.T) {
 	updateErr := fmt.Errorf("update error")
 	clientMockObj.On("SubResourceUpdate", ctx, mock.Anything, "status", mock.Anything, mock.Anything).Return(updateErr)
 	assert.ErrorIs(t, writeUpdatedStatusErrsIfRequired(ctx, clientStatusWriter, object, fmt.Errorf("err2")), updateErr, "error updating APi should return that error")
-
 }

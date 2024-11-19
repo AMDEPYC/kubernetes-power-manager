@@ -15,7 +15,6 @@ import (
 	grpc "google.golang.org/grpc"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/kubernetes/scheme"
 	podresourcesapi "k8s.io/kubelet/pkg/apis/podresources/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -71,23 +70,32 @@ func createPodReconcilerObject(objs []runtime.Object, podResourcesClient *podres
 		},
 	),
 	)
-	// register operator types with the runtime scheme.
-	s := scheme.Scheme
 
-	// add route Openshift scheme
+	// Register operator types with the runtime scheme.
+	s := runtime.NewScheme()
+	if err := corev1.AddToScheme(s); err != nil {
+		return nil, err
+	}
 	if err := powerv1.AddToScheme(s); err != nil {
 		return nil, err
 	}
 
-	// create a fake client to mock API calls.
-	cl := fake.NewClientBuilder().WithRuntimeObjects(objs...).Build()
+	// Create a fake client to mock API calls.
+	client := fake.NewClientBuilder().WithScheme(s).WithRuntimeObjects(objs...).Build()
+
 	state, err := podstate.NewState()
 	if err != nil {
 		return nil, err
 	}
 
-	// create a ReconcileNode object with the scheme and fake client.
-	r := &PowerPodReconciler{cl, ctrl.Log.WithName("testing"), s, state, *podResourcesClient}
+	// Create a reconciler object with the scheme and fake client.
+	r := &PowerPodReconciler{
+		Client:             client,
+		Log:                ctrl.Log.WithName("testing"),
+		Scheme:             s,
+		State:              state,
+		PodResourcesClient: *podResourcesClient,
+	}
 
 	return r, nil
 }
@@ -614,7 +622,6 @@ func TestPowerPod_Duplicate_Containers(t *testing.T) {
 			}
 		}
 	}
-
 }
 
 // tests where the workload associated with the profile requested does not exist
@@ -1562,7 +1569,6 @@ func TestPowerPod_Reconcile_PodClientErrs(t *testing.T) {
 		assert.ErrorContains(t, err, tc.clientErr)
 
 	}
-
 }
 
 func TestPowerPod_ControlPLaneSocket(t *testing.T) {
@@ -1739,12 +1745,9 @@ func TestPowerPod_Reconcile_SetupPass(t *testing.T) {
 	mgr.On("SetFields", mock.Anything).Return(nil)
 	mgr.On("Add", mock.Anything).Return(nil)
 	mgr.On("GetCache").Return(new(testutils.CacheMk))
-	err = (&PowerPodReconciler{
-		Client: r.Client,
-		Scheme: r.Scheme,
-	}).SetupWithManager(mgr)
-	assert.Nil(t, err)
 
+	err = r.SetupWithManager(mgr)
+	assert.Nil(t, err)
 }
 
 func TestPowerPod_Reconcile_SetupFail(t *testing.T) {
@@ -1757,12 +1760,9 @@ func TestPowerPod_Reconcile_SetupFail(t *testing.T) {
 	mgr.On("GetScheme").Return(r.Scheme)
 	mgr.On("GetLogger").Return(r.Log)
 	mgr.On("Add", mock.Anything).Return(fmt.Errorf("setup fail"))
-	err = (&PowerPodReconciler{
-		Client: r.Client,
-		Scheme: r.Scheme,
-	}).SetupWithManager(mgr)
-	assert.Error(t, err)
 
+	err = r.SetupWithManager(mgr)
+	assert.Error(t, err)
 }
 
 func TestPowerPod_getNewWorkloadContainerList(t *testing.T) {

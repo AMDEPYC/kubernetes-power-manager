@@ -16,7 +16,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -116,22 +116,31 @@ func createTODCronReconcilerObject(objs []client.Object) (*TimeOfDayCronJobRecon
 		},
 	),
 	)
-	// Register operator types with the runtime scheme.
-	s := scheme.Scheme
 
-	// Add route Openshift scheme
+	// Register operator types with the runtime scheme.
+	s := runtime.NewScheme()
+	if err := corev1.AddToScheme(s); err != nil {
+		return nil, err
+	}
 	if err := powerv1.AddToScheme(s); err != nil {
 		return nil, err
 	}
-	var state *podstate.State
-	var err error
-	if state, err = podstate.NewState(); err != nil {
+
+	// Create a fake client to mock API calls.
+	client := fake.NewClientBuilder().WithScheme(s).WithObjects(objs...).WithStatusSubresource(objs...).Build()
+
+	state, err := podstate.NewState()
+	if err != nil {
 		return nil, err
 	}
-	// Create a fake client to mock API calls.
-	cl := fake.NewClientBuilder().WithScheme(s).WithObjects(objs...).WithStatusSubresource(objs...).Build()
-	// Create a ReconcileNode object with the scheme and fake client.
-	r := &TimeOfDayCronJobReconciler{cl, ctrl.Log.WithName("testing"), s, state, nil}
+
+	// Create a reconciler object with the scheme and fake client.
+	r := &TimeOfDayCronJobReconciler{
+		Client: client,
+		Log:    ctrl.Log.WithName("testing"),
+		Scheme: s,
+		State:  state,
+	}
 
 	return r, nil
 }
@@ -276,7 +285,6 @@ func TestTimeOfDayCronJob_Reconcile_CronProfile(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, workload.Spec.AllCores)
 	assert.Equal(t, workload.Spec.PowerProfile, profile)
-
 }
 
 func TestTimeOfDayCronJob_Reconcile_CronPods(t *testing.T) {
@@ -435,7 +443,6 @@ func TestTimeOfDayCronJob_Reconcile_CronPods(t *testing.T) {
 	err = r.Client.Get(context.TODO(), balancePerformanceReq.NamespacedName, &workload)
 	assert.NoError(t, err)
 	assert.True(t, findPodInWorkload(workload, "test-pod-1"))
-
 }
 
 func findPodInWorkload(workload powerv1.PowerWorkload, podName string) bool {
@@ -529,7 +536,6 @@ func TestTimeOfDayCronJob_Reconcile_Cstates(t *testing.T) {
 	assert.False(t, cstate.Spec.SharedPoolCStates["C6"])
 	assert.True(t, cstate.Spec.ExclusivePoolCStates["performance"]["C1"])
 	assert.False(t, cstate.Spec.ExclusivePoolCStates["performance"]["C1E"])
-
 }
 
 // tests setting C-States when they already exist
@@ -1300,12 +1306,9 @@ func TestTimeOfDayCronJob_Reconcile_SetupPass(t *testing.T) {
 	mgr.On("SetFields", mock.Anything).Return(nil)
 	mgr.On("Add", mock.Anything).Return(nil)
 	mgr.On("GetCache").Return(new(testutils.CacheMk))
-	err = (&TimeOfDayCronJobReconciler{
-		Client: r.Client,
-		Scheme: r.Scheme,
-	}).SetupWithManager(mgr)
-	assert.Nil(t, err)
 
+	err = r.SetupWithManager(mgr)
+	assert.Nil(t, err)
 }
 func TestCronReconcileSetupFail(t *testing.T) {
 	r, err := createTODCronReconcilerObject([]client.Object{})
@@ -1316,12 +1319,8 @@ func TestCronReconcileSetupFail(t *testing.T) {
 	mgr.On("GetLogger").Return(r.Log)
 	mgr.On("Add", mock.Anything).Return(fmt.Errorf("setup fail"))
 
-	err = (&TimeOfDayCronJobReconciler{
-		Client: r.Client,
-		Scheme: r.Scheme,
-	}).SetupWithManager(mgr)
+	err = r.SetupWithManager(mgr)
 	assert.Error(t, err)
-
 }
 
 // go test -fuzz FuzzTimeOfDayCronController -run=FuzzTimeOfDayCronController -parallel=1

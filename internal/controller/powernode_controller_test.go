@@ -9,7 +9,6 @@ import (
 	"go.uber.org/zap/zapcore"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -36,22 +35,32 @@ func createPowerNodeReconcilerObject(objs []runtime.Object) (*PowerNodeReconcile
 		},
 	),
 	)
-	// Register operator types with the runtime scheme.
-	s := scheme.Scheme
 
-	// Add route Openshift scheme
+	// Register operator types with the runtime scheme.
+	s := runtime.NewScheme()
+	if err := corev1.AddToScheme(s); err != nil {
+		return nil, err
+	}
 	if err := powerv1.AddToScheme(s); err != nil {
 		return nil, err
 	}
 
 	// Create a fake client to mock API calls.
-	cl := fake.NewClientBuilder().WithRuntimeObjects(objs...).Build()
+	client := fake.NewClientBuilder().WithScheme(s).WithRuntimeObjects(objs...).Build()
+
 	state, err := podstate.NewState()
 	if err != nil {
 		return nil, err
 	}
-	// Create a ReconcileNode object with the scheme and fake client.
-	r := &PowerNodeReconciler{cl, ctrl.Log.WithName("testing"), s, state, map[string]corev1.Pod{}, nil}
+
+	// Create a reconciler object with the scheme and fake client.
+	r := &PowerNodeReconciler{
+		Client:       client,
+		Log:          ctrl.Log.WithName("testing"),
+		Scheme:       s,
+		State:        state,
+		OrphanedPods: map[string]corev1.Pod{},
+	}
 
 	return r, nil
 }
@@ -520,12 +529,9 @@ func TestPowerNode_Reconcile_SetupPass(t *testing.T) {
 	mgr.On("SetFields", mock.Anything).Return(nil)
 	mgr.On("Add", mock.Anything).Return(nil)
 	mgr.On("GetCache").Return(new(testutils.CacheMk))
-	err = (&PowerNodeReconciler{
-		Client: r.Client,
-		Scheme: r.Scheme,
-	}).SetupWithManager(mgr)
-	assert.Nil(t, err)
 
+	err = r.SetupWithManager(mgr)
+	assert.Nil(t, err)
 }
 
 func TestPowerNode_Reconcile_SetupFail(t *testing.T) {
@@ -537,10 +543,6 @@ func TestPowerNode_Reconcile_SetupFail(t *testing.T) {
 	mgr.On("GetLogger").Return(r.Log)
 	mgr.On("Add", mock.Anything).Return(fmt.Errorf("setup fail"))
 
-	err = (&PowerNodeReconciler{
-		Client: r.Client,
-		Scheme: r.Scheme,
-	}).SetupWithManager(mgr)
+	err = r.SetupWithManager(mgr)
 	assert.Error(t, err)
-
 }

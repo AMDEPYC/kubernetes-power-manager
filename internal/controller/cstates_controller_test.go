@@ -16,7 +16,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -46,16 +45,22 @@ func buildCStatesReconcilerObject(objs []runtime.Object, powerLibMock power.Host
 		},
 	),
 	)
-	schm := runtime.NewScheme()
-	err := powerv1.AddToScheme(schm)
+
+	// Register operator types with the runtime scheme.
+	s := runtime.NewScheme()
+	err := powerv1.AddToScheme(s)
 	if err != nil {
 		return nil
 	}
-	client := fake.NewClientBuilder().WithRuntimeObjects(objs...).WithScheme(schm).Build()
+
+	// Create a fake client to mock API calls.
+	client := fake.NewClientBuilder().WithScheme(s).WithRuntimeObjects(objs...).Build()
+
+	// Create a reconciler object with the scheme and fake client.
 	reconciler := &CStatesReconciler{
 		Client:       client,
 		Log:          ctrl.Log.WithName("testing"),
-		Scheme:       scheme.Scheme,
+		Scheme:       s,
 		PowerLibrary: powerLibMock,
 	}
 
@@ -702,27 +707,25 @@ func setupFuzz(t *testing.T, nodeName string, namespace string, extraNode bool, 
 }
 
 func TestCstate_Reconcile_SetupPass(t *testing.T) {
-	schm := runtime.NewScheme()
-	err := powerv1.AddToScheme(schm)
+	s := runtime.NewScheme()
+	err := powerv1.AddToScheme(s)
 	assert.Nil(t, err)
-	client := fake.NewClientBuilder().WithScheme(scheme.Scheme).WithObjects([]client.Object{}...).WithStatusSubresource([]client.Object{}...).Build()
+	client := fake.NewClientBuilder().WithScheme(s).Build()
 	r := &CStatesReconciler{
 		Client:       client,
 		Log:          ctrl.Log.WithName("testing"),
-		Scheme:       schm,
+		Scheme:       s,
 		PowerLibrary: new(testutils.MockHost),
 	}
 	mgr := new(testutils.MgrMock)
 	mgr.On("GetControllerOptions").Return(config.Controller{})
-	mgr.On("GetScheme").Return(r.Scheme)
+	mgr.On("GetScheme").Return(s)
 	mgr.On("GetLogger").Return(r.Log)
 	mgr.On("SetFields", mock.Anything).Return(nil)
 	mgr.On("Add", mock.Anything).Return(nil)
 	mgr.On("GetCache").Return(new(testutils.CacheMk))
-	err = (&CStatesReconciler{
-		Client: r.Client,
-		Scheme: r.Scheme,
-	}).SetupWithManager(mgr)
+
+	err = r.SetupWithManager(mgr)
 	assert.Nil(t, err)
 }
 
@@ -731,13 +734,9 @@ func TestCstate_Reconcile_SetupFail(t *testing.T) {
 	powerLibMock := new(testutils.MockHost)
 	r := buildCStatesReconcilerObject([]runtime.Object{}, powerLibMock)
 	mgr, _ := ctrl.NewManager(&rest.Config{}, ctrl.Options{
-		Scheme: scheme.Scheme,
+		Scheme: runtime.NewScheme(),
 	})
 
-	err := (&CStatesReconciler{
-		Client: r.Client,
-		Scheme: r.Scheme,
-	}).SetupWithManager(mgr)
+	err := r.SetupWithManager(mgr)
 	assert.Error(t, err)
-
 }

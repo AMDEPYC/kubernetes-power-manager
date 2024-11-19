@@ -16,7 +16,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -34,19 +34,31 @@ func createConfigReconcilerObject(objs []client.Object) (*PowerConfigReconciler,
 		},
 	),
 	)
-	// Register operator types with the runtime scheme.
-	s := scheme.Scheme
 
-	// Add route Openshift scheme
+	// Register operator types with the runtime scheme.
+	s := runtime.NewScheme()
+	if err := appsv1.AddToScheme(s); err != nil {
+		return nil, err
+	}
+	if err := corev1.AddToScheme(s); err != nil {
+		return nil, err
+	}
 	if err := powerv1.AddToScheme(s); err != nil {
 		return nil, err
 	}
+
 	// Create a fake client to mock API calls.
-	cl := fake.NewClientBuilder().WithScheme(s).WithObjects(objs...).WithStatusSubresource(objs...).Build()
+	client := fake.NewClientBuilder().WithScheme(s).WithObjects(objs...).WithStatusSubresource(objs...).Build()
 
 	state := state.NewPowerNodeData()
 
-	r := &PowerConfigReconciler{cl, ctrl.Log.WithName("testing"), s, state}
+	// Create a reconciler object with the scheme and fake client.
+	r := &PowerConfigReconciler{
+		Client: client,
+		Log:    ctrl.Log.WithName("testing"),
+		Scheme: s,
+		State:  state,
+	}
 
 	return r, nil
 }
@@ -1148,12 +1160,9 @@ func TestPowerConfig_Reconcile_SetupPass(t *testing.T) {
 	mgr.On("SetFields", mock.Anything).Return(nil)
 	mgr.On("Add", mock.Anything).Return(nil)
 	mgr.On("GetCache").Return(new(testutils.CacheMk))
-	err = (&PowerConfigReconciler{
-		Client: r.Client,
-		Scheme: r.Scheme,
-	}).SetupWithManager(mgr)
-	assert.Nil(t, err)
 
+	err = r.SetupWithManager(mgr)
+	assert.Nil(t, err)
 }
 func TestPowerConfig_Reconcile_SetupFail(t *testing.T) {
 	r, err := createConfigReconcilerObject([]client.Object{})
@@ -1164,10 +1173,6 @@ func TestPowerConfig_Reconcile_SetupFail(t *testing.T) {
 	mgr.On("GetLogger").Return(r.Log)
 	mgr.On("Add", mock.Anything).Return(fmt.Errorf("setup fail"))
 
-	err = (&PowerConfigReconciler{
-		Client: r.Client,
-		Scheme: r.Scheme,
-	}).SetupWithManager(mgr)
+	err = r.SetupWithManager(mgr)
 	assert.Error(t, err)
-
 }
