@@ -1,9 +1,13 @@
 apiVersion: power.intel.com/v1
-kind: CPUPerformanceScalingProfile
+kind: CPUScalingProfile
 metadata:
   labels:
     app.kubernetes.io/name: intel-kubernetes-power-manager
     app.kubernetes.io/managed-by: kustomize
-  name: cpuperformancescalingprofile-sample
+  name: cpuscalingprofile-sample
 spec:
-  # TODO(user): Add fields here
+  name: sample-profile
+  samplePeriod: 10ms
+  min: 2000
+  max: 3000
+  epp: "power"

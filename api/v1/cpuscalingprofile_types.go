@@ -23,9 +23,9 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// CPUPerformanceScalingProfileSpec defines the desired state of CPUPerformanceScalingProfile
-type CPUPerformanceScalingProfileSpec struct {
-	// Name of the CPUPerformanceScalingProfile
+// CPUScalingProfileSpec defines the desired state of CPUScalingProfile
+type CPUScalingProfileSpec struct {
+	// Name of the CPUScalingProfile
 	Name string `json:"name"`
 
 	// Minimum time to elapse between two CPU sample periods
@@ -39,13 +39,13 @@ type CPUPerformanceScalingProfileSpec struct {
 	// Maximum frequency cores can run at
 	Max int `json:"max,omitempty"`
 
-	// The priority value associated with this CPUPerformanceScalingProfile
+	// The priority value associated with this CPUScalingProfile
 	Epp string `json:"epp,omitempty"`
 }
 
-// CPUPerformanceScalingProfileStatus defines the observed state of CPUPerformanceScalingProfile
-type CPUPerformanceScalingProfileStatus struct {
-	// The ID given to the CPUPerformanceScalingProfile
+// CPUScalingProfileStatus defines the observed state of CPUScalingProfile
+type CPUScalingProfileStatus struct {
+	// The ID given to the CPUScalingProfile
 	ID           int `json:"id,omitempty"`
 	StatusErrors `json:",inline,omitempty"`
 }
@@ -53,31 +53,31 @@ type CPUPerformanceScalingProfileStatus struct {
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
-// CPUPerformanceScalingProfile is the Schema for the cpuperformancescalingprofiles API
-type CPUPerformanceScalingProfile struct {
+// CPUScalingProfile is the Schema for the cpuscalingprofiles API
+type CPUScalingProfile struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   CPUPerformanceScalingProfileSpec   `json:"spec,omitempty"`
-	Status CPUPerformanceScalingProfileStatus `json:"status,omitempty"`
+	Spec   CPUScalingProfileSpec   `json:"spec,omitempty"`
+	Status CPUScalingProfileStatus `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 
-// CPUPerformanceScalingProfileList contains a list of CPUPerformanceScalingProfile
-type CPUPerformanceScalingProfileList struct {
+// CPUScalingProfileList contains a list of CPUScalingProfile
+type CPUScalingProfileList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []CPUPerformanceScalingProfile `json:"items"`
+	Items           []CPUScalingProfile `json:"items"`
 }
 
-func (prfl *CPUPerformanceScalingProfile) SetStatusErrors(errs *[]string) {
+func (prfl *CPUScalingProfile) SetStatusErrors(errs *[]string) {
 	prfl.Status.Errors = *errs
 }
-func (prfl *CPUPerformanceScalingProfile) GetStatusErrors() *[]string {
+func (prfl *CPUScalingProfile) GetStatusErrors() *[]string {
 	return &prfl.Status.Errors
 }
 
 func init() {
-	SchemeBuilder.Register(&CPUPerformanceScalingProfile{}, &CPUPerformanceScalingProfileList{})
+	SchemeBuilder.Register(&CPUScalingProfile{}, &CPUScalingProfileList{})
 }

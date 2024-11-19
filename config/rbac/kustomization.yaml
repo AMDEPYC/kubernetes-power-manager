@@ -12,8 +12,8 @@ resources:
   # default, aiding admins in cluster management. Those roles are
   # not used by the Project itself. You can comment the following lines
   # if you do not want those helpers be installed with your Project.
-  - cpuperformancescalingprofile_editor_role.yaml
-  - cpuperformancescalingprofile_viewer_role.yaml
+  - cpuscalingprofile_editor_role.yaml
+  - cpuscalingprofile_viewer_role.yaml
   - user_role_binding.yaml
   - cstates_editor_role.yaml
   # we're adding the namespace in the config/default/kustomize.yaml
