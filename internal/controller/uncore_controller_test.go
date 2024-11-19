@@ -36,17 +36,22 @@ func createUncoreReconcilerObject(objs []runtime.Object) (*UncoreReconciler, err
 		},
 	),
 	)
-	// Register operator types with the runtime scheme.
-	s := scheme.Scheme
 
-	// Add route Openshift scheme
+	// Register operator types with the runtime scheme.
+	s := scheme.NewScheme()
 	if err := powerv1.AddToScheme(s); err != nil {
 		return nil, err
 	}
+
 	// Create a fake client to mock API calls.
-	cl := fake.NewClientBuilder().WithRuntimeObjects(objs...).WithScheme(s).Build()
-	// Create a ReconcileNode object with the scheme and fake client.
-	r := &UncoreReconciler{cl, ctrl.Log.WithName("testing"), scheme.Scheme, nil}
+	client := fake.NewClientBuilder().WithScheme(s).WithRuntimeObjects(objs...).Build()
+
+	// Create a reconciler object with the scheme and fake client.
+	r := &UncoreReconciler{
+		Client: client,
+		Log:    ctrl.Log.WithName("testing"),
+		Scheme: s,
+	}
 
 	return r, nil
 }
@@ -86,7 +91,6 @@ func TestUncore_Reconcile_SystemUncore(t *testing.T) {
 	assert.Nil(t, err)
 	err = checkUncoreValues("testing/cpus", "00", "00", fmt.Sprint(max), fmt.Sprint(min))
 	assert.Nil(t, err)
-
 }
 
 // tests tuning a specific die
@@ -170,7 +174,6 @@ func TestUncore_Reconcile_PackageTuning(t *testing.T) {
 	assert.Nil(t, err)
 	err = checkUncoreValues("testing/cpus", "00", "01", fmt.Sprint(max), fmt.Sprint(min))
 	assert.Nil(t, err)
-
 }
 
 // tests invalid uncore fields
@@ -467,7 +470,6 @@ func TestUncore_Reconcile_InvalidRequests(t *testing.T) {
 	}
 	_, err = r.Reconcile(context.TODO(), req)
 	assert.Nil(t, err)
-
 }
 
 // test for a file system with missing files (ie. some broken kernel module etc)
@@ -507,7 +509,6 @@ func TestUncore_Reconcile_InvalidFileSystem(t *testing.T) {
 	assert.Nil(t, err)
 	_, err = r.Reconcile(context.TODO(), req)
 	assert.ErrorContains(t, err, "no such file or directory")
-
 }
 
 // tests failed client Get function call
@@ -548,12 +549,9 @@ func TestUncore_Reconcile_SetupPass(t *testing.T) {
 	mgr.On("SetFields", mock.Anything).Return(nil)
 	mgr.On("Add", mock.Anything).Return(nil)
 	mgr.On("GetCache").Return(new(testutils.CacheMk))
-	err = (&UncoreReconciler{
-		Client: r.Client,
-		Scheme: r.Scheme,
-	}).SetupWithManager(mgr)
-	assert.Nil(t, err)
 
+	err = r.SetupWithManager(mgr)
+	assert.Nil(t, err)
 }
 
 func TestUncore_Reconcile_SetupFail(t *testing.T) {
@@ -565,12 +563,8 @@ func TestUncore_Reconcile_SetupFail(t *testing.T) {
 	mgr.On("GetLogger").Return(r.Log)
 	mgr.On("Add", mock.Anything).Return(fmt.Errorf("setup fail"))
 
-	err = (&UncoreReconciler{
-		Client: r.Client,
-		Scheme: r.Scheme,
-	}).SetupWithManager(mgr)
+	err = r.SetupWithManager(mgr)
 	assert.Error(t, err)
-
 }
 
 // fuzzing function for uncore
@@ -708,5 +702,4 @@ func checkUncoreValues(basepath string, pkg string, die string, max string, min 
 		return errors.New("min/max values in filesystem provided are unexpected")
 	}
 	return nil
-
 }

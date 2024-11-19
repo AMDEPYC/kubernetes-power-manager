@@ -16,8 +16,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 
-	// "k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -28,18 +26,23 @@ import (
 // WIP timeofday controller unit tests
 func createTimeOfDayReconcilerObject(objs []runtime.Object) (*TimeOfDayReconciler, error) {
 	// Register operator types with the runtime scheme.
-	s := scheme.Scheme
-
-	// Add route Openshift scheme
+	s := runtime.NewScheme()
+	if err := corev1.AddToScheme(s); err != nil {
+		return nil, err
+	}
 	if err := powerv1.AddToScheme(s); err != nil {
 		return nil, err
 	}
 
 	// Create a fake client to mock API calls.
-	cl := fake.NewClientBuilder().WithRuntimeObjects(objs...).WithScheme(s).Build()
+	client := fake.NewClientBuilder().WithScheme(s).WithRuntimeObjects(objs...).Build()
 
-	// Create a ReconcileNode object with the scheme and fake client.
-	r := &TimeOfDayReconciler{cl, ctrl.Log.WithName("testing"), s}
+	// Create a reconciler object with the scheme and fake client.
+	r := &TimeOfDayReconciler{
+		Client: client,
+		Log:    ctrl.Log.WithName("testing"),
+		Scheme: s,
+	}
 
 	return r, nil
 }
@@ -159,7 +162,6 @@ func TestTimeOfDay_Reconcile(t *testing.T) {
 	assert.NoError(t, err)
 	_, err = r.Reconcile(context.TODO(), req)
 	assert.Error(t, err)
-
 }
 
 // go test -fuzz FuzzTimeOfDayController -run=FuzzTimeOfDayController
@@ -460,7 +462,6 @@ func TestTimeOfDay_Reconcile_ClientErrs(t *testing.T) {
 	dummy := powerv1.TimeOfDayCronJob{}
 	err = r.Client.Get(context.TODO(), types.NamespacedName{Namespace: IntelPowerNamespace, Name: "rogue"}, &dummy)
 	assert.ErrorContains(t, err, "not found")
-
 }
 
 func TestTimeOfDay_Reconcile_SetupPass(t *testing.T) {
@@ -473,12 +474,9 @@ func TestTimeOfDay_Reconcile_SetupPass(t *testing.T) {
 	mgr.On("SetFields", mock.Anything).Return(nil)
 	mgr.On("Add", mock.Anything).Return(nil)
 	mgr.On("GetCache").Return(new(testutils.CacheMk))
-	err = (&TimeOfDayReconciler{
-		Client: r.Client,
-		Scheme: r.Scheme,
-	}).SetupWithManager(mgr)
-	assert.Nil(t, err)
 
+	err = r.SetupWithManager(mgr)
+	assert.Nil(t, err)
 }
 
 func TestTimeOfDay_Reconcile_SetupFail(t *testing.T) {
@@ -490,10 +488,6 @@ func TestTimeOfDay_Reconcile_SetupFail(t *testing.T) {
 	mgr.On("GetLogger").Return(r.Log)
 	mgr.On("Add", mock.Anything).Return(fmt.Errorf("setup fail"))
 
-	err = (&TimeOfDayReconciler{
-		Client: r.Client,
-		Scheme: r.Scheme,
-	}).SetupWithManager(mgr)
+	err = r.SetupWithManager(mgr)
 	assert.Error(t, err)
-
 }
