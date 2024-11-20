@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/intel/kubernetes-power-manager/internal/metrics"
 	"github.com/intel/power-optimization-library/pkg/power"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap/zapcore"
@@ -46,7 +47,12 @@ func TestCPUScalingManager_UpdateConfig(t *testing.T) {
 	t.Cleanup(func() {
 		newCPUScalingWorkerFunc = origNewCPUScalingWorkerFunc
 	})
-	newCPUScalingWorkerFunc = func(cpuID uint, _ *power.Host, opts *CPUScalingOpts) CPUScalingWorker {
+	newCPUScalingWorkerFunc = func(
+		cpuID uint,
+		_ *power.Host,
+		dpdkClient metrics.DPDKTelemetryClient,
+		opts *CPUScalingOpts,
+	) CPUScalingWorker {
 		w := CreateMockWorker(cpuID, opts)
 		return w
 	}

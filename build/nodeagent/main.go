@@ -186,6 +186,11 @@ func main() {
 		ctrl.Log.WithName("clients").WithName("ESMIClient"),
 	)
 
+	dpdkClient := metrics.NewDPDKTelemetryClient(
+		ctrl.Log.WithName("clients").WithName("DPDKClient"),
+	)
+	defer dpdkClient.Close()
+
 	logger := ctrl.Log.WithName(monitoring.LogTopName)
 	monitoring.RegisterPerfEventCollectors(perfEventClient, powerLibrary, logger)
 	monitoring.RegisterMSRCollectors(msrClient, powerLibrary, logger)
@@ -193,7 +198,7 @@ func main() {
 		monitoring.RegisterESMICollectors(esmiClient, powerLibrary, logger)
 	}
 
-	cpuScalingMgr := scaling.NewCPUScalingManager(&powerLibrary)
+	cpuScalingMgr := scaling.NewCPUScalingManager(&powerLibrary, dpdkClient)
 	if err = mgr.Add(cpuScalingMgr); err != nil {
 		setupLog.Error(err, "unable to register runnable", "runnable", "CPUScalingManager")
 		os.Exit(1)

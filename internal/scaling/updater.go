@@ -1,6 +1,7 @@
 package scaling
 
 import (
+	"github.com/intel/kubernetes-power-manager/internal/metrics"
 	"github.com/intel/power-optimization-library/pkg/power"
 )
 
@@ -10,11 +11,13 @@ type CPUScalingUpdater interface {
 
 type cpuScalingUpdaterImpl struct {
 	powerLibrary *power.Host
+	dpdkClient   metrics.DPDKTelemetryClient
 }
 
-func NewCPUScalingUpdater(powerLib *power.Host) CPUScalingUpdater {
+func NewCPUScalingUpdater(powerLib *power.Host, dpdkClient metrics.DPDKTelemetryClient) CPUScalingUpdater {
 	updater := &cpuScalingUpdaterImpl{
 		powerLibrary: powerLib,
+		dpdkClient:   dpdkClient,
 	}
 
 	return updater
