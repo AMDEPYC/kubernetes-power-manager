@@ -6,6 +6,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/intel/kubernetes-power-manager/internal/metrics"
 	"github.com/intel/power-optimization-library/pkg/power"
 )
 
@@ -26,7 +27,12 @@ type cpuScalingWorkerImpl struct {
 	updater    CPUScalingUpdater
 }
 
-func NewCPUScalingWorker(cpuID uint, powerLib *power.Host, opts *CPUScalingOpts) CPUScalingWorker {
+func NewCPUScalingWorker(
+	cpuID uint,
+	powerLib *power.Host,
+	dpdkClient metrics.DPDKTelemetryClient,
+	opts *CPUScalingOpts,
+) CPUScalingWorker {
 	ctx, cancelFunc := context.WithCancel(context.Background())
 
 	worker := &cpuScalingWorkerImpl{
@@ -36,7 +42,7 @@ func NewCPUScalingWorker(cpuID uint, powerLib *power.Host, opts *CPUScalingOpts)
 	}
 
 	worker.opts.Store(opts)
-	worker.updater = NewCPUScalingUpdater(powerLib)
+	worker.updater = NewCPUScalingUpdater(powerLib, dpdkClient)
 	worker.waitGroup.Add(1)
 
 	go worker.runLoop(ctx)

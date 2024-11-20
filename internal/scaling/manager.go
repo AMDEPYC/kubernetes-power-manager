@@ -9,6 +9,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
+	"github.com/intel/kubernetes-power-manager/internal/metrics"
 	"github.com/intel/power-optimization-library/pkg/power"
 )
 
@@ -24,15 +25,17 @@ type CPUScalingManager interface {
 
 type cpuScalingManagerImpl struct {
 	powerLibrary *power.Host
+	dpdkClient   metrics.DPDKTelemetryClient
 	workers      sync.Map
 	logger       logr.Logger
 }
 
-func NewCPUScalingManager(powerLib *power.Host) CPUScalingManager {
+func NewCPUScalingManager(powerLib *power.Host, dpdkClient metrics.DPDKTelemetryClient) CPUScalingManager {
 	nodeName := os.Getenv("NODE_NAME")
 
 	mgr := &cpuScalingManagerImpl{
 		powerLibrary: powerLib,
+		dpdkClient:   dpdkClient,
 		logger:       ctrl.Log.WithName("CPUScalingManager").WithName(nodeName),
 	}
 
@@ -79,6 +82,7 @@ func (s *cpuScalingManagerImpl) UpdateConfig(optsList []CPUScalingOpts) {
 				newCPUScalingWorkerFunc(
 					opts.CPUID,
 					s.powerLibrary,
+					s.dpdkClient,
 					&opts,
 				),
 			)
