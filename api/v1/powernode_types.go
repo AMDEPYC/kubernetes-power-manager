@@ -18,6 +18,7 @@ package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -100,8 +101,14 @@ type Container struct {
 	// The ID of the Container
 	Id string `json:"id,omitempty"`
 
-	// The name of the Pod the Container is running on
+	// The name of the Pod the Container is running in
 	Pod string `json:"pod,omitempty"`
+
+	// The ID of the Pod the Container is running in
+	PodUID types.UID `json:"podUID,omitempty"`
+
+	// The namespace of the Pod the Container is running in
+	Namespace string `json:"namespace,omitempty"`
 
 	// The exclusive CPUs given to this Container
 	ExclusiveCPUs []uint `json:"exclusiveCpus,omitempty"`
