@@ -18,12 +18,16 @@ package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
 type ConfigItem struct {
+	// PowerProfile is the CPUScalingProfile that this CPUScalingConfiguration is based on
+	PowerProfile string `json:"powerProfile"`
+
 	// List of CPU IDs which should adhere to the configuration in this item
 	//+kubebuilder:validation:MinItems=1
 	CpuIDs []uint `json:"cpuIDs"`
@@ -31,6 +35,9 @@ type ConfigItem struct {
 	// Minimum time to elapse between two CPU sample periods
 	//+kubebuilder:validation:Format=duration
 	SamplePeriod metav1.Duration `json:"samplePeriod"`
+
+	// UID of the Pod that this ConfigItem is associated with
+	PodUID types.UID `json:"podUID"`
 }
 
 // CPUScalingConfigurationSpec defines the desired state of CPUScalingConfiguration
