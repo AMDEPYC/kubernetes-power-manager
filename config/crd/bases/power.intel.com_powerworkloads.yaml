@@ -87,9 +87,17 @@ spec:
                         name:
                           description: The name of the Container
                           type: string
+                        namespace:
+                          description: The namespace of the Pod the Container is running
+                            in
+                          type: string
                         pod:
                           description: The name of the Pod the Container is running
-                            on
+                            in
+                          type: string
+                        podUID:
+                          description: The ID of the Pod the Container is running
+                            in
                           type: string
                         powerProfile:
                           description: The PowerProfile that the Container is utilizing

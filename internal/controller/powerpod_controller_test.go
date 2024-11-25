@@ -15,6 +15,7 @@ import (
 	grpc "google.golang.org/grpc"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	podresourcesapi "k8s.io/kubelet/pkg/apis/podresources/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -133,10 +134,6 @@ var defaultWorkload = &powerv1.PowerWorkload{
 		PowerProfile: "performance",
 		Node: powerv1.WorkloadNode{
 			Name: "TestNode",
-			Containers: []powerv1.Container{
-				{PowerProfile: "performance"},
-			},
-			CpuIds: []uint{},
 		},
 	},
 }
@@ -429,6 +426,9 @@ func TestPowerPod_Reconcile_Create(t *testing.T) {
 							Containers: []powerv1.Container{
 								{
 									Name:          "test-container-1",
+									Pod:           "test-pod-1",
+									PodUID:        "abcdefg",
+									Namespace:     IntelPowerNamespace,
 									ExclusiveCPUs: []uint{1, 5, 8},
 								},
 							},
@@ -510,6 +510,10 @@ func TestPowerPod_Reconcile_Create(t *testing.T) {
 			})
 			if !reflect.DeepEqual(cores, sortedCpuIds) {
 				t.Errorf("%s failed: expected CPU Ids to be %v, got %v", tc.testCase, cores, sortedCpuIds)
+			}
+			for _, container := range workload.Spec.Node.Containers {
+				assert.Equal(t, types.UID("abcdefg"), container.PodUID)
+				assert.Equal(t, IntelPowerNamespace, container.Namespace)
 			}
 		}
 	}
