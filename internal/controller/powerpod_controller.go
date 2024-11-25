@@ -33,7 +33,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	podresourcesapi "k8s.io/kubelet/pkg/apis/podresources/v1"
 
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -220,7 +219,7 @@ func (r *PowerPodReconciler) Reconcile(c context.Context, req ctrl.Request) (ctr
 				powerContainers[i].Workload = workloadName
 				workloadContainer := container
 				workloadContainer.Pod = pod.Name
-				workloadContainer.PodUID = types.UID(podUID)
+				workloadContainer.PodUID = podUID
 				workloadContainer.Namespace = pod.Namespace
 				workloadContainer.Workload = workloadName
 				containerList = append(containerList, workloadContainer)
