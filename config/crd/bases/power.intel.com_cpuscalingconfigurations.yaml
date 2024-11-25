@@ -52,12 +52,22 @@ spec:
                         type: integer
                       minItems: 1
                       type: array
+                    podUID:
+                      description: UID of the Pod that this ConfigItem is associated
+                        with
+                      type: string
+                    powerProfile:
+                      description: PowerProfile is the CPUScalingProfile that this
+                        CPUScalingConfiguration is based on
+                      type: string
                     samplePeriod:
                       description: Minimum time to elapse between two CPU sample periods
                       format: duration
                       type: string
                   required:
                   - cpuIDs
+                  - podUID
+                  - powerProfile
                   - samplePeriod
                   type: object
                 type: array
