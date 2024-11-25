@@ -29,10 +29,13 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 // CPUScalingProfileReconciler reconciles a CPUScalingProfile object
@@ -341,11 +344,39 @@ func (r *CPUScalingProfileReconciler) setCPUScalingConfiguration(scalingConfig *
 	return nil
 }
 
+func (r *CPUScalingProfileReconciler) mapPowerWorkloadToCPUScalingProfile(ctx context.Context, o client.Object,
+) []reconcile.Request {
+	logger := r.Log.WithValues("method", "handler.MapFunc")
+
+	powerWorkload := o.(*powerv1.PowerWorkload)
+	cpuScalingProfileList := &powerv1.CPUScalingProfileList{}
+	if err := r.Client.List(ctx, cpuScalingProfileList); err != nil {
+		logger.Error(err, "error retrieving cpuscalingprofile list")
+		return []reconcile.Request{}
+	}
+
+	requests := make([]reconcile.Request, 0)
+	for _, cpuScalingProfile := range cpuScalingProfileList.Items {
+		if powerWorkload.Spec.PowerProfile == cpuScalingProfile.Name {
+			requests = append(requests, reconcile.Request{
+				NamespacedName: types.NamespacedName{
+					Name:      cpuScalingProfile.Name,
+					Namespace: cpuScalingProfile.Namespace,
+				},
+			})
+			break
+		}
+	}
+
+	return requests
+}
+
 // SetupWithManager sets up the controller with the Manager.
 func (r *CPUScalingProfileReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&powerv1.CPUScalingProfile{}).
 		Owns(&powerv1.PowerProfile{}).
 		Owns(&powerv1.CPUScalingConfiguration{}, builder.MatchEveryOwner).
+		Watches(&powerv1.PowerWorkload{}, handler.EnqueueRequestsFromMapFunc(r.mapPowerWorkloadToCPUScalingProfile)).
 		Complete(r)
 }
