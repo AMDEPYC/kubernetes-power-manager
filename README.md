@@ -822,8 +822,8 @@ Following metrics are provided by Power Node Agent:
 | power_esmi_core_boost_limit_megahertz | Gauge of core frequency boost limit in megahertz. | megahertz | gauge | package, die, core | E-SMI | | |
 | power_esmi_c0_residency_percent | Gauge of package residency in C0. | percent | gauge | package | E-SMI | | |
 | power_esmi_package_temperature_celsius | Gauge of package temperature in degree Celsius. | degree celsius | gauge | package | E-SMI | | |
-| power_esmi_ddr_bandwidth_utilization_gigabytes_per_second | Gauge of DDR bandwidth utilization in GB/s. | gb/s | gauge | | E-SMI | | |
-| power_esmi_ddr_bandwidth_utilization_percent | Gauge of DDR bandwidth utilization in percent of max bandwidth. | percent | gauge | | E-SMI | | |
+| power_esmi_ddr_bandwidth_utilization_gigabytes_per_second | Gauge of DDR bandwidth utilization in GB/s. | gb/s | gauge | package | E-SMI | | |
+| power_esmi_ddr_bandwidth_utilization_percent | Gauge of DDR bandwidth utilization in percent of max bandwidth. | percent | gauge | package | E-SMI | | |
 | power_esmi_dimm_power_watts | Gauge of DIMM power in watts. | watt | gauge | | E-SMI | | |
 | power_esmi_dimm_temperature_celsius | Gauge of DIMM temperature in degree Celsius. | degree celsius | gauge | | E-SMI | | |
 | power_esmi_lclk_dpm_min_level | gauge of minimum lclk dpm level. | | gauge | | e-smi | Values: either 0 or 1 | |

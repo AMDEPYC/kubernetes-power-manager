@@ -336,7 +336,7 @@ func (e *ESMIClient) GetPackageTemp(pkg power.Package) (float64, error) {
 	return float64(pkgTemp) * milliMultiplier, nil
 }
 
-func (e *ESMIClient) GetDDRBandwidthUtil() (uint32, error) {
+func (e *ESMIClient) GetDDRBandwidthUtil(pkg power.Package) (uint32, error) {
 	ddrBW := C.struct_ddr_bw_metrics{
 		max_bw:       C.uint32_t(0),
 		utilized_bw:  C.uint32_t(0),
@@ -344,6 +344,7 @@ func (e *ESMIClient) GetDDRBandwidthUtil() (uint32, error) {
 	}
 
 	if esmiStatus := C.esmi_ddr_bw_get(
+		C.uint8_t(pkg.GetID()),
 		&ddrBW,
 	); esmiStatus != 0 {
 		return 0, mapESMIError(esmiStatus)
@@ -352,7 +353,7 @@ func (e *ESMIClient) GetDDRBandwidthUtil() (uint32, error) {
 	return uint32(ddrBW.utilized_bw), nil
 }
 
-func (e *ESMIClient) GetDDRBandwidthUtilPercent() (uint32, error) {
+func (e *ESMIClient) GetDDRBandwidthUtilPercent(pkg power.Package) (uint32, error) {
 	ddrBW := C.struct_ddr_bw_metrics{
 		max_bw:       C.uint32_t(0),
 		utilized_bw:  C.uint32_t(0),
@@ -360,6 +361,7 @@ func (e *ESMIClient) GetDDRBandwidthUtilPercent() (uint32, error) {
 	}
 
 	if esmiStatus := C.esmi_ddr_bw_get(
+		C.uint8_t(pkg.GetID()),
 		&ddrBW,
 	); esmiStatus != 0 {
 		return 0, mapESMIError(esmiStatus)

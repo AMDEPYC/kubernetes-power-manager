@@ -165,17 +165,19 @@ func RegisterESMICollectors(esmiClient *metrics.ESMIClient, host power.Host, log
 			esmiClient.GetPackageTemp,
 			logger.WithValues(logNameKey, "package_temperature_celsius"),
 		),
-		newPerSystemCollector(
+		newPerPackageCollector(
 			prom.BuildFQName(promNamespace, esmiSubsystem, "ddr_bandwidth_utilization_gigabytes_per_second"),
 			"Gauge of DDR bandwidth utilization in GB/s.",
 			prom.GaugeValue,
+			host,
 			esmiClient.GetDDRBandwidthUtil,
 			logger.WithValues(logNameKey, "ddr_bandwidth_utilization_gigabytes_per_second"),
 		),
-		newPerSystemCollector(
+		newPerPackageCollector(
 			prom.BuildFQName(promNamespace, esmiSubsystem, "ddr_bandwidth_utilization_percent"),
 			"Gauge of DDR bandwidth utilization in percent of maximum bandwidth.",
 			prom.GaugeValue,
+			host,
 			esmiClient.GetDDRBandwidthUtilPercent,
 			logger.WithValues(logNameKey, "ddr_bandwidth_utilization_percent"),
 		),
