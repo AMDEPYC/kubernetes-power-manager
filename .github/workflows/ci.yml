@@ -26,6 +26,9 @@ jobs:
     - name: Run unit-tests
       run: LD_LIBRARY_PATH=$(pwd)/e-sms/e_smi/lib make test
 
+    - name: Present code coverage
+      uses: 'gha-common/go-beautiful-html-coverage@v1'
+
   lint:
     runs-on: ubuntu-latest
 
