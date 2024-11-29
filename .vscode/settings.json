@@ -1,0 +1,8 @@
+{
+    "go.testEnvVars": {
+        "LD_LIBRARY_PATH": "${workspaceFolder}/e-sms/e_smi/lib"
+    },
+    "terminal.integrated.env.linux": {
+        "LD_LIBRARY_PATH": "${workspaceFolder}/e-sms/e_smi/lib"
+    }
+}
