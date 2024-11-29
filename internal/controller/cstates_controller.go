@@ -94,7 +94,7 @@ func (r *CStatesReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 	// prepare system by resetting configuration
 	logger.V(4).Info("resetting C-States configuration")
-	err = r.restoreCStates(ctx, &logger)
+	err = r.restoreCStates(&logger)
 	if err != nil {
 		logger.Error(err, "failed to restore C-States", "error", err.Error())
 		return ctrl.Result{}, err
@@ -197,7 +197,7 @@ func (r *CStatesReconciler) applyCStates(cStatesSpec *powerv1.CStatesSpec, logge
 	return e.Join(errs...)
 }
 
-func (r *CStatesReconciler) restoreCStates(ctx context.Context, logger *logr.Logger) error {
+func (r *CStatesReconciler) restoreCStates(logger *logr.Logger) error {
 	var errs = make([]error, 0)
 
 	logger.V(5).Info("resetting to default state for the shared pool")
