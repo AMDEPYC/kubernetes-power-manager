@@ -22,7 +22,7 @@ const (
 	availGovFile   = "cpufreq/scaling_available_governors"
 	eppFile        = "cpufreq/energy_performance_preference"
 
-	defaultEpp      = "default"
+	defaultEpp      = "power"
 	defaultGovernor = cpuPolicyPowersave
 
 	cpuPolicyPerformance  = "performance"
@@ -74,7 +74,7 @@ func (l *CoreTypeList) appendIfUnique(min uint, max uint) uint {
 var defaultPowerProfile *profileImpl
 
 func isScalingDriverSupported(driver string) bool {
-	for _, s := range []string{"intel_pstate", "intel_cpufreq", "acpi-cpufreq", "amd-pstate"} {
+	for _, s := range []string{"intel_pstate", "intel_cpufreq", "acpi-cpufreq", "amd-pstate", "amd-pstate-epp"} {
 		if driver == s {
 			return true
 		}
