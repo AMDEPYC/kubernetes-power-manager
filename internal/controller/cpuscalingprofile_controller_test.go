@@ -18,67 +18,750 @@ package controller
 
 import (
 	"context"
-
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"testing"
+	"time"
 
 	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
+	"github.com/intel/kubernetes-power-manager/pkg/testutils"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"go.uber.org/zap/zapcore"
+	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/ptr"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/config"
+	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-var _ = Describe("CPUScalingProfile Controller", func() {
-	Context("When reconciling a resource", func() {
-		const resourceName = "test-resource"
+func createCPUScalingProfileReconcilerObject(objs []client.Object) (*CPUScalingProfileReconciler, error) {
+	log.SetLogger(zap.New(zap.UseDevMode(true), func(opts *zap.Options) {
+		opts.TimeEncoder = zapcore.ISO8601TimeEncoder
+	}))
 
-		ctx := context.Background()
+	// Register operator types with the runtime scheme.
+	s := runtime.NewScheme()
+	if err := powerv1.AddToScheme(s); err != nil {
+		return nil, err
+	}
 
-		typeNamespacedName := types.NamespacedName{
-			Name:      resourceName,
-			Namespace: "default", // TODO(user):Modify as needed
-		}
-		cpuscalingprofile := &powerv1.CPUScalingProfile{}
+	// Create a fake client to mock API calls.
+	cl := fake.NewClientBuilder().WithObjects(objs...).WithStatusSubresource(objs...).WithScheme(s).Build()
 
-		BeforeEach(func() {
-			By("creating the custom resource for the Kind CPUScalingProfile")
-			err := k8sClient.Get(ctx, typeNamespacedName, cpuscalingprofile)
-			if err != nil && errors.IsNotFound(err) {
-				resource := &powerv1.CPUScalingProfile{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      resourceName,
-						Namespace: "default",
-					},
-					// TODO(user): Specify other spec details if needed.
+	// Create a reconciler object with the scheme and fake client.
+	r := &CPUScalingProfileReconciler{
+		Client: cl,
+		Log:    ctrl.Log.WithName("testing"),
+		Scheme: s,
+	}
+
+	return r, nil
+}
+
+func TestCPUScalingProfile_SetupWithManager(t *testing.T) {
+	r, err := createProfileReconcilerObject([]runtime.Object{})
+	if !assert.NoError(t, err) {
+		return
+	}
+
+	mgr := new(testutils.MgrMock)
+	mgr.On("GetControllerOptions").Return(config.Controller{})
+	mgr.On("GetScheme").Return(r.Scheme)
+	mgr.On("GetLogger").Return(r.Log)
+	mgr.On("SetFields", mock.Anything).Return(nil)
+	mgr.On("Add", mock.Anything).Return(nil)
+	mgr.On("GetRESTMapper").Return(new(testutils.RestMapperMk))
+	mgr.On("GetCache").Return(new(testutils.CacheMk))
+
+	err = r.SetupWithManager(mgr)
+	assert.NoError(t, err)
+}
+
+func TestCPUScalingProfile_WrongNamespace(t *testing.T) {
+	r, err := createCPUScalingProfileReconcilerObject([]client.Object{})
+	if !assert.NoError(t, err) {
+		return
+	}
+	req := reconcile.Request{
+		NamespacedName: client.ObjectKey{
+			Name:      "shared",
+			Namespace: "wrong-namespace",
+		},
+	}
+
+	_, err = r.Reconcile(context.TODO(), req)
+	assert.ErrorContains(t, err, "incorrect namespace")
+}
+
+func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
+	tCases := []struct {
+		testCase       string
+		validateStatus func(client.Client)
+		clientObjs     []client.Object
+	}{
+		{
+			testCase: "Test Case 1 - Min larger than Max",
+			validateStatus: func(c client.Client) {
+				csc := &powerv1.CPUScalingProfile{}
+				if !assert.NoError(t, c.Get(context.TODO(),
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					return
 				}
-				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
-			}
-		})
+				assert.Contains(t, csc.Status.Errors,
+					"cpuscalingprofile spec is not correct: Min must be lower or equal to Max")
+			},
+			clientObjs: []client.Object{
+				&powerv1.CPUScalingProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "cpuscalingprofile1",
+						Namespace: IntelPowerNamespace,
+						UID:       "lkj",
+					},
+					Spec: powerv1.CPUScalingProfileSpec{
+						Max:          2900,
+						Min:          3050,
+						SamplePeriod: metav1.Duration{Duration: 500 * time.Millisecond},
+					},
+				},
+			},
+		},
+		{
+			testCase: "Test Case 2 - Sample period too large",
+			validateStatus: func(c client.Client) {
+				csc := &powerv1.CPUScalingProfile{}
+				if !assert.NoError(t, c.Get(context.TODO(),
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					return
+				}
+				if !assert.Len(t, csc.Status.Errors, 1) {
+					return
+				}
+				assert.Contains(t, csc.Status.Errors[0],
+					"cpuscalingprofile spec is not correct: SamplePeriod must be larger than")
+			},
+			clientObjs: []client.Object{
+				&powerv1.CPUScalingProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "cpuscalingprofile1",
+						Namespace: IntelPowerNamespace,
+						UID:       "lkj",
+					},
+					Spec: powerv1.CPUScalingProfileSpec{
+						Max:          3100,
+						Min:          3000,
+						SamplePeriod: metav1.Duration{Duration: 1100 * time.Millisecond},
+					},
+				},
+			},
+		},
+		{
+			testCase: "Test Case 3 - Sample period too small",
+			validateStatus: func(c client.Client) {
+				csc := &powerv1.CPUScalingProfile{}
+				if !assert.NoError(t, c.Get(context.TODO(),
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					return
+				}
+				if !assert.Len(t, csc.Status.Errors, 1) {
+					return
+				}
+				assert.Contains(t, csc.Status.Errors[0],
+					"cpuscalingprofile spec is not correct: SamplePeriod must be larger than")
+			},
+			clientObjs: []client.Object{
+				&powerv1.CPUScalingProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "cpuscalingprofile1",
+						Namespace: IntelPowerNamespace,
+						UID:       "lkj",
+					},
+					Spec: powerv1.CPUScalingProfileSpec{
+						Max:          3100,
+						Min:          3000,
+						SamplePeriod: metav1.Duration{Duration: 5 * time.Millisecond},
+					},
+				},
+			},
+		},
+	}
 
-		AfterEach(func() {
-			// TODO(user): Cleanup logic after each test, like removing the resource instance.
-			resource := &powerv1.CPUScalingProfile{}
-			err := k8sClient.Get(ctx, typeNamespacedName, resource)
-			Expect(err).NotTo(HaveOccurred())
+	for _, tc := range tCases {
+		t.Log(tc.testCase)
+		r, err := createCPUScalingProfileReconcilerObject(tc.clientObjs)
+		if !assert.NoError(t, err) {
+			return
+		}
 
-			By("Cleanup the specific resource instance CPUScalingProfile")
-			Expect(k8sClient.Delete(ctx, resource)).To(Succeed())
-		})
-		It("should successfully reconcile the resource", func() {
-			By("Reconciling the created resource")
-			controllerReconciler := &CPUScalingProfileReconciler{
-				Client: k8sClient,
-				Scheme: k8sClient.Scheme(),
-			}
+		objKey := client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}
+		_, err = r.Reconcile(context.TODO(), reconcile.Request{NamespacedName: objKey})
+		if !assert.NoError(t, err) {
+			return
+		}
 
-			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
-				NamespacedName: typeNamespacedName,
-			})
-			Expect(err).NotTo(HaveOccurred())
-			// TODO(user): Add more specific assertions depending on your controller's reconciliation logic.
-			// Example: If you expect a certain status condition after reconciliation, verify it here.
-		})
-	})
-})
+		tc.validateStatus(r.Client)
+		assert.True(t, errors.IsNotFound(r.Client.Get(context.TODO(),
+			client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace},
+			&powerv1.PowerProfile{})))
+	}
+}
+
+func TestCPUScalingProfile_Reconcile_PowerProfile(t *testing.T) {
+	tCases := []struct {
+		testCase                   string
+		cpuScalingProfileName      string
+		validateReconcileAndStatus func(error, client.Client)
+		validateObjects            func(client.Client)
+		clientObjs                 []client.Object
+	}{
+		{
+			testCase:              "Test Case 1 - CPUScalingProfile is added",
+			cpuScalingProfileName: "cpuscalingprofile1",
+			validateReconcileAndStatus: func(err error, c client.Client) {
+				if !assert.NoError(t, err) {
+					return
+				}
+				csc := &powerv1.CPUScalingProfile{}
+				if !assert.NoError(t, c.Get(context.TODO(),
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					return
+				}
+				assert.Empty(t, csc.Status.Errors)
+			},
+			validateObjects: func(c client.Client) {
+				pp := &powerv1.PowerProfile{}
+				if !assert.NoError(t, c.Get(context.TODO(),
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, pp)) {
+					return
+				}
+				assert.ElementsMatch(t, []metav1.OwnerReference{
+					{
+						Name:               "cpuscalingprofile1",
+						UID:                "lkj",
+						Kind:               "CPUScalingProfile",
+						APIVersion:         "power.intel.com/v1",
+						Controller:         ptr.To(true),
+						BlockOwnerDeletion: ptr.To(true),
+					},
+				}, pp.ObjectMeta.OwnerReferences)
+				assert.Equal(t, powerv1.PowerProfileSpec{
+					Name:     "cpuscalingprofile1",
+					Min:      2000,
+					Max:      3000,
+					Governor: userspaceGovernor,
+					Epp:      "power",
+					Shared:   false,
+				}, pp.Spec)
+			},
+			clientObjs: []client.Object{
+				&powerv1.CPUScalingProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "cpuscalingprofile1",
+						Namespace: IntelPowerNamespace,
+						UID:       "lkj",
+					},
+					Spec: powerv1.CPUScalingProfileSpec{
+						Min:          2000,
+						Max:          3000,
+						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
+						Epp:          "power",
+					},
+				},
+			},
+		},
+		{
+			testCase:              "Test Case 2 - CPUScalingProfile got modified",
+			cpuScalingProfileName: "cpuscalingprofile1",
+			validateReconcileAndStatus: func(err error, c client.Client) {
+				if !assert.NoError(t, err) {
+					return
+				}
+				csc := &powerv1.CPUScalingProfile{}
+				if !assert.NoError(t, c.Get(context.TODO(),
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					return
+				}
+				assert.Empty(t, csc.Status.Errors)
+
+			},
+			validateObjects: func(c client.Client) {
+				pp := &powerv1.PowerProfile{}
+				if !assert.NoError(t, c.Get(context.TODO(),
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, pp)) {
+					return
+				}
+				assert.ElementsMatch(t, []metav1.OwnerReference{
+					{
+						Name:               "cpuscalingprofile1",
+						UID:                "lkj",
+						Kind:               "CPUScalingProfile",
+						APIVersion:         "power.intel.com/v1",
+						Controller:         ptr.To(true),
+						BlockOwnerDeletion: ptr.To(true),
+					},
+				}, pp.ObjectMeta.OwnerReferences)
+				assert.Equal(t, powerv1.PowerProfileSpec{
+					Name:     "cpuscalingprofile1",
+					Min:      2000,
+					Max:      3000,
+					Governor: userspaceGovernor,
+					Epp:      "power",
+					Shared:   false,
+				}, pp.Spec)
+			},
+			clientObjs: []client.Object{
+				&powerv1.CPUScalingProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "cpuscalingprofile1",
+						Namespace: IntelPowerNamespace,
+						UID:       "lkj",
+					},
+					Spec: powerv1.CPUScalingProfileSpec{
+						Min:          2000,
+						Max:          3000,
+						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
+						Epp:          "power",
+					},
+				},
+				&powerv1.PowerProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:              "cpuscalingprofile1",
+						Namespace:         IntelPowerNamespace,
+						UID:               "hgf",
+						CreationTimestamp: metav1.Now(),
+						OwnerReferences: []metav1.OwnerReference{
+							{
+								Name:               "cpuscalingprofile1",
+								UID:                "lkj",
+								Kind:               "CPUScalingProfile",
+								APIVersion:         "power.intel.com/v1",
+								Controller:         ptr.To(true),
+								BlockOwnerDeletion: ptr.To(true),
+							},
+						},
+					},
+					Spec: powerv1.PowerProfileSpec{
+						Name:     "cpuscalingprofile1",
+						Min:      1999,
+						Max:      2001,
+						Shared:   false,
+						Epp:      "power",
+						Governor: "powersave",
+					},
+				},
+			},
+		},
+		{
+			testCase:              "Test Case 3 - CPUScalingProfile was deleted",
+			cpuScalingProfileName: "cpuscalingprofile1",
+			validateReconcileAndStatus: func(err error, c client.Client) {
+				assert.NoError(t, err)
+			},
+			validateObjects: func(c client.Client) {
+				// We leave deleting of PowerProfile to K8s GC, fakeclient does not
+				// have GC capabilities, hence cannot assert PowerProfile deletion here
+			},
+			clientObjs: []client.Object{
+				&powerv1.PowerProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:              "cpuscalingprofile1",
+						Namespace:         IntelPowerNamespace,
+						UID:               "hgf",
+						CreationTimestamp: metav1.Now(),
+						OwnerReferences: []metav1.OwnerReference{
+							{
+								Name:               "cpuscalingprofile1",
+								UID:                "lkj",
+								Kind:               "CPUScalingProfile",
+								APIVersion:         "power.intel.com/v1",
+								Controller:         ptr.To(true),
+								BlockOwnerDeletion: ptr.To(true),
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			testCase: "Test Case 4 - CPUScalingProfile is added, but PowerProfile with the same name" +
+				" already exists and doesn't have CPUScalingProfile ownership",
+			cpuScalingProfileName: "performance",
+			validateReconcileAndStatus: func(err error, c client.Client) {
+				assert.Error(t, err)
+				csc := &powerv1.CPUScalingProfile{}
+				if !assert.NoError(t, c.Get(context.TODO(),
+					client.ObjectKey{Name: "performance", Namespace: IntelPowerNamespace}, csc)) {
+					return
+				}
+				assert.ElementsMatch(t, csc.Status.Errors,
+					[]string{"error during powerprofile CreateOrUpdate operation: reconciled cpuscalingprofile " +
+						"is not owner of this powerprofile, stopping reconciliation"})
+			},
+			validateObjects: func(c client.Client) {
+				pp := &powerv1.PowerProfile{}
+				if !assert.NoError(t, c.Get(context.TODO(),
+					client.ObjectKey{Name: "performance", Namespace: IntelPowerNamespace}, pp)) {
+					return
+				}
+				assert.Empty(t, pp.ObjectMeta.OwnerReferences)
+				assert.Equal(t, powerv1.PowerProfileSpec{
+					Name:     "performance",
+					Min:      1000,
+					Max:      2000,
+					Shared:   false,
+					Epp:      "performance",
+					Governor: "performance",
+				}, pp.Spec)
+			},
+			clientObjs: []client.Object{
+				&powerv1.CPUScalingProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "performance",
+						Namespace: IntelPowerNamespace,
+						UID:       "lkj",
+					},
+					Spec: powerv1.CPUScalingProfileSpec{
+						Min:          2000,
+						Max:          3000,
+						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
+						Epp:          "power",
+					},
+				},
+				&powerv1.PowerProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:              "performance",
+						Namespace:         IntelPowerNamespace,
+						UID:               "hgf",
+						CreationTimestamp: metav1.Now(),
+					},
+					Spec: powerv1.PowerProfileSpec{
+						Name:     "performance",
+						Min:      1000,
+						Max:      2000,
+						Shared:   false,
+						Epp:      "performance",
+						Governor: "performance",
+					},
+				},
+			},
+		},
+		{
+			testCase:              "Test Case 5 - PowerProfile exists and have more, non-controller Ownerships added",
+			cpuScalingProfileName: "cpuscalingprofile1",
+			validateReconcileAndStatus: func(err error, c client.Client) {
+				if !assert.NoError(t, err) {
+					return
+				}
+				csc := &powerv1.CPUScalingProfile{}
+				if !assert.NoError(t, c.Get(context.TODO(),
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					return
+				}
+				assert.Empty(t, csc.Status.Errors)
+			},
+			validateObjects: func(c client.Client) {
+				pp := &powerv1.PowerProfile{}
+				if !assert.NoError(t, c.Get(context.TODO(),
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, pp)) {
+					return
+				}
+				// New Ownership entry will be respected, but any changes to spec will be reverted
+				assert.ElementsMatch(t, []metav1.OwnerReference{
+					{
+						Name:               "cpuscalingprofile1",
+						UID:                "lkj",
+						Kind:               "CPUScalingProfile",
+						APIVersion:         "power.intel.com/v1",
+						Controller:         ptr.To(true),
+						BlockOwnerDeletion: ptr.To(true),
+					},
+					{
+						Name:       "other-owner",
+						UID:        "gfd",
+						Kind:       "other",
+						APIVersion: "other-comp.com/v1",
+					},
+				}, pp.ObjectMeta.OwnerReferences)
+				assert.Equal(t, powerv1.PowerProfileSpec{
+					Name:     "cpuscalingprofile1",
+					Min:      2000,
+					Max:      3000,
+					Shared:   false,
+					Epp:      "power",
+					Governor: userspaceGovernor,
+				}, pp.Spec)
+			},
+			clientObjs: []client.Object{
+				&powerv1.CPUScalingProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "cpuscalingprofile1",
+						Namespace: IntelPowerNamespace,
+						UID:       "lkj",
+					},
+					Spec: powerv1.CPUScalingProfileSpec{
+						Min:          2000,
+						Max:          3000,
+						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
+						Epp:          "power",
+					},
+				},
+				&powerv1.PowerProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:              "cpuscalingprofile1",
+						Namespace:         IntelPowerNamespace,
+						UID:               "hgf",
+						CreationTimestamp: metav1.Now(),
+						OwnerReferences: []metav1.OwnerReference{
+							{
+								Name:               "cpuscalingprofile1",
+								UID:                "lkj",
+								Kind:               "CPUScalingProfile",
+								APIVersion:         "power.intel.com/v1",
+								Controller:         ptr.To(true),
+								BlockOwnerDeletion: ptr.To(true),
+							},
+							{
+								Name:       "other-owner",
+								UID:        "gfd",
+								Kind:       "other",
+								APIVersion: "other-comp.com/v1",
+							},
+						},
+					},
+					Spec: powerv1.PowerProfileSpec{
+						Name:     "cpuscalingprofile1",
+						Min:      2000,
+						Max:      1000,
+						Shared:   false,
+						Epp:      "power",
+						Governor: "powersave",
+					},
+				},
+			},
+		},
+		{
+			testCase:              "Test Case 6 - Owned PowerProfile got modified",
+			cpuScalingProfileName: "cpuscalingprofile1",
+			validateReconcileAndStatus: func(err error, c client.Client) {
+				if !assert.NoError(t, err) {
+					return
+				}
+				csc := &powerv1.CPUScalingProfile{}
+				if !assert.NoError(t, c.Get(context.TODO(),
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					return
+				}
+				assert.Empty(t, csc.Status.Errors)
+			},
+			validateObjects: func(c client.Client) {
+				pp := &powerv1.PowerProfile{}
+				if !assert.NoError(t, c.Get(context.TODO(),
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, pp)) {
+					return
+				}
+				assert.ElementsMatch(t, []metav1.OwnerReference{
+					{
+						Name:               "cpuscalingprofile1",
+						UID:                "lkj",
+						Kind:               "CPUScalingProfile",
+						APIVersion:         "power.intel.com/v1",
+						Controller:         ptr.To(true),
+						BlockOwnerDeletion: ptr.To(true),
+					},
+				}, pp.ObjectMeta.OwnerReferences)
+				assert.Equal(t, powerv1.PowerProfileSpec{
+					Name:     "cpuscalingprofile1",
+					Min:      2000,
+					Max:      3000,
+					Shared:   false,
+					Epp:      "power",
+					Governor: userspaceGovernor,
+				}, pp.Spec)
+			},
+			clientObjs: []client.Object{
+				&powerv1.CPUScalingProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "cpuscalingprofile1",
+						Namespace: IntelPowerNamespace,
+						UID:       "lkj",
+					},
+					Spec: powerv1.CPUScalingProfileSpec{
+						Min:          2000,
+						Max:          3000,
+						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
+						Epp:          "power",
+					},
+				},
+				&powerv1.PowerProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:              "cpuscalingprofile1",
+						Namespace:         IntelPowerNamespace,
+						UID:               "hgf",
+						CreationTimestamp: metav1.Now(),
+						OwnerReferences: []metav1.OwnerReference{
+							{
+								Name:               "cpuscalingprofile1",
+								UID:                "lkj",
+								Kind:               "CPUScalingProfile",
+								APIVersion:         "power.intel.com/v1",
+								Controller:         ptr.To(true),
+								BlockOwnerDeletion: ptr.To(true),
+							},
+						},
+					},
+					Spec: powerv1.PowerProfileSpec{
+						Name:     "cpuscalingprofile1",
+						Min:      2000,
+						Max:      2500,
+						Shared:   false,
+						Epp:      "power",
+						Governor: "powersave",
+					},
+				},
+			},
+		},
+		{
+			testCase:              "Test Case 7 - Empty reconciliation",
+			cpuScalingProfileName: "cpuscalingprofile1",
+			validateReconcileAndStatus: func(err error, c client.Client) {
+				if !assert.NoError(t, err) {
+					return
+				}
+				csc := &powerv1.CPUScalingProfile{}
+				if !assert.NoError(t, c.Get(context.TODO(),
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					return
+				}
+				assert.Empty(t, csc.Status.Errors)
+			},
+			validateObjects: func(c client.Client) {
+				pp := &powerv1.PowerProfile{}
+				if !assert.NoError(t, c.Get(context.TODO(),
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, pp)) {
+					return
+				}
+				assert.ElementsMatch(t, []metav1.OwnerReference{
+					{
+						Name:               "cpuscalingprofile1",
+						UID:                "lkj",
+						Kind:               "CPUScalingProfile",
+						APIVersion:         "power.intel.com/v1",
+						Controller:         ptr.To(true),
+						BlockOwnerDeletion: ptr.To(true),
+					},
+				}, pp.ObjectMeta.OwnerReferences)
+				assert.Equal(t, powerv1.PowerProfileSpec{
+					Name:     "cpuscalingprofile1",
+					Min:      1000,
+					Max:      2000,
+					Shared:   false,
+					Epp:      "power",
+					Governor: userspaceGovernor,
+				}, pp.Spec)
+			},
+			clientObjs: []client.Object{
+				&powerv1.CPUScalingProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "cpuscalingprofile1",
+						Namespace: IntelPowerNamespace,
+						UID:       "lkj",
+					},
+					Spec: powerv1.CPUScalingProfileSpec{
+						Min:          1000,
+						Max:          2000,
+						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
+						Epp:          "power",
+					},
+				},
+				&powerv1.PowerProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:              "cpuscalingprofile1",
+						Namespace:         IntelPowerNamespace,
+						UID:               "hgf",
+						CreationTimestamp: metav1.Now(),
+						OwnerReferences: []metav1.OwnerReference{
+							{
+								Name:               "cpuscalingprofile1",
+								UID:                "lkj",
+								Kind:               "CPUScalingProfile",
+								APIVersion:         "power.intel.com/v1",
+								Controller:         ptr.To(true),
+								BlockOwnerDeletion: ptr.To(true),
+							},
+						},
+					},
+					Spec: powerv1.PowerProfileSpec{
+						Name:     "cpuscalingprofile1",
+						Min:      1000,
+						Max:      2000,
+						Shared:   false,
+						Epp:      "power",
+						Governor: userspaceGovernor,
+					},
+				},
+			},
+		},
+		{
+			testCase:              "Test Case 8 - Status cleared from previous reconciliation error",
+			cpuScalingProfileName: "cpuscalingprofile1",
+			validateReconcileAndStatus: func(err error, c client.Client) {
+				if !assert.NoError(t, err) {
+					return
+				}
+				csc := &powerv1.CPUScalingProfile{}
+				if !assert.NoError(t, c.Get(context.TODO(),
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					return
+				}
+				assert.Empty(t, csc.Status.Errors)
+			},
+			validateObjects: func(c client.Client) {},
+			clientObjs: []client.Object{
+				&powerv1.CPUScalingProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "cpuscalingprofile1",
+						Namespace: IntelPowerNamespace,
+						UID:       "lkj",
+					},
+					Status: powerv1.CPUScalingProfileStatus{
+						ID: 0,
+						StatusErrors: powerv1.StatusErrors{
+							Errors: []string{"error happened on last reconcile"},
+						},
+					},
+					Spec: powerv1.CPUScalingProfileSpec{
+						Min:          1000,
+						Max:          2000,
+						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
+						Epp:          "power",
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range tCases {
+		t.Log(tc.testCase)
+		r, err := createCPUScalingProfileReconcilerObject(tc.clientObjs)
+		if !assert.NoError(t, err) {
+			return
+		}
+
+		req := reconcile.Request{
+			NamespacedName: types.NamespacedName{
+				Name:      tc.cpuScalingProfileName,
+				Namespace: IntelPowerNamespace,
+			},
+		}
+		_, err = r.Reconcile(context.TODO(), req)
+
+		tc.validateReconcileAndStatus(err, r.Client)
+		tc.validateObjects(r.Client)
+	}
+}

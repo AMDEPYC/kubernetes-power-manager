@@ -23,6 +23,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+const userspaceGovernor = "userspace"
+
 // write errors to the status filed, pass nil to clear errors, will only do update resource is valid and not being deleted
 // if object already has the correct errors it will not be updated in the API
 func writeUpdatedStatusErrsIfRequired(ctx context.Context, statusWriter client.SubResourceWriter, object powerv1.PowerCRWithStatusErrors, objectErrors error) error {
