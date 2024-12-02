@@ -12,6 +12,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/intel/power-optimization-library/pkg/power"
 	"github.com/stretchr/testify/mock"
+	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
@@ -733,7 +734,16 @@ func (m *MgrMock) GetCache() cache.Cache {
 	return m.Called().Get(0).(cache.Cache)
 }
 
+func (m *MgrMock) GetRESTMapper() meta.RESTMapper {
+	return m.Called().Get(0).(meta.RESTMapper)
+}
+
 type CacheMk struct {
 	cache.Cache
+	mock.Mock
+}
+
+type RestMapperMk struct {
+	meta.RESTMapper
 	mock.Mock
 }
