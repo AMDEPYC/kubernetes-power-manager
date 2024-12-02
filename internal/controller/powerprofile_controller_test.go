@@ -863,7 +863,7 @@ func TestPowerProfile_Reconcile_DeleteProfile(t *testing.T) {
 				t.Error(err)
 				t.Fatalf("%s - error retrieving the cstate object", tc.testCase)
 			}
-			for profile, _ := range cstate.Spec.ExclusivePoolCStates {
+			for profile := range cstate.Spec.ExclusivePoolCStates {
 				if profile == tc.profileName {
 					t.Error(err)
 					t.Fatalf("%s - error retrieving the cstate object - profile should be deleted", tc.testCase)

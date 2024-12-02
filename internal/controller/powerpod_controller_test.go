@@ -1794,8 +1794,6 @@ func TestPowerPod_getNewWorkloadContainerList(t *testing.T) {
 }
 
 func TestPowerPodisContainerInList(t *testing.T) {
-	logger := logr.Discard()
-
 	// positive test
 	containers := []powerv1.Container{
 		{
@@ -1803,8 +1801,8 @@ func TestPowerPodisContainerInList(t *testing.T) {
 			Id:   "12-34",
 		},
 	}
-	assert.True(t, isContainerInList("test1", "12-34", containers, &logger))
+	assert.True(t, isContainerInList("test1", "12-34", containers))
 
 	// negative test
-	assert.False(t, isContainerInList("not-in-list", "not-in-list", containers, &logger))
+	assert.False(t, isContainerInList("not-in-list", "not-in-list", containers))
 }

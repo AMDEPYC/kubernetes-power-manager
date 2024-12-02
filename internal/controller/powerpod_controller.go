@@ -311,7 +311,7 @@ func (r *PowerPodReconciler) getPowerProfileRequestsFromContainers(containers []
 		logger.V(5).Info("reserving cores to container.", "ContainerID", containerID, "Cores", cleanCoreList)
 		// accounts for case where cores aquired through DRA don't match profile requests
 		if len(cleanCoreList) != requestNum {
-			recoverableErrs = append(recoverableErrs, fmt.Errorf(fmt.Sprintf("assigned cores did not match requested profiles. cores:%d, profiles %d", len(cleanCoreList), requestNum)))
+			recoverableErrs = append(recoverableErrs, fmt.Errorf("assigned cores did not match requested profiles. cores:%d, profiles %d", len(cleanCoreList), requestNum))
 			continue
 		}
 		logger.V(5).Info("creating the power container")
@@ -371,7 +371,7 @@ func getNewWorkloadContainerList(nodeContainers []powerv1.Container, podStateCon
 
 	logger.V(5).Info("checking if there are new containers for the workload")
 	for _, container := range nodeContainers {
-		if !isContainerInList(container.Name, container.Id, podStateContainers, logger) {
+		if !isContainerInList(container.Name, container.Id, podStateContainers) {
 			newNodeContainers = append(newNodeContainers, container)
 		}
 	}
@@ -380,7 +380,7 @@ func getNewWorkloadContainerList(nodeContainers []powerv1.Container, podStateCon
 }
 
 // Helper function - if container is in a list of containers
-func isContainerInList(name string, uid string, containers []powerv1.Container, logger *logr.Logger) bool {
+func isContainerInList(name string, uid string, containers []powerv1.Container) bool {
 	for _, container := range containers {
 		if container.Name == name && container.Id == uid {
 			return true

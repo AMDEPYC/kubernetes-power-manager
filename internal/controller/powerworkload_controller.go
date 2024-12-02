@@ -203,9 +203,9 @@ func (r *PowerWorkloadReconciler) Reconcile(c context.Context, req ctrl.Request)
 		sharedPowerWorkloadName = req.NamespacedName.Name
 		wrappedErrs := e.Join(recoveryErrs...)
 		if wrappedErrs != nil {
-			errString := "error(s) encountered establishing reserved pool"
-			logger.Error(wrappedErrs, errString)
-			return ctrl.Result{Requeue: false}, fmt.Errorf(errString)
+			errString := fmt.Errorf("error(s) encountered establishing reserved pool")
+			logger.Error(wrappedErrs, errString.Error())
+			return ctrl.Result{Requeue: false}, errString
 		}
 		return ctrl.Result{}, nil
 	}
@@ -300,7 +300,7 @@ func createReservedPool(library power.Host, coreConfig powerv1.ReservedSpec, log
 		}
 
 		logger.Error(err, "error setting retrieving exclusive pool for reserved cores")
-		return fmt.Errorf(fmt.Sprintf("specified profile %s has no existing pool", coreConfig.PowerProfile))
+		return fmt.Errorf("specified profile %s has no existing pool", coreConfig.PowerProfile)
 	}
 	if err := pseudoReservedPool.SetPowerProfile(corePool.GetPowerProfile()); err != nil {
 		if removePoolError := pseudoReservedPool.Remove(); removePoolError != nil {
