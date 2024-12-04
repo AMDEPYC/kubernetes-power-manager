@@ -16,6 +16,7 @@ import (
 const (
 	baseSocketPath  = "/var/lib/power-node-agent/pods/%s/dpdk/rte/dpdk_telemetry.v2"
 	busynessCommand = "/eal/lcore/busyness"
+	usageCommand    = "/eal/lcore/usage"
 	ioTimeout       = 3 * time.Second
 )
 
@@ -30,7 +31,7 @@ var (
 	getCurrentTimestamp    = time.Now
 
 	testHookReadInitMsgReturn    func() error
-	testHookHandleBusynessLoop   func() error
+	testHookHandleMetricsLoop    func() error
 	testHookProcessCommandReturn func(cmd string) (any, error)
 	testHookNewSocketConnection  func(conn *dpdkTelemetryConnection)
 	testHookStopConnectLoop      func() bool
@@ -44,6 +45,14 @@ type initialMessage struct {
 }
 type busynessResponse struct {
 	Busyness map[uint]int `json:"/eal/lcore/busyness"`
+}
+type usageResponse struct {
+	Usage usageData `json:"/eal/lcore/usage"`
+}
+type usageData struct {
+	LcoreIDs    []uint   `json:"lcore_ids"`
+	TotalCycles []uint64 `json:"total_cycles"`
+	BusyCycles  []uint64 `json:"busy_cycles"`
 }
 
 func connectWithTimeout(addr string, to time.Duration) (net.Conn, error) {
@@ -67,6 +76,7 @@ type dpdkTelemetryClientImpl struct {
 	log         logr.Logger
 	connections sync.Map
 	busyness    sync.Map
+	usage       sync.Map
 }
 
 func NewDPDKTelemetryClient(logger logr.Logger) DPDKTelemetryClient {
@@ -84,6 +94,7 @@ func (cl *dpdkTelemetryClientImpl) CreateConnection(data *DPDKTelemetryConnectio
 		podUID:      podUID,
 		watchedCPUs: data.WatchedCPUs,
 		busyness:    &cl.busyness,
+		usage:       &cl.usage,
 		log:         cl.log.WithValues("podUID", podUID),
 		cancelFunc:  cancel,
 	}
@@ -127,6 +138,12 @@ func (cl *dpdkTelemetryClientImpl) CloseConnection(podUID string) {
 func (cl *dpdkTelemetryClientImpl) GetBusynessPercent(cpuID uint) (int, error) {
 	if value, found := cl.busyness.Load(cpuID); found {
 		r := value.(telemetryResult)
+		if r.err == nil {
+			return r.value, r.err
+		}
+	}
+	if value, found := cl.usage.Load(cpuID); found {
+		r := value.(telemetryResult)
 		return r.value, r.err
 	}
 
@@ -150,6 +167,7 @@ type dpdkTelemetryConnection struct {
 	podUID      string
 	watchedCPUs []uint
 	busyness    *sync.Map
+	usage       *sync.Map
 	buffer      []byte
 	log         logr.Logger
 	waitGroup   sync.WaitGroup
@@ -224,6 +242,9 @@ func (c *dpdkTelemetryConnection) ioLoop(ctx context.Context, conn net.Conn) err
 			if err := c.handleBusyness(conn); err != nil {
 				return err
 			}
+			if err := c.handleUsage(conn); err != nil {
+				return err
+			}
 		}
 	}
 }
@@ -292,8 +313,8 @@ func (c *dpdkTelemetryConnection) handleInitialMessage(conn net.Conn) error {
 }
 
 func (c *dpdkTelemetryConnection) handleBusyness(conn net.Conn) error {
-	if testHookHandleBusynessLoop != nil {
-		return testHookHandleBusynessLoop()
+	if testHookHandleMetricsLoop != nil {
+		return testHookHandleMetricsLoop()
 	}
 
 	var res busynessResponse
@@ -317,8 +338,42 @@ func (c *dpdkTelemetryConnection) handleBusyness(conn net.Conn) error {
 	return nil
 }
 
+func (c *dpdkTelemetryConnection) handleUsage(conn net.Conn) error {
+	if testHookHandleMetricsLoop != nil {
+		return testHookHandleMetricsLoop()
+	}
+
+	var res usageResponse
+	if err := c.processCommand(conn, usageCommand, &res); err != nil {
+		return fmt.Errorf("usage error: %w", err)
+	}
+
+	lcoreIDs := map[uint]int{}
+
+	for index, cpuID := range res.Usage.LcoreIDs {
+		lcoreIDs[cpuID] = index
+	}
+
+	for _, cpuID := range c.watchedCPUs {
+		result := telemetryResult{}
+
+		if index, found := lcoreIDs[cpuID]; found {
+			total := res.Usage.TotalCycles[index]
+			busy := res.Usage.BusyCycles[index]
+			percent := (busy * 100) / total
+			result.value = int(percent)
+		} else {
+			result.err = ErrDPDKMetricNotProvided
+		}
+		c.usage.Store(cpuID, result)
+	}
+
+	return nil
+}
+
 func (c *dpdkTelemetryConnection) clearMetrics(cpuList []uint) {
 	for _, cpuID := range cpuList {
 		c.busyness.Delete(cpuID)
+		c.usage.Delete(cpuID)
 	}
 }

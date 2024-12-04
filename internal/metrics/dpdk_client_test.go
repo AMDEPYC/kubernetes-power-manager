@@ -135,33 +135,44 @@ func TestDPDKTelemetryClient_CloseConnection(t *testing.T) {
 	})
 }
 
-func TestDPDKTelemetryClient_GetBusynessPercent(t *testing.T) {
+func TestDPDKTelemetryClient_GetXPercent(t *testing.T) {
 	tcases := []struct {
-		testCase string
-		cpuID    uint
-		result   *telemetryResult
-		evalFn   func(v int, e error) bool
+		testCase       string
+		cpuID          uint
+		busynessResult *telemetryResult
+		usageResult    *telemetryResult
+		evalFn         func(v int, e error) bool
 	}{
 		{
-			testCase: "Test Case 1 - Metric Missing",
+			testCase: "Test Case 1 - Metrics Missing",
 			cpuID:    0,
-			result:   nil,
 			evalFn: func(v int, e error) bool {
 				return assert.ErrorIs(t, e, ErrDPDKMetricMissing)
 			},
 		},
 		{
-			testCase: "Test Case 2 - Result with error",
-			cpuID:    3,
-			result:   &telemetryResult{0, ErrDPDKMetricNotProvided},
+			testCase:       "Test Case 2 - Results with an error",
+			cpuID:          3,
+			busynessResult: &telemetryResult{0, ErrDPDKMetricNotProvided},
+			usageResult:    &telemetryResult{0, ErrDPDKMetricNotProvided},
 			evalFn: func(v int, e error) bool {
 				return assert.ErrorIs(t, e, ErrDPDKMetricNotProvided)
 			},
 		},
 		{
-			testCase: "Test Case 3 - Result with a correct reading",
-			cpuID:    2,
-			result:   &telemetryResult{42, nil},
+			testCase:       "Test Case 3 - Busyness priority",
+			cpuID:          2,
+			busynessResult: &telemetryResult{42, nil},
+			usageResult:    &telemetryResult{24, nil},
+			evalFn: func(v int, e error) bool {
+				return assert.NoError(t, e) && assert.Equal(t, 42, v)
+			},
+		},
+		{
+			testCase:       "Test Case 4 - Usage fallback",
+			cpuID:          2,
+			busynessResult: &telemetryResult{0, ErrDPDKMetricNotProvided},
+			usageResult:    &telemetryResult{42, nil},
 			evalFn: func(v int, e error) bool {
 				return assert.NoError(t, e) && assert.Equal(t, 42, v)
 			},
@@ -172,8 +183,11 @@ func TestDPDKTelemetryClient_GetBusynessPercent(t *testing.T) {
 		t.Log(tc.testCase)
 
 		cl := createNewDPDKTelemetryClient()
-		if tc.result != nil {
-			cl.busyness.Store(tc.cpuID, *tc.result)
+		if tc.busynessResult != nil {
+			cl.busyness.Store(tc.cpuID, *tc.busynessResult)
+		}
+		if tc.usageResult != nil {
+			cl.usage.Store(tc.cpuID, *tc.usageResult)
 		}
 
 		busyness, err := cl.GetBusynessPercent(tc.cpuID)
@@ -220,6 +234,7 @@ func createNewDPDKConnection() dpdkTelemetryConnection {
 	return dpdkTelemetryConnection{
 		log:      ctrl.Log.WithName("test-log"),
 		busyness: &sync.Map{},
+		usage:    &sync.Map{},
 	}
 }
 
@@ -232,6 +247,7 @@ func TestDPDKConnection_close(t *testing.T) {
 	dpdkConn.cancelFunc = func() { cancelFuncCalled = true }
 	for _, cpuID := range cpuList {
 		dpdkConn.busyness.Store(cpuID, nil)
+		dpdkConn.usage.Store(cpuID, nil)
 	}
 
 	dpdkConn.close()
@@ -239,6 +255,10 @@ func TestDPDKConnection_close(t *testing.T) {
 	assert.True(t, cancelFuncCalled)
 	dpdkConn.busyness.Range(func(key, value any) bool {
 		t.Error("Busyness metrics map was not cleaned.")
+		return false
+	})
+	dpdkConn.usage.Range(func(key, value any) bool {
+		t.Error("Usage metrics map was not cleaned.")
 		return false
 	})
 }
@@ -291,14 +311,14 @@ func TestDPDKConnection_ioLoop(t *testing.T) {
 	getMetricsCallCounter := 0
 	t.Cleanup(func() {
 		testHookReadInitMsgReturn = nil
-		testHookHandleBusynessLoop = nil
+		testHookHandleMetricsLoop = nil
 	})
 	testHookReadInitMsgReturn = func() error {
 		return nil
 	}
-	testHookHandleBusynessLoop = func() error {
+	testHookHandleMetricsLoop = func() error {
 		getMetricsCallCounter++
-		if getMetricsCallCounter > 1 {
+		if getMetricsCallCounter > 2 {
 			return fmt.Errorf("foo")
 		}
 		return nil
@@ -647,5 +667,98 @@ func TestDPDKConnection_handleBusyness(t *testing.T) {
 
 		assert.Equal(t, busynessCommand, usedCommand)
 		tc.evalFn(err, tc.expectedBusyness, dpdkConn.busyness)
+	}
+}
+
+func TestDPDKConnection_handleUsage(t *testing.T) {
+	t.Cleanup(func() {
+		testHookProcessCommandReturn = nil
+	})
+
+	tcases := []struct {
+		testCase      string
+		initialUsage  metricsMap
+		expectedUsage metricsMap
+		watchlist     []uint
+		data          usageResponse
+		err           error
+		evalFn        func(e error, expected metricsMap, b *sync.Map)
+	}{
+		{
+			testCase: "Test Case 1 - Command processing error",
+			err:      fmt.Errorf("foo"),
+			evalFn: func(e error, expected metricsMap, b *sync.Map) {
+				assert.NotNil(t, e)
+				assert.ErrorContains(t, e, "usage error:")
+			},
+		},
+		{
+			testCase: "Test Case 2 - Usage not available",
+			expectedUsage: metricsMap{
+				1: telemetryResult{0, ErrDPDKMetricNotProvided},
+			},
+			watchlist: []uint{1},
+			evalFn: func(e error, expected metricsMap, b *sync.Map) {
+				assert.NoError(t, e)
+				for id, expVal := range expected {
+					val, found := b.Load(id)
+					assert.True(t, found)
+					assert.Equal(t, expVal, val.(telemetryResult))
+				}
+			},
+		},
+		{
+			testCase: "Test Case 3 - Update usage readings",
+			initialUsage: metricsMap{
+				1: telemetryResult{88, nil},
+				2: telemetryResult{0, nil},
+				3: telemetryResult{56, nil},
+			},
+			expectedUsage: metricsMap{
+				1: telemetryResult{88, nil},
+				2: telemetryResult{89, nil},
+				3: telemetryResult{0, ErrDPDKMetricNotProvided},
+				4: telemetryResult{0, ErrDPDKMetricNotProvided},
+			},
+			watchlist: []uint{1, 2, 3, 4},
+			data: usageResponse{
+				Usage: usageData{
+					LcoreIDs:    []uint{1, 2},
+					TotalCycles: []uint64{23846845590, 23900558914},
+					BusyCycles:  []uint64{21043446682, 21448837316},
+				},
+			},
+			evalFn: func(e error, expected metricsMap, b *sync.Map) {
+				assert.NoError(t, e)
+				for id, expVal := range expected {
+					val, found := b.Load(id)
+					assert.True(t, found)
+					assert.Equal(t, expVal, val.(telemetryResult))
+				}
+			},
+		},
+	}
+
+	for _, tc := range tcases {
+		t.Log(tc.testCase)
+
+		usedCommand := ""
+		testHookProcessCommandReturn = func(cmd string) (any, error) {
+			usedCommand = cmd
+			return tc.data, tc.err
+		}
+
+		mkConn := &MockConn{}
+		dpdkConn := createNewDPDKConnection()
+		dpdkConn.watchedCPUs = tc.watchlist
+
+		for id, val := range tc.initialUsage {
+			dpdkConn.usage.Store(id, val)
+		}
+
+		err := dpdkConn.handleUsage(mkConn)
+
+		assert.Equal(t, usageCommand, usedCommand)
+		tc.evalFn(err, tc.expectedUsage, dpdkConn.usage)
 	}
 }
