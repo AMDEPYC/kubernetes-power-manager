@@ -59,6 +59,11 @@ var (
 	kernelModulesFilePath = "/proc/modules"
 )
 
+var (
+	// TestHookInitUncoreBypassESMICalls is a flag used in tests to bypass calls to E-SMI in initUncore.
+	TestHookInitUncoreBypassESMICalls bool
+)
+
 func initUncore() featureStatus {
 	feature := featureStatus{
 		name:     "Uncore frequency",
@@ -75,7 +80,10 @@ func initUncore() featureStatus {
 	defaultUncore.min = 0
 	defaultUncore.max = 2
 
-	esmi_status := C.esmi_df_pstate_range_set(C.uint8_t(0), C.uint8_t(defaultUncore.min), C.uint8_t(defaultUncore.max))
+	var esmi_status C.esmi_status_t
+	if !TestHookInitUncoreBypassESMICalls {
+		esmi_status = C.esmi_df_pstate_range_set(C.uint8_t(0), C.uint8_t(defaultUncore.min), C.uint8_t(defaultUncore.max))
+	}
 	if esmi_status != 0 {
 		feature.err = fmt.Errorf("uncore feature error: %w", fmt.Errorf("DF Pstate range set failed"))
 		return feature
@@ -85,7 +93,10 @@ func initUncore() featureStatus {
 }
 
 func initEsmi() bool {
-	esmi_status := C.esmi_init()
+	var esmi_status C.esmi_status_t
+	if !TestHookInitUncoreBypassESMICalls {
+		esmi_status = C.esmi_init()
+	}
 	if esmi_status != 0 {
 		return false
 	}
