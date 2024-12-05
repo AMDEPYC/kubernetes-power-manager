@@ -585,10 +585,6 @@ func SetupDummyFiles(cores int, packages int, diesPerPackage int, cpufiles map[s
 		}
 	}
 	host, err := power.CreateInstanceWithConf("test-node", power.LibConfig{CpuPath: "testing/cpus", ModulePath: "testing/proc.modules", Cores: uint(cores)})
-	// Ignore if error comes from ESMI initialization - we want to run unit tests on any hardware, not only AMD EPYCs
-	if strings.Contains(err.Error(), "ESMI") {
-		err = nil
-	}
 	return host, func() {
 		os.RemoveAll(strings.Split(path, "/")[0])
 	}, err
