@@ -186,6 +186,23 @@ func TestCPUScalingConfiguration_Reconcile_Validation(t *testing.T) {
 			},
 			expectedErr: "sample period 2s is above maximum limit 1s",
 		},
+		{
+			testCase: "Test Case 6 - Cooldown Period is smaller than Sample Period",
+			spec: powerv1.CPUScalingConfigurationSpec{
+				Items: []powerv1.ConfigItem{
+					{
+						CpuIDs: []uint{0},
+						SamplePeriod: metav1.Duration{
+							Duration: 100 * time.Millisecond,
+						},
+						CooldownPeriod: metav1.Duration{
+							Duration: 99 * time.Millisecond,
+						},
+					},
+				},
+			},
+			expectedErr: "cooldown period 99ms must be larger than sample period 100ms",
+		},
 	}
 
 	for _, tc := range tcases {
@@ -244,45 +261,79 @@ func TestCPUScalingConfiguration_Reconcile_Success(t *testing.T) {
 					SamplePeriod: metav1.Duration{
 						Duration: 10 * time.Millisecond,
 					},
-					FallbackFreqPercent: 50,
+					CooldownPeriod: metav1.Duration{
+						Duration: 30 * time.Millisecond,
+					},
+					TargetBusyness:             100,
+					AllowedBusynessDifference:  10,
+					AllowedFrequencyDifference: 25,
+					FallbackFreqPercent:        50,
 				},
 				{
 					CpuIDs: []uint{5},
 					SamplePeriod: metav1.Duration{
 						Duration: 100 * time.Millisecond,
 					},
-					FallbackFreqPercent: 0,
+					CooldownPeriod: metav1.Duration{
+						Duration: 100 * time.Millisecond,
+					},
+					TargetBusyness:             50,
+					AllowedBusynessDifference:  5,
+					AllowedFrequencyDifference: 45,
+					FallbackFreqPercent:        0,
 				},
 				{
 					CpuIDs: []uint{7},
 					SamplePeriod: metav1.Duration{
 						Duration: 300 * time.Millisecond,
 					},
-					FallbackFreqPercent: 100,
+					CooldownPeriod: metav1.Duration{
+						Duration: 301 * time.Millisecond,
+					},
+					TargetBusyness:             0,
+					AllowedBusynessDifference:  0,
+					AllowedFrequencyDifference: 0,
+					FallbackFreqPercent:        100,
 				},
 			},
 		},
 	}
 	expectedOpts := []scaling.CPUScalingOpts{
 		{
-			CPUID:        0,
-			SamplePeriod: 10 * time.Millisecond,
-			FallbackFreq: 2050000,
+			CPUID:                      0,
+			SamplePeriod:               10 * time.Millisecond,
+			CooldownPeriod:             30 * time.Millisecond,
+			TargetBusyness:             100,
+			AllowedBusynessDifference:  10,
+			AllowedFrequencyDifference: 25,
+			FallbackFreq:               2050000,
 		},
 		{
-			CPUID:        1,
-			SamplePeriod: 10 * time.Millisecond,
-			FallbackFreq: 2050000,
+			CPUID:                      1,
+			SamplePeriod:               10 * time.Millisecond,
+			CooldownPeriod:             30 * time.Millisecond,
+			TargetBusyness:             100,
+			AllowedBusynessDifference:  10,
+			AllowedFrequencyDifference: 25,
+			FallbackFreq:               2050000,
 		},
 		{
-			CPUID:        5,
-			SamplePeriod: 100 * time.Millisecond,
-			FallbackFreq: 400000,
+			CPUID:                      5,
+			SamplePeriod:               100 * time.Millisecond,
+			CooldownPeriod:             100 * time.Millisecond,
+			TargetBusyness:             50,
+			AllowedBusynessDifference:  5,
+			AllowedFrequencyDifference: 45,
+			FallbackFreq:               400000,
 		},
 		{
-			CPUID:        7,
-			SamplePeriod: 300 * time.Millisecond,
-			FallbackFreq: 3700000,
+			CPUID:                      7,
+			SamplePeriod:               300 * time.Millisecond,
+			CooldownPeriod:             301 * time.Millisecond,
+			TargetBusyness:             0,
+			AllowedBusynessDifference:  0,
+			AllowedFrequencyDifference: 0,
+			FallbackFreq:               3700000,
 		},
 	}
 

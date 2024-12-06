@@ -26,19 +26,36 @@ import (
 
 // CPUScalingProfileSpec defines the desired state of CPUScalingProfile
 type CPUScalingProfileSpec struct {
-	// Name of the CPUScalingProfile
-	Name string `json:"name"`
-
 	// Minimum time to elapse between two CPU sample periods
 	//+kubebuilder:validation:Format=duration
 	SamplePeriod *metav1.Duration `json:"samplePeriod,omitempty"`
 
-	// Max frequency cores can run at
+	// Time to elapse after setting a new frequency target before next CPU sampling
+	// +kubebuilder:validation:Format=duration
+	CooldownPeriod *metav1.Duration `json:"cooldownPeriod,omitempty"`
+
+	// Target CPU busyness, in percents
+	// +kubebuilder:validation:Minimum=0
+	// +kubebuilder:validation:Maximum=100
+	TargetBusyness *int `json:"targetBusyness,omitempty"`
+
+	// Maximum difference between target and actual CPU busyness on which
+	// frequency re-evaluation will not happen, in percent points
+	// +kubebuilder:validation:Minimum=0
+	// +kubebuilder:validation:Maximum=50
+	AllowedBusynessDifference *int `json:"allowedBusynessDifference,omitempty"`
+
+	// Maximum difference between target and actual CPU frequency on which
+	// frequency re-evaluation will not happen, in MHz
+	// +kubebuilder:validation:Minimum=0
+	AllowedFrequencyDifference *int `json:"allowedFrequencyDifference,omitempty"`
+
+	// Maximum frequency CPUs can run at
 	//+kubebuilder:validation:XIntOrString
 	//+kubebuilder:validation:Pattern="^([1-9]?[0-9]|100)%$"
 	Max *intstr.IntOrString `json:"max,omitempty"`
 
-	// Min frequency cores can run at
+	// Minimum frequency CPUs can run at
 	//+kubebuilder:validation:XIntOrString
 	//+kubebuilder:validation:Pattern="^([1-9]?[0-9]|100)%$"
 	Min *intstr.IntOrString `json:"min,omitempty"`

@@ -39,6 +39,24 @@ spec:
           spec:
             description: CPUScalingProfileSpec defines the desired state of CPUScalingProfile
             properties:
+              allowedBusynessDifference:
+                description: |-
+                  Maximum difference between target and actual CPU busyness on which
+                  frequency re-evaluation will not happen, in percent points
+                maximum: 50
+                minimum: 0
+                type: integer
+              allowedFrequencyDifference:
+                description: |-
+                  Maximum difference between target and actual CPU frequency on which
+                  frequency re-evaluation will not happen, in MHz
+                minimum: 0
+                type: integer
+              cooldownPeriod:
+                description: Time to elapse after setting a new frequency target before
+                  next CPU sampling
+                format: duration
+                type: string
               epp:
                 description: The priority value associated with this CPUScalingProfile
                 enum:
@@ -51,25 +69,25 @@ spec:
                 anyOf:
                 - type: integer
                 - type: string
-                description: Max frequency cores can run at
+                description: Maximum frequency CPUs can run at
                 pattern: ^([1-9]?[0-9]|100)%$
                 x-kubernetes-int-or-string: true
               min:
                 anyOf:
                 - type: integer
                 - type: string
-                description: Min frequency cores can run at
+                description: Minimum frequency CPUs can run at
                 pattern: ^([1-9]?[0-9]|100)%$
                 x-kubernetes-int-or-string: true
-              name:
-                description: Name of the CPUScalingProfile
-                type: string
               samplePeriod:
                 description: Minimum time to elapse between two CPU sample periods
                 format: duration
                 type: string
-            required:
-            - name
+              targetBusyness:
+                description: Target CPU busyness, in percents
+                maximum: 100
+                minimum: 0
+                type: integer
             type: object
           status:
             description: CPUScalingProfileStatus defines the observed state of CPUScalingProfile

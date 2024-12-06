@@ -45,6 +45,24 @@ spec:
                 description: List of configurations that should be applied on a node.
                 items:
                   properties:
+                    allowedBusynessDifference:
+                      description: |-
+                        Maximum difference between target and actual CPU busyness on which
+                        frequency re-evaluation will not happen, in percent points
+                      maximum: 50
+                      minimum: 0
+                      type: integer
+                    allowedFrequencyDifference:
+                      description: |-
+                        Maximum difference between target and actual CPU frequency on which
+                        frequency re-evaluation will not happen, in MHz
+                      minimum: 0
+                      type: integer
+                    cooldownPeriod:
+                      description: Time to elapse after setting a new frequency target
+                        before next CPU sampling
+                      format: duration
+                      type: string
                     cpuIDs:
                       description: List of CPU IDs which should adhere to the configuration
                         in this item
@@ -70,12 +88,20 @@ spec:
                       description: Minimum time to elapse between two CPU sample periods
                       format: duration
                       type: string
+                    targetBusyness:
+                      description: Target CPU busyness, in percents
+                      maximum: 100
+                      minimum: 0
+                      type: integer
                   required:
+                  - allowedBusynessDifference
+                  - cooldownPeriod
                   - cpuIDs
                   - fallbackFreqPercent
                   - podUID
                   - powerProfile
                   - samplePeriod
+                  - targetBusyness
                   type: object
                 type: array
             type: object
