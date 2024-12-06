@@ -31,17 +31,24 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
+	"github.com/intel/kubernetes-power-manager/internal/metrics"
 	"github.com/intel/kubernetes-power-manager/internal/scaling"
 	"github.com/intel/power-optimization-library/pkg/power"
 )
 
+type dpdkTelemetryConfiguration struct {
+	current *metrics.DPDKTelemetryConnectionData
+	new     *metrics.DPDKTelemetryConnectionData
+}
+
 // CPUScalingConfigurationReconciler reconciles a CPUScalingConfiguration object
 type CPUScalingConfigurationReconciler struct {
 	client.Client
-	Log               logr.Logger
-	Scheme            *runtime.Scheme
-	PowerLibrary      power.Host
-	CPUScalingManager scaling.CPUScalingManager
+	Log                 logr.Logger
+	Scheme              *runtime.Scheme
+	PowerLibrary        power.Host
+	CPUScalingManager   scaling.CPUScalingManager
+	DPDKTelemetryClient metrics.DPDKTelemetryClient
 }
 
 var (
@@ -85,6 +92,10 @@ func (r *CPUScalingConfigurationReconciler) Reconcile(ctx context.Context, req c
 		if errors.IsNotFound(err) {
 			r.CPUScalingManager.UpdateConfig([]scaling.CPUScalingOpts{})
 
+			for _, connData := range r.DPDKTelemetryClient.ListConnections() {
+				r.DPDKTelemetryClient.CloseConnection(connData.PodUID)
+			}
+
 			return ctrl.Result{}, nil
 		}
 
@@ -108,6 +119,8 @@ func (r *CPUScalingConfigurationReconciler) Reconcile(ctx context.Context, req c
 		logger.Error(err, "error validating cooldown periods")
 		return ctrl.Result{}, nil
 	}
+
+	r.reconcileDPDKTelemetryClient(config.Spec.Items)
 
 	r.CPUScalingManager.UpdateConfig(
 		r.parseConfig(config.Spec.Items),
@@ -193,6 +206,53 @@ func (r *CPUScalingConfigurationReconciler) parseConfig(configItems []powerv1.Co
 	}
 
 	return optsList
+}
+
+func (r *CPUScalingConfigurationReconciler) reconcileDPDKTelemetryClient(configItems []powerv1.ConfigItem) {
+	// gather current connection configurations
+	dpdkConfigMap := map[string]*dpdkTelemetryConfiguration{}
+	for _, connData := range r.DPDKTelemetryClient.ListConnections() {
+		dpdkConfigMap[connData.PodUID] = &dpdkTelemetryConfiguration{
+			current: &connData,
+			new:     nil,
+		}
+	}
+
+	// gather incoming connection configurations and group them based on pod UID
+	for _, configItem := range configItems {
+		podUID := string(configItem.PodUID)
+		if dpdkConfig, found := dpdkConfigMap[podUID]; found {
+			if dpdkConfig.new == nil {
+				dpdkConfig.new = &metrics.DPDKTelemetryConnectionData{
+					PodUID:      podUID,
+					WatchedCPUs: configItem.CpuIDs,
+				}
+			} else {
+				dpdkConfig.new.WatchedCPUs = append(dpdkConfig.new.WatchedCPUs, configItem.CpuIDs...)
+			}
+		} else {
+			dpdkConfigMap[podUID] = &dpdkTelemetryConfiguration{
+				current: nil,
+				new: &metrics.DPDKTelemetryConnectionData{
+					PodUID:      podUID,
+					WatchedCPUs: configItem.CpuIDs,
+				},
+			}
+		}
+	}
+
+	// NOTE: Exclusive CPUs for containers are fixed
+	// at Pod scheduling and don't change.
+	// Thus, we can skip updating the CPU list post-connection.
+	for podUID, dpdkConfig := range dpdkConfigMap {
+		if dpdkConfig.new == nil {
+			r.DPDKTelemetryClient.CloseConnection(podUID)
+			continue
+		}
+		if dpdkConfig.current == nil {
+			r.DPDKTelemetryClient.CreateConnection(dpdkConfig.new)
+		}
+	}
 }
 
 // SetupWithManager sets up the controller with the Manager.

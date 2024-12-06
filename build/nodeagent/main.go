@@ -280,11 +280,12 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&controller.CPUScalingConfigurationReconciler{
-		Client:            mgr.GetClient(),
-		Log:               ctrl.Log.WithName("controllers").WithName("CPUScalingConfiguration"),
-		Scheme:            mgr.GetScheme(),
-		PowerLibrary:      powerLibrary,
-		CPUScalingManager: cpuScalingMgr,
+		Client:              mgr.GetClient(),
+		Log:                 ctrl.Log.WithName("controllers").WithName("CPUScalingConfiguration"),
+		Scheme:              mgr.GetScheme(),
+		PowerLibrary:        powerLibrary,
+		CPUScalingManager:   cpuScalingMgr,
+		DPDKTelemetryClient: dpdkClient,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "CPUScalingConfiguration")
 		os.Exit(1)
