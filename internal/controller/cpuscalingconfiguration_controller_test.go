@@ -33,6 +33,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 
 	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
+	"github.com/intel/kubernetes-power-manager/internal/metrics"
 	"github.com/intel/kubernetes-power-manager/internal/scaling"
 	"github.com/intel/kubernetes-power-manager/pkg/testutils"
 	"github.com/intel/power-optimization-library/pkg/power"
@@ -54,6 +55,24 @@ func (m *ScalingMgrMock) UpdateConfig(configs []scaling.CPUScalingOpts) {
 	m.Called(configs)
 }
 
+type DPDKTelemetryClientMock struct {
+	metrics.DPDKTelemetryClient
+	mock.Mock
+}
+
+func (cl *DPDKTelemetryClientMock) CreateConnection(data *metrics.DPDKTelemetryConnectionData) {
+	cl.Called(data)
+}
+
+func (cl *DPDKTelemetryClientMock) ListConnections() []metrics.DPDKTelemetryConnectionData {
+	args := cl.Called()
+	return args.Get(0).([]metrics.DPDKTelemetryConnectionData)
+}
+
+func (cl *DPDKTelemetryClientMock) CloseConnection(podUID string) {
+	cl.Called(podUID)
+}
+
 func createCPUScalingConfigurationReconcilerObject(objs []client.Object) (*CPUScalingConfigurationReconciler, error) {
 	log.SetLogger(zap.New(
 		zap.UseDevMode(true),
@@ -72,6 +91,7 @@ func createCPUScalingConfigurationReconcilerObject(objs []client.Object) (*CPUSc
 		cl,
 		ctrl.Log.WithName("testing"),
 		s,
+		nil,
 		nil,
 		nil,
 	}
@@ -268,6 +288,7 @@ func TestCPUScalingConfiguration_Reconcile_Success(t *testing.T) {
 					AllowedBusynessDifference:  10,
 					AllowedFrequencyDifference: 25,
 					FallbackFreqPercent:        50,
+					PodUID:                     "foo",
 				},
 				{
 					CpuIDs: []uint{5},
@@ -281,6 +302,7 @@ func TestCPUScalingConfiguration_Reconcile_Success(t *testing.T) {
 					AllowedBusynessDifference:  5,
 					AllowedFrequencyDifference: 45,
 					FallbackFreqPercent:        0,
+					PodUID:                     "bar",
 				},
 				{
 					CpuIDs: []uint{7},
@@ -294,6 +316,7 @@ func TestCPUScalingConfiguration_Reconcile_Success(t *testing.T) {
 					AllowedBusynessDifference:  0,
 					AllowedFrequencyDifference: 0,
 					FallbackFreqPercent:        100,
+					PodUID:                     "qux",
 				},
 			},
 		},
@@ -348,6 +371,14 @@ func TestCPUScalingConfiguration_Reconcile_Success(t *testing.T) {
 			FallbackFreq:               3700000,
 		},
 	}
+	expectedFooConnData := &metrics.DPDKTelemetryConnectionData{
+		PodUID:      "foo",
+		WatchedCPUs: []uint{0, 1},
+	}
+	expectedBarConnData := &metrics.DPDKTelemetryConnectionData{
+		PodUID:      "bar",
+		WatchedCPUs: []uint{5},
+	}
 
 	cpuListMock := power.CpuList{}
 	for i := 0; i < 10; i++ {
@@ -366,15 +397,30 @@ func TestCPUScalingConfiguration_Reconcile_Success(t *testing.T) {
 	mgrmk := new(ScalingMgrMock)
 	mgrmk.On("UpdateConfig", expectedOpts).Return()
 
+	dpdkmk := new(DPDKTelemetryClientMock)
+	dpdkmk.On("ListConnections").Return(
+		[]metrics.DPDKTelemetryConnectionData{
+			{PodUID: "baz", WatchedCPUs: []uint{5}},
+			{PodUID: "qux", WatchedCPUs: []uint{7}},
+		})
+	dpdkmk.On("CloseConnection", "baz").Return()
+	dpdkmk.On("CreateConnection", expectedFooConnData).Return()
+	dpdkmk.On("CreateConnection", expectedBarConnData).Return()
+
 	r, err := createCPUScalingConfigurationReconcilerObject([]client.Object{config})
 	assert.NoError(t, err)
 
 	r.PowerLibrary = nodemk
 	r.CPUScalingManager = mgrmk
+	r.DPDKTelemetryClient = dpdkmk
 
 	_, err = r.Reconcile(context.TODO(), req)
 	assert.NoError(t, err)
 	mgrmk.AssertCalled(t, "UpdateConfig", expectedOpts)
+	dpdkmk.AssertCalled(t, "ListConnections")
+	dpdkmk.AssertCalled(t, "CloseConnection", "baz")
+	dpdkmk.AssertCalled(t, "CreateConnection", expectedFooConnData)
+	dpdkmk.AssertCalled(t, "CreateConnection", expectedBarConnData)
 
 	err = r.Client.Get(context.TODO(), client.ObjectKey{
 		Name:      nodeName,
@@ -406,13 +452,26 @@ func TestCPUScalingConfiguration_Reconcile_NotFound(t *testing.T) {
 	mgrmk := new(ScalingMgrMock)
 	mgrmk.On("UpdateConfig", []scaling.CPUScalingOpts{}).Return()
 
+	dpdkmk := new(DPDKTelemetryClientMock)
+	dpdkmk.On("ListConnections").Return(
+		[]metrics.DPDKTelemetryConnectionData{
+			{PodUID: "foo", WatchedCPUs: []uint{2, 3}},
+			{PodUID: "bar", WatchedCPUs: []uint{5}},
+		})
+	dpdkmk.On("CloseConnection", "foo").Return()
+	dpdkmk.On("CloseConnection", "bar").Return()
+
 	r, err := createCPUScalingConfigurationReconcilerObject([]client.Object{})
 	assert.NoError(t, err)
 
 	r.PowerLibrary = nodemk
 	r.CPUScalingManager = mgrmk
+	r.DPDKTelemetryClient = dpdkmk
 
 	_, err = r.Reconcile(context.TODO(), req)
 	assert.NoError(t, err)
 	mgrmk.AssertCalled(t, "UpdateConfig", []scaling.CPUScalingOpts{})
+	dpdkmk.AssertCalled(t, "ListConnections")
+	dpdkmk.AssertCalled(t, "CloseConnection", "foo")
+	dpdkmk.AssertCalled(t, "CloseConnection", "bar")
 }
