@@ -1451,3 +1451,100 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 		tc.validateObjects(r.Client)
 	}
 }
+
+func TestCPUScalingProfile_mapPowerWorkloadToCPUScalingProfile(t *testing.T) {
+	tCases := []struct {
+		testCase       string
+		powerWorkload  *powerv1.PowerWorkload
+		validateResult func(reqs []reconcile.Request)
+		objsLists      []client.ObjectList
+	}{
+		{
+			testCase: "Test Case 1 - PowerWorkload matched to existing CPUScalingProfile",
+			powerWorkload: &powerv1.PowerWorkload{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "cpuscalingprofile1-worker1",
+					Namespace: IntelPowerNamespace,
+				},
+				Spec: powerv1.PowerWorkloadSpec{
+					PowerProfile: "cpuscalingprofile1",
+				},
+			},
+			validateResult: func(reqs []reconcile.Request) {
+				assert.Equal(t, []reconcile.Request{
+					{
+						NamespacedName: types.NamespacedName{
+							Name:      "cpuscalingprofile1",
+							Namespace: IntelPowerNamespace,
+						},
+					},
+				}, reqs)
+			},
+			objsLists: []client.ObjectList{
+				&powerv1.CPUScalingProfileList{
+					Items: []powerv1.CPUScalingProfile{
+						{
+							ObjectMeta: metav1.ObjectMeta{
+								Name:      "cpuscalingprofile1",
+								Namespace: IntelPowerNamespace,
+							},
+							Spec: powerv1.CPUScalingProfileSpec{},
+						},
+					},
+				},
+			},
+		},
+		{
+			testCase: "Test Case 2 - PowerWorkload not matched to existing CPUScalingProfile",
+			powerWorkload: &powerv1.PowerWorkload{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "cpuscalingprofile2-worker1",
+					Namespace: IntelPowerNamespace,
+				},
+				Spec: powerv1.PowerWorkloadSpec{
+					PowerProfile: "cpuscalingprofile2",
+				},
+			},
+			validateResult: func(reqs []reconcile.Request) {
+				assert.Empty(t, reqs)
+			},
+			objsLists: []client.ObjectList{
+				&powerv1.CPUScalingProfileList{
+					Items: []powerv1.CPUScalingProfile{
+						{
+							ObjectMeta: metav1.ObjectMeta{
+								Name:      "cpuscalingprofile1",
+								Namespace: IntelPowerNamespace,
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			testCase: "Test Case 3 - CPUScalingProfileList cannot be retrieved",
+			powerWorkload: &powerv1.PowerWorkload{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "cpuscalingprofile1-worker1",
+					Namespace: IntelPowerNamespace,
+				},
+				Spec: powerv1.PowerWorkloadSpec{
+					PowerProfile: "cpuscalingprofile1",
+				},
+			},
+			validateResult: func(reqs []reconcile.Request) {
+				assert.Empty(t, reqs)
+			},
+			objsLists: []client.ObjectList{},
+		},
+	}
+
+	for _, tc := range tCases {
+		t.Log(tc.testCase)
+		r, err := createCPUScalingProfileReconcilerObject([]client.Object{}, tc.objsLists)
+		assert.Nilf(t, err, "%s - error creating the reconciler object", tc.testCase)
+
+		reqs := r.mapPowerWorkloadToCPUScalingProfile(context.TODO(), tc.powerWorkload)
+		tc.validateResult(reqs)
+	}
+}
