@@ -1247,6 +1247,155 @@ func TestPowerProfile_Reconcile_MaxPossibleValueLessThanMinPossibleValue(t *test
 	}
 }
 
+func TestPowerProfile_Reconcile_MaxOrMinValueIsUnsupportedString(t *testing.T) {
+	tcases := []struct {
+		testCase    string
+		nodeName    string
+		profileName string
+		clientObjs  []runtime.Object
+	}{
+		{
+			testCase:    "Test Case 1 - Max value passed as a string without '%' suffix",
+			nodeName:    "TestNode",
+			profileName: "user-created",
+			clientObjs: []runtime.Object{
+				&powerv1.PowerProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "user-created",
+						Namespace: IntelPowerNamespace,
+					},
+					Spec: powerv1.PowerProfileSpec{
+						Name: "user-created",
+						Max:  ptr.To(intstr.FromString("90")),
+						Min:  ptr.To(intstr.FromString("10%")),
+					},
+				},
+				&corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "TestNode",
+					},
+					Status: corev1.NodeStatus{
+						Capacity: map[corev1.ResourceName]resource.Quantity{
+							CPUResource: *resource.NewQuantity(42, resource.DecimalSI),
+						},
+					},
+				},
+			},
+		},
+		{
+			testCase:    "Test Case 2 - Min value passed as a string without '%' suffix",
+			nodeName:    "TestNode",
+			profileName: "user-created",
+			clientObjs: []runtime.Object{
+				&powerv1.PowerProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "user-created",
+						Namespace: IntelPowerNamespace,
+					},
+					Spec: powerv1.PowerProfileSpec{
+						Name: "user-created",
+						Max:  ptr.To(intstr.FromString("90%")),
+						Min:  ptr.To(intstr.FromString("10")),
+					},
+				},
+				&corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "TestNode",
+					},
+					Status: corev1.NodeStatus{
+						Capacity: map[corev1.ResourceName]resource.Quantity{
+							CPUResource: *resource.NewQuantity(42, resource.DecimalSI),
+						},
+					},
+				},
+			},
+		},
+		{
+			testCase:    "Test Case 3 - Max value passed as non-numeric string",
+			nodeName:    "TestNode",
+			profileName: "user-created",
+			clientObjs: []runtime.Object{
+				&powerv1.PowerProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "user-created",
+						Namespace: IntelPowerNamespace,
+					},
+					Spec: powerv1.PowerProfileSpec{
+						Name: "user-created",
+						Max:  ptr.To(intstr.FromString("90-percent")),
+						Min:  ptr.To(intstr.FromString("10%")),
+					},
+				},
+				&corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "TestNode",
+					},
+					Status: corev1.NodeStatus{
+						Capacity: map[corev1.ResourceName]resource.Quantity{
+							CPUResource: *resource.NewQuantity(42, resource.DecimalSI),
+						},
+					},
+				},
+			},
+		},
+		{
+			testCase:    "Test Case 4 - Min value passed as non-numeric string",
+			nodeName:    "TestNode",
+			profileName: "user-created",
+			clientObjs: []runtime.Object{
+				&powerv1.PowerProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "user-created",
+						Namespace: IntelPowerNamespace,
+					},
+					Spec: powerv1.PowerProfileSpec{
+						Name: "user-created",
+						Max:  ptr.To(intstr.FromString("90%")),
+						Min:  ptr.To(intstr.FromString("10-percent")),
+					},
+				},
+				&corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "TestNode",
+					},
+					Status: corev1.NodeStatus{
+						Capacity: map[corev1.ResourceName]resource.Quantity{
+							CPUResource: *resource.NewQuantity(42, resource.DecimalSI),
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range tcases {
+		t.Setenv("NODE_NAME", tc.nodeName)
+
+		r, err := createProfileReconcilerObject(tc.clientObjs)
+		if err != nil {
+			t.Error(err)
+			t.Fatalf("%s - error creating the reconciler object", tc.testCase)
+		}
+
+		nodemk := new(testutils.MockHost)
+		freqSetmk := new(testutils.FrequencySetMock)
+		nodemk.On("GetFreqRanges").Return(power.CoreTypeList{freqSetmk})
+		freqSetmk.On("GetMax").Return(uint(9000000))
+		freqSetmk.On("GetMin").Return(uint(100000))
+		r.PowerLibrary = nodemk
+
+		req := reconcile.Request{
+			NamespacedName: client.ObjectKey{
+				Name:      tc.profileName,
+				Namespace: IntelPowerNamespace,
+			},
+		}
+
+		_, err = r.Reconcile(context.TODO(), req)
+		assert.ErrorContains(t, err, "invalid value for IntOrString: invalid type: string is not a percentage")
+	}
+}
+
 func TestPowerProfile_Reconcile_MaxAndMinValueHandling(t *testing.T) {
 	tcases := []struct {
 		testCase    string
