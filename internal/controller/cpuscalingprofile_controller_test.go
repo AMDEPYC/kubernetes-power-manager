@@ -31,6 +31,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -259,8 +260,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				}, pp.ObjectMeta.OwnerReferences)
 				assert.Equal(t, powerv1.PowerProfileSpec{
 					Name:     "cpuscalingprofile1",
-					Min:      2000,
-					Max:      3000,
+					Min:      ptr.To(intstr.FromInt32(2000)),
+					Max:      ptr.To(intstr.FromInt32(3000)),
 					Governor: userspaceGovernor,
 					Epp:      "balance_performance",
 					Shared:   false,
@@ -314,8 +315,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				}, pp.ObjectMeta.OwnerReferences)
 				assert.Equal(t, powerv1.PowerProfileSpec{
 					Name:     "cpuscalingprofile1",
-					Min:      2000,
-					Max:      3000,
+					Min:      ptr.To(intstr.FromInt32(2000)),
+					Max:      ptr.To(intstr.FromInt32(3000)),
 					Governor: userspaceGovernor,
 					Epp:      "balance_performance",
 					Shared:   false,
@@ -354,8 +355,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name:     "cpuscalingprofile1",
-						Min:      1999,
-						Max:      2001,
+						Min:      ptr.To(intstr.FromInt32(1999)),
+						Max:      ptr.To(intstr.FromInt32(2001)),
 						Shared:   false,
 						Epp:      "balance_performance",
 						Governor: "powersave",
@@ -453,8 +454,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				assert.Empty(t, pp.ObjectMeta.OwnerReferences)
 				assert.Equal(t, powerv1.PowerProfileSpec{
 					Name:     "performance",
-					Min:      1000,
-					Max:      2000,
+					Min:      ptr.To(intstr.FromInt32(1000)),
+					Max:      ptr.To(intstr.FromInt32(2000)),
 					Shared:   false,
 					Epp:      "performance",
 					Governor: "performance",
@@ -483,8 +484,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name:     "performance",
-						Min:      1000,
-						Max:      2000,
+						Min:      ptr.To(intstr.FromInt32(1000)),
+						Max:      ptr.To(intstr.FromInt32(2000)),
 						Shared:   false,
 						Epp:      "performance",
 						Governor: "performance",
@@ -531,8 +532,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				}, pp.ObjectMeta.OwnerReferences)
 				assert.Equal(t, powerv1.PowerProfileSpec{
 					Name:     "cpuscalingprofile1",
-					Min:      2000,
-					Max:      3000,
+					Min:      ptr.To(intstr.FromInt32(2000)),
+					Max:      ptr.To(intstr.FromInt32(3000)),
 					Shared:   false,
 					Epp:      "balance_performance",
 					Governor: userspaceGovernor,
@@ -577,8 +578,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name:     "cpuscalingprofile1",
-						Min:      2000,
-						Max:      1000,
+						Min:      ptr.To(intstr.FromInt32(2000)),
+						Max:      ptr.To(intstr.FromInt32(1000)),
 						Shared:   false,
 						Epp:      "balance_performance",
 						Governor: "powersave",
@@ -618,8 +619,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				}, pp.ObjectMeta.OwnerReferences)
 				assert.Equal(t, powerv1.PowerProfileSpec{
 					Name:     "cpuscalingprofile1",
-					Min:      2000,
-					Max:      3000,
+					Min:      ptr.To(intstr.FromInt32(2000)),
+					Max:      ptr.To(intstr.FromInt32(3000)),
 					Shared:   false,
 					Epp:      "balance_performance",
 					Governor: userspaceGovernor,
@@ -658,8 +659,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name:     "cpuscalingprofile1",
-						Min:      2000,
-						Max:      2500,
+						Min:      ptr.To(intstr.FromInt32(2000)),
+						Max:      ptr.To(intstr.FromInt32(2500)),
 						Shared:   false,
 						Epp:      "balance_performance",
 						Governor: "powersave",
@@ -1276,8 +1277,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				}, pp.ObjectMeta.OwnerReferences)
 				assert.Equal(t, powerv1.PowerProfileSpec{
 					Name:     "cpuscalingprofile1",
-					Min:      1000,
-					Max:      2000,
+					Min:      ptr.To(intstr.FromInt32(1000)),
+					Max:      ptr.To(intstr.FromInt32(2000)),
 					Shared:   false,
 					Epp:      "balance_performance",
 					Governor: userspaceGovernor,
@@ -1339,8 +1340,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name:     "cpuscalingprofile1",
-						Min:      1000,
-						Max:      2000,
+						Min:      ptr.To(intstr.FromInt32(1000)),
+						Max:      ptr.To(intstr.FromInt32(2000)),
 						Shared:   false,
 						Epp:      "balance_performance",
 						Governor: userspaceGovernor,

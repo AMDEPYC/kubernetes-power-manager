@@ -19,6 +19,8 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -637,8 +639,8 @@ func FuzzPowerWorkloadController(f *testing.F) {
 				},
 				Spec: powerv1.PowerProfileSpec{
 					Name:     prof,
-					Max:      maxVal,
-					Min:      minVal,
+					Max:      ptr.To(intstr.FromInt(maxVal)),
+					Min:      ptr.To(intstr.FromInt(minVal)),
 					Epp:      epp,
 					Governor: governor,
 					Shared:   shared,

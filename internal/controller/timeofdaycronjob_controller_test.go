@@ -17,6 +17,8 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -86,8 +88,8 @@ var defaultSharedProf = &powerv1.PowerProfile{
 	Spec: powerv1.PowerProfileSpec{
 		Name: "shared-TestNode",
 		Epp:  "power",
-		Max:  1000,
-		Min:  1000,
+		Max:  ptr.To(intstr.FromInt32(1000)),
+		Min:  ptr.To(intstr.FromInt32(1000)),
 	},
 }
 
@@ -655,8 +657,8 @@ func TestTimeOfDayCronJob_Reconcile_NoExistingWorkload_Lib_Err(t *testing.T) {
 			Spec: powerv1.PowerProfileSpec{
 				Name: "balance-performance",
 				Epp:  "balance-performance",
-				Max:  3300,
-				Min:  3000,
+				Max:  ptr.To(intstr.FromInt32(3300)),
+				Min:  ptr.To(intstr.FromInt32(3000)),
 			},
 		},
 		defaultSharedProf,
@@ -668,8 +670,8 @@ func TestTimeOfDayCronJob_Reconcile_NoExistingWorkload_Lib_Err(t *testing.T) {
 			Spec: powerv1.PowerProfileSpec{
 				Name: "performance",
 				Epp:  "performance",
-				Max:  3700,
-				Min:  3500,
+				Max:  ptr.To(intstr.FromInt32(3700)),
+				Min:  ptr.To(intstr.FromInt32(3500)),
 			},
 		},
 		&powerv1.TimeOfDayCronJob{
@@ -836,8 +838,8 @@ func TestTimeOfDayCronJob_Reconcile_ErrsSharedPoolExists(t *testing.T) {
 			Spec: powerv1.PowerProfileSpec{
 				Name: "performance",
 				Epp:  "performance",
-				Max:  3500,
-				Min:  3200,
+				Max:  ptr.To(intstr.FromInt32(3500)),
+				Min:  ptr.To(intstr.FromInt32(3200)),
 			},
 		},
 		performanceWorkload,
