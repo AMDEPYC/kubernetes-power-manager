@@ -107,6 +107,20 @@ func (r *CPUScalingProfileReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, nil
 	}
 
+	if scalingProfile.Spec.Epp == "" {
+		scalingProfile.Spec.Epp = powerEPP
+	}
+
+	if reflect.ValueOf(scalingProfile.Spec.SamplePeriod).IsZero() {
+		scalingProfile.Spec.SamplePeriod = eppDefaults[scalingProfile.Spec.Epp].SamplePeriod
+	}
+	if scalingProfile.Spec.Min == nil {
+		scalingProfile.Spec.Min = eppDefaults[scalingProfile.Spec.Epp].Min
+	}
+	if scalingProfile.Spec.Max == nil {
+		scalingProfile.Spec.Max = eppDefaults[scalingProfile.Spec.Epp].Max
+	}
+
 	// Ideally, verification should be in admission webhook
 	err = r.verifyCPUScalingProfileParams(&scalingProfile.Spec)
 	if err != nil {

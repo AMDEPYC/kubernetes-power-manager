@@ -16,14 +16,69 @@ package controller
 import (
 	"context"
 	"reflect"
+	"time"
 
 	"github.com/go-logr/logr"
 	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
 	"github.com/intel/kubernetes-power-manager/pkg/util"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-const userspaceGovernor = "userspace"
+const (
+	userspaceGovernor = "userspace"
+
+	perfEPP         = "performance"
+	balancePerfEPP  = "balance_performance"
+	balancePowerEPP = "balance_power"
+	powerEPP        = "power"
+)
+
+type eppValues struct {
+	powerv1.PowerProfileSpec
+	powerv1.ConfigItem
+}
+
+var eppDefaults map[string]eppValues = map[string]eppValues{
+	perfEPP: {
+		PowerProfileSpec: powerv1.PowerProfileSpec{
+			Min: ptr.To(intstr.FromString("0%")),
+			Max: ptr.To(intstr.FromString("100%")),
+		},
+		ConfigItem: powerv1.ConfigItem{
+			SamplePeriod: metav1.Duration{Duration: 10 * time.Millisecond},
+		},
+	},
+	balancePerfEPP: {
+		PowerProfileSpec: powerv1.PowerProfileSpec{
+			Min: ptr.To(intstr.FromString("0%")),
+			Max: ptr.To(intstr.FromString("100%")),
+		},
+		ConfigItem: powerv1.ConfigItem{
+			SamplePeriod: metav1.Duration{Duration: 10 * time.Millisecond},
+		},
+	},
+	balancePowerEPP: {
+		PowerProfileSpec: powerv1.PowerProfileSpec{
+			Min: ptr.To(intstr.FromString("0%")),
+			Max: ptr.To(intstr.FromString("100%")),
+		},
+		ConfigItem: powerv1.ConfigItem{
+			SamplePeriod: metav1.Duration{Duration: 10 * time.Millisecond},
+		},
+	},
+	powerEPP: {
+		PowerProfileSpec: powerv1.PowerProfileSpec{
+			Min: ptr.To(intstr.FromString("0%")),
+			Max: ptr.To(intstr.FromString("100%")),
+		},
+		ConfigItem: powerv1.ConfigItem{
+			SamplePeriod: metav1.Duration{Duration: 10 * time.Millisecond},
+		},
+	},
+}
 
 // write errors to the status filed, pass nil to clear errors, will only do update resource is valid and not being deleted
 // if object already has the correct errors it will not be updated in the API

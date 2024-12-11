@@ -41,6 +41,11 @@ spec:
             properties:
               epp:
                 description: The priority value associated with this CPUScalingProfile
+                enum:
+                - power
+                - balance_power
+                - balance_performance
+                - performance
                 type: string
               max:
                 anyOf:
@@ -60,7 +65,6 @@ spec:
                 description: Name of the CPUScalingProfile
                 type: string
               samplePeriod:
-                default: 10ms
                 description: Minimum time to elapse between two CPU sample periods
                 format: duration
                 type: string
