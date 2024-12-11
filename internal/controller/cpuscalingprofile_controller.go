@@ -30,6 +30,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -197,10 +199,17 @@ func (r *CPUScalingProfileReconciler) createOrUpdatePowerProfile(scalingProfile 
 			}
 		}
 
+		var max, min *intstr.IntOrString
+		if scalingProfile.Spec.Max != 0 {
+			max = ptr.To(intstr.FromInt(scalingProfile.Spec.Max))
+		}
+		if scalingProfile.Spec.Min != 0 {
+			min = ptr.To(intstr.FromInt(scalingProfile.Spec.Min))
+		}
 		powerProfile.Spec = powerv1.PowerProfileSpec{
 			Name:     scalingProfile.Name,
-			Max:      scalingProfile.Spec.Max,
-			Min:      scalingProfile.Spec.Min,
+			Max:      max,
+			Min:      min,
 			Governor: userspaceGovernor,
 			Shared:   false,
 			Epp:      scalingProfile.Spec.Epp,

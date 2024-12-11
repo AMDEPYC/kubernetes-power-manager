@@ -24,6 +24,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"time"
 
@@ -126,8 +127,6 @@ func (r *TimeOfDayCronJobReconciler) Reconcile(c context.Context, req ctrl.Reque
 			logger.V(5).Info("cron job ready to be applied")
 			if cronJob.Spec.Profile != nil {
 				var workloadMatch *powerv1.PowerWorkload
-				var profileMaxFreq int
-				var profileMinFreq int
 				// check if shared workload exists, if not create one
 				logger.V(5).Info("checking for an existing shared workload")
 				workloadList := &powerv1.PowerWorkloadList{}
@@ -177,25 +176,41 @@ func (r *TimeOfDayCronJobReconciler) Reconcile(c context.Context, req ctrl.Reque
 				logger.V(5).Info("modifying the shared workload")
 				workloadMatch.Spec.PowerProfile = *cronJob.Spec.Profile
 				logger.V(5).Info(fmt.Sprintf("setting profile %s", *cronJob.Spec.Profile))
-				prof := &powerv1.PowerProfile{}
-				if err = r.Client.Get(context.TODO(), client.ObjectKey{Name: *cronJob.Spec.Profile, Namespace: IntelPowerNamespace}, prof); err != nil {
+				profile := &powerv1.PowerProfile{}
+				if err = r.Client.Get(context.TODO(), client.ObjectKey{Name: *cronJob.Spec.Profile, Namespace: IntelPowerNamespace}, profile); err != nil {
 					logger.Error(err, "cannot retrieve the profile")
 					return ctrl.Result{Requeue: false}, err
 				}
 
 				absoluteMinimumFrequency, absoluteMaximumFrequency, err := getMaxMinFrequencyValues(r.PowerLibrary)
+				logger.V(5).Info("retrieving the max possible frequency and min possible frequency from the system")
 				if err != nil {
 					logger.Error(err, "error retrieving the frequency values from the node")
 					return ctrl.Result{Requeue: false}, err
 				}
-				if prof.Spec.Epp != "" && prof.Spec.Max == 0 && prof.Spec.Min == 0 {
-					profileMaxFreq = int(float64(absoluteMaximumFrequency) - (float64((absoluteMaximumFrequency - absoluteMinimumFrequency)) * profilePercentages[prof.Spec.Epp]["difference"]))
-					profileMinFreq = int(profileMaxFreq) - 200
+
+				var profileMaxFreq int
+				var profileMinFreq int
+				if profile.Spec.Max == nil && profile.Spec.Min == nil && profile.Spec.Epp != "" {
+					profileMaxFreq = absoluteMaximumFrequency - int(float64(absoluteMaximumFrequency-absoluteMinimumFrequency)*profilePercentages[profile.Spec.Epp]["difference"])
+					profileMinFreq = profileMaxFreq - MinFreqOffset
 				} else {
-					profileMaxFreq = prof.Spec.Max
-					profileMinFreq = prof.Spec.Min
+					if profileMaxFreq, err = resolveFrequency(
+						profile.Spec.Max, intstr.FromInt(absoluteMaximumFrequency), absoluteMinimumFrequency, absoluteMaximumFrequency,
+					); err != nil {
+						logger.Error(err, "error resolving max frequency value")
+						return ctrl.Result{Requeue: false}, err
+					}
+
+					if profileMinFreq, err = resolveFrequency(
+						profile.Spec.Min, intstr.FromInt(absoluteMinimumFrequency), absoluteMinimumFrequency, absoluteMaximumFrequency,
+					); err != nil {
+						logger.Error(err, "error resolving min frequency value")
+						return ctrl.Result{Requeue: false}, err
+					}
 				}
-				powerProfile, err := power.NewPowerProfile(prof.Spec.Name, uint(profileMinFreq), uint(profileMaxFreq), prof.Spec.Governor, prof.Spec.Epp)
+
+				powerProfile, err := power.NewPowerProfile(profile.Spec.Name, uint(profileMinFreq), uint(profileMaxFreq), profile.Spec.Governor, profile.Spec.Epp)
 				if err != nil {
 					logger.Error(err, "could not set the power profile for the shared pool")
 					return ctrl.Result{Requeue: false}, err

@@ -18,6 +18,7 @@ package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 // PowerProfileSpec defines the desired state of PowerProfile
@@ -29,10 +30,14 @@ type PowerProfileSpec struct {
 
 	Shared bool `json:"shared,omitempty"`
 	// Max frequency cores can run at
-	Max int `json:"max,omitempty"`
+	//+kubebuilder:validation:XIntOrString
+	//+kubebuilder:validation:Pattern="^([1-9]?[0-9]|100)%$"
+	Max *intstr.IntOrString `json:"max,omitempty"`
 
 	// Min frequency cores can run at
-	Min int `json:"min,omitempty"`
+	//+kubebuilder:validation:XIntOrString
+	//+kubebuilder:validation:Pattern="^([1-9]?[0-9]|100)%$"
+	Min *intstr.IntOrString `json:"min,omitempty"`
 
 	// The priority value associated with this Power Profile
 	Epp string `json:"epp,omitempty"`

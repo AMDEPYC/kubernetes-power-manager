@@ -33,6 +33,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -84,8 +86,8 @@ func TestPowerProfile_Reconcile_ExclusivePoolCreation(t *testing.T) {
 			},
 			Spec: powerv1.PowerProfileSpec{
 				Name:     "performance",
-				Max:      3600,
-				Min:      3200,
+				Max:      ptr.To(intstr.FromInt32(3600)),
+				Min:      ptr.To(intstr.FromInt32(3200)),
 				Epp:      "performance",
 				Governor: "powersave",
 			},
@@ -139,10 +141,9 @@ func TestPowerProfile_Reconcile_SharedPoolCreation(t *testing.T) {
 			},
 			Spec: powerv1.PowerProfileSpec{
 				Name:   "shared",
-				Max:    3600,
-				Min:    3200,
+				Max:    ptr.To(intstr.FromInt32(3600)),
+				Min:    ptr.To(intstr.FromInt32(3200)),
 				Shared: true,
-				Epp:    "",
 			},
 		},
 		&corev1.Node{
@@ -196,7 +197,7 @@ func TestPowerProfile_Reconcile_NonPowerProfileNotInLibrary(t *testing.T) {
 		clientObjs  []runtime.Object
 	}{
 		{
-			testCase:    "Test Case 1 - Max|Min non zero, epp performance",
+			testCase:    "Test Case 1 - Max and Min value specified, Epp value specified",
 			nodeName:    "TestNode",
 			profileName: "performance",
 			clientObjs: []runtime.Object{
@@ -207,8 +208,8 @@ func TestPowerProfile_Reconcile_NonPowerProfileNotInLibrary(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name: "performance",
-						Max:  3600,
-						Min:  3200,
+						Max:  ptr.To(intstr.FromInt32(3600)),
+						Min:  ptr.To(intstr.FromInt32(3200)),
 						Epp:  "performance",
 					},
 				},
@@ -225,7 +226,7 @@ func TestPowerProfile_Reconcile_NonPowerProfileNotInLibrary(t *testing.T) {
 			},
 		},
 		{
-			testCase:    "Test Case 2 - Max|Min zero, epp performance",
+			testCase:    "Test Case 2 - Max and Min value omitted, Epp value specified",
 			nodeName:    "TestNode",
 			profileName: "performance",
 			clientObjs: []runtime.Object{
@@ -236,8 +237,6 @@ func TestPowerProfile_Reconcile_NonPowerProfileNotInLibrary(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name: "performance",
-						Max:  0,
-						Min:  0,
 						Epp:  "performance",
 					},
 				},
@@ -254,7 +253,7 @@ func TestPowerProfile_Reconcile_NonPowerProfileNotInLibrary(t *testing.T) {
 			},
 		},
 		{
-			testCase:    "Test Case 3 - Max|Min non zero, epp empty",
+			testCase:    "Test Case 3 - Max and Min value specified, Epp value omitted",
 			nodeName:    "TestNode",
 			profileName: "user-created",
 			clientObjs: []runtime.Object{
@@ -265,9 +264,8 @@ func TestPowerProfile_Reconcile_NonPowerProfileNotInLibrary(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name: "user-created",
-						Max:  3600,
-						Min:  3200,
-						Epp:  "",
+						Max:  ptr.To(intstr.FromInt32(3600)),
+						Min:  ptr.To(intstr.FromInt32(3200)),
 					},
 				},
 				&corev1.Node{
@@ -344,7 +342,7 @@ func TestPowerProfile_Reconcile_NonPowerProfileInLibrary(t *testing.T) {
 		clientObjs  []runtime.Object
 	}{
 		{
-			testCase:    "Test Case 1 - Max|Min non zero, epp performance",
+			testCase:    "Test Case 1 - Max and Min value specified, Epp value specified",
 			nodeName:    "TestNode",
 			profileName: "performance",
 			clientObjs: []runtime.Object{
@@ -355,8 +353,8 @@ func TestPowerProfile_Reconcile_NonPowerProfileInLibrary(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name: "performance",
-						Max:  3600,
-						Min:  3200,
+						Max:  ptr.To(intstr.FromInt32(3600)),
+						Min:  ptr.To(intstr.FromInt32(3200)),
 						Epp:  "performance",
 					},
 				},
@@ -373,7 +371,7 @@ func TestPowerProfile_Reconcile_NonPowerProfileInLibrary(t *testing.T) {
 			},
 		},
 		{
-			testCase:    "Test Case 2 - Max|Min zero, epp performance",
+			testCase:    "Test Case 2 - Max and Min value omitted, Epp value specified",
 			nodeName:    "TestNode",
 			profileName: "performance",
 			clientObjs: []runtime.Object{
@@ -384,8 +382,6 @@ func TestPowerProfile_Reconcile_NonPowerProfileInLibrary(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name: "performance",
-						Max:  0,
-						Min:  0,
 						Epp:  "performance",
 					},
 				},
@@ -402,7 +398,7 @@ func TestPowerProfile_Reconcile_NonPowerProfileInLibrary(t *testing.T) {
 			},
 		},
 		{
-			testCase:    "Test Case 3 - Max|Min non zero, epp empty",
+			testCase:    "Test Case 3 - Max and Min value specified, Epp value omitted",
 			nodeName:    "TestNode",
 			profileName: "user-created",
 			clientObjs: []runtime.Object{
@@ -413,9 +409,8 @@ func TestPowerProfile_Reconcile_NonPowerProfileInLibrary(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name: "user-created",
-						Max:  3600,
-						Min:  3200,
-						Epp:  "",
+						Max:  ptr.To(intstr.FromInt32(3600)),
+						Min:  ptr.To(intstr.FromInt32(3200)),
 					},
 				},
 				&corev1.Node{
@@ -480,7 +475,7 @@ func TestPowerProfile_Reconcile_MaxOrMinValueZero(t *testing.T) {
 		clientObjs  []runtime.Object
 	}{
 		{
-			testCase:    "Test Case 1 - Max value zero",
+			testCase:    "Test Case 1 - Max value omitted",
 			nodeName:    "TestNode",
 			profileName: "user-created",
 			validateErr: func(e error) bool {
@@ -494,15 +489,13 @@ func TestPowerProfile_Reconcile_MaxOrMinValueZero(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name: "user-created",
-						Max:  0,
-						Min:  3200,
-						Epp:  "",
+						Min:  ptr.To(intstr.FromInt32(3200)),
 					},
 				},
 			},
 		},
 		{
-			testCase:    "Test Case 2 - Min value zero",
+			testCase:    "Test Case 2 - Min value omitted",
 			nodeName:    "TestNode",
 			profileName: "user-created",
 			validateErr: func(e error) bool {
@@ -516,9 +509,7 @@ func TestPowerProfile_Reconcile_MaxOrMinValueZero(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name: "user-created",
-						Max:  3600,
-						Min:  0,
-						Epp:  "",
+						Max:  ptr.To(intstr.FromInt32(3600)),
 					},
 				},
 			},
@@ -582,8 +573,8 @@ func TestPowerProfile_Reconcile_IncorrectEppValue(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name: "user-created",
-						Max:  3600,
-						Min:  3200,
+						Max:  ptr.To(intstr.FromInt32(3600)),
+						Min:  ptr.To(intstr.FromInt32(3200)),
 						Epp:  "incorrect",
 					},
 				},
@@ -656,8 +647,8 @@ func TestPowerProfile_Reconcile_SharedProfileDoesNotExistInLibrary(t *testing.T)
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name:   "shared",
-						Max:    800,
-						Min:    800,
+						Max:    ptr.To(intstr.FromInt32(800)),
+						Min:    ptr.To(intstr.FromInt32(800)),
 						Shared: true,
 					},
 				},
@@ -897,8 +888,8 @@ func TestPowerProfile_Reconcile_MaxValueLessThanMinValue(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name: "user-created",
-						Max:  2600,
-						Min:  2800,
+						Max:  ptr.To(intstr.FromInt32(2600)),
+						Min:  ptr.To(intstr.FromInt32(2800)),
 						Epp:  "performance",
 					},
 				},
@@ -926,6 +917,10 @@ func TestPowerProfile_Reconcile_MaxValueLessThanMinValue(t *testing.T) {
 		}
 
 		nodemk := new(testutils.MockHost)
+		freqSetmk := new(testutils.FrequencySetMock)
+		nodemk.On("GetFreqRanges").Return(power.CoreTypeList{freqSetmk})
+		freqSetmk.On("GetMax").Return(uint(9000000))
+		freqSetmk.On("GetMin").Return(uint(100000))
 		r.PowerLibrary = nodemk
 
 		req := reconcile.Request{
@@ -936,7 +931,7 @@ func TestPowerProfile_Reconcile_MaxValueLessThanMinValue(t *testing.T) {
 		}
 
 		_, err = r.Reconcile(context.TODO(), req)
-		assert.ErrorContains(t, err, "max frequency value cannot be lower than the min frequency value")
+		assert.ErrorContains(t, err, "max frequency value must be greater than or equal to the min frequency value")
 	}
 }
 
@@ -959,8 +954,8 @@ func TestPowerProfile_Reconcile_MaxOrMinValueOutOfRange(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name: "user-created",
-						Max:  9001,
-						Min:  1000,
+						Max:  ptr.To(intstr.FromInt32(9001)),
+						Min:  ptr.To(intstr.FromInt32(1000)),
 					},
 				},
 				&corev1.Node{
@@ -987,8 +982,64 @@ func TestPowerProfile_Reconcile_MaxOrMinValueOutOfRange(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name: "user-created",
-						Max:  9000,
-						Min:  999,
+						Max:  ptr.To(intstr.FromInt32(9000)),
+						Min:  ptr.To(intstr.FromInt32(999)),
+					},
+				},
+				&corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "TestNode",
+					},
+					Status: corev1.NodeStatus{
+						Capacity: map[corev1.ResourceName]resource.Quantity{
+							CPUResource: *resource.NewQuantity(42, resource.DecimalSI),
+						},
+					},
+				},
+			},
+		},
+		{
+			testCase:    "Test Case 3 - Max percentage out of range",
+			nodeName:    "TestNode",
+			profileName: "user-created",
+			clientObjs: []runtime.Object{
+				&powerv1.PowerProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "user-created",
+						Namespace: IntelPowerNamespace,
+					},
+					Spec: powerv1.PowerProfileSpec{
+						Name: "user-created",
+						Max:  ptr.To(intstr.FromString("101%")),
+						Min:  ptr.To(intstr.FromString("0%")),
+					},
+				},
+				&corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "TestNode",
+					},
+					Status: corev1.NodeStatus{
+						Capacity: map[corev1.ResourceName]resource.Quantity{
+							CPUResource: *resource.NewQuantity(42, resource.DecimalSI),
+						},
+					},
+				},
+			},
+		},
+		{
+			testCase:    "Test Case 4 - Min percentage out of range",
+			nodeName:    "TestNode",
+			profileName: "user-created",
+			clientObjs: []runtime.Object{
+				&powerv1.PowerProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "user-created",
+						Namespace: IntelPowerNamespace,
+					},
+					Spec: powerv1.PowerProfileSpec{
+						Name: "user-created",
+						Max:  ptr.To(intstr.FromString("100%")),
+						Min:  ptr.To(intstr.FromString("-1%")),
 					},
 				},
 				&corev1.Node{
@@ -1036,17 +1087,15 @@ func TestPowerProfile_Reconcile_MaxOrMinValueOutOfRange(t *testing.T) {
 	}
 }
 
-func TestPowerProfile_Reconcile_MaxAndMinValueHandling(t *testing.T) {
+func TestPowerProfile_Reconcile_MaxAndMinValueTypeMismatch(t *testing.T) {
 	tcases := []struct {
 		testCase    string
 		nodeName    string
 		profileName string
 		clientObjs  []runtime.Object
-		expectedMax uint
-		expectedMin uint
 	}{
 		{
-			testCase:    "Test Case 1 - Max and Min value not zero, Epp value not empty",
+			testCase:    "Test Case 1 - Max value is percentage, Min value is numeric",
 			nodeName:    "TestNode",
 			profileName: "user-created",
 			clientObjs: []runtime.Object{
@@ -1057,8 +1106,319 @@ func TestPowerProfile_Reconcile_MaxAndMinValueHandling(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name: "user-created",
-						Max:  3600,
-						Min:  3200,
+						Max:  ptr.To(intstr.FromString("100%")),
+						Min:  ptr.To(intstr.FromInt32(1000)),
+					},
+				},
+				&corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "TestNode",
+					},
+					Status: corev1.NodeStatus{
+						Capacity: map[corev1.ResourceName]resource.Quantity{
+							CPUResource: *resource.NewQuantity(42, resource.DecimalSI),
+						},
+					},
+				},
+			},
+		},
+		{
+			testCase:    "Test Case 2 - Max value is numeric, Min value is percentage",
+			nodeName:    "TestNode",
+			profileName: "user-created",
+			clientObjs: []runtime.Object{
+				&powerv1.PowerProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "user-created",
+						Namespace: IntelPowerNamespace,
+					},
+					Spec: powerv1.PowerProfileSpec{
+						Name: "user-created",
+						Max:  ptr.To(intstr.FromInt32(9000)),
+						Min:  ptr.To(intstr.FromString("0%")),
+					},
+				},
+				&corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "TestNode",
+					},
+					Status: corev1.NodeStatus{
+						Capacity: map[corev1.ResourceName]resource.Quantity{
+							CPUResource: *resource.NewQuantity(42, resource.DecimalSI),
+						},
+					},
+				},
+			},
+		},
+	}
+	// needed to create library using a dummy sysfs as it will call functions that can't be mocked
+	_, teardown, err := testutils.FullDummySystem()
+	assert.Nil(t, err)
+	defer teardown()
+	for _, tc := range tcases {
+		t.Setenv("NODE_NAME", tc.nodeName)
+
+		r, err := createProfileReconcilerObject(tc.clientObjs)
+		if err != nil {
+			t.Error(err)
+			t.Fatalf("%s - error creating the reconciler object", tc.testCase)
+		}
+
+		nodemk := new(testutils.MockHost)
+		freqSetmk := new(testutils.FrequencySetMock)
+		nodemk.On("GetFreqRanges").Return(power.CoreTypeList{freqSetmk})
+		freqSetmk.On("GetMax").Return(uint(9000000))
+		freqSetmk.On("GetMin").Return(uint(1000000))
+		r.PowerLibrary = nodemk
+
+		req := reconcile.Request{
+			NamespacedName: client.ObjectKey{
+				Name:      tc.profileName,
+				Namespace: IntelPowerNamespace,
+			},
+		}
+
+		_, err = r.Reconcile(context.TODO(), req)
+		assert.ErrorContains(t, err, "max and min frequency values must be both numeric or percentage")
+	}
+}
+
+func TestPowerProfile_Reconcile_MaxPossibleValueLessThanMinPossibleValue(t *testing.T) {
+	tcases := []struct {
+		testCase    string
+		nodeName    string
+		profileName string
+		clientObjs  []runtime.Object
+	}{
+		{
+			testCase:    "Test Case 1 - Max possible value less than Min possible value",
+			nodeName:    "TestNode",
+			profileName: "user-created",
+			clientObjs: []runtime.Object{
+				&powerv1.PowerProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "user-created",
+						Namespace: IntelPowerNamespace,
+					},
+					Spec: powerv1.PowerProfileSpec{
+						Name: "user-created",
+						Epp:  "performance",
+					},
+				},
+				&corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "TestNode",
+					},
+					Status: corev1.NodeStatus{
+						Capacity: map[corev1.ResourceName]resource.Quantity{
+							CPUResource: *resource.NewQuantity(42, resource.DecimalSI),
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range tcases {
+		t.Setenv("NODE_NAME", tc.nodeName)
+
+		r, err := createProfileReconcilerObject(tc.clientObjs)
+		if err != nil {
+			t.Error(err)
+			t.Fatalf("%s - error creating the reconciler object", tc.testCase)
+		}
+
+		nodemk := new(testutils.MockHost)
+		freqSetmk := new(testutils.FrequencySetMock)
+		nodemk.On("GetFreqRanges").Return(power.CoreTypeList{freqSetmk})
+		freqSetmk.On("GetMax").Return(uint(100000))
+		freqSetmk.On("GetMin").Return(uint(9000000))
+		r.PowerLibrary = nodemk
+
+		req := reconcile.Request{
+			NamespacedName: client.ObjectKey{
+				Name:      tc.profileName,
+				Namespace: IntelPowerNamespace,
+			},
+		}
+
+		_, err = r.Reconcile(context.TODO(), req)
+		assert.ErrorContains(t, err, "max possible frequency value must be greater than or equal to the min possible frequency value")
+	}
+}
+
+func TestPowerProfile_Reconcile_MaxOrMinValueIsUnsupportedString(t *testing.T) {
+	tcases := []struct {
+		testCase    string
+		nodeName    string
+		profileName string
+		clientObjs  []runtime.Object
+	}{
+		{
+			testCase:    "Test Case 1 - Max value passed as a string without '%' suffix",
+			nodeName:    "TestNode",
+			profileName: "user-created",
+			clientObjs: []runtime.Object{
+				&powerv1.PowerProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "user-created",
+						Namespace: IntelPowerNamespace,
+					},
+					Spec: powerv1.PowerProfileSpec{
+						Name: "user-created",
+						Max:  ptr.To(intstr.FromString("90")),
+						Min:  ptr.To(intstr.FromString("10%")),
+					},
+				},
+				&corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "TestNode",
+					},
+					Status: corev1.NodeStatus{
+						Capacity: map[corev1.ResourceName]resource.Quantity{
+							CPUResource: *resource.NewQuantity(42, resource.DecimalSI),
+						},
+					},
+				},
+			},
+		},
+		{
+			testCase:    "Test Case 2 - Min value passed as a string without '%' suffix",
+			nodeName:    "TestNode",
+			profileName: "user-created",
+			clientObjs: []runtime.Object{
+				&powerv1.PowerProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "user-created",
+						Namespace: IntelPowerNamespace,
+					},
+					Spec: powerv1.PowerProfileSpec{
+						Name: "user-created",
+						Max:  ptr.To(intstr.FromString("90%")),
+						Min:  ptr.To(intstr.FromString("10")),
+					},
+				},
+				&corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "TestNode",
+					},
+					Status: corev1.NodeStatus{
+						Capacity: map[corev1.ResourceName]resource.Quantity{
+							CPUResource: *resource.NewQuantity(42, resource.DecimalSI),
+						},
+					},
+				},
+			},
+		},
+		{
+			testCase:    "Test Case 3 - Max value passed as non-numeric string",
+			nodeName:    "TestNode",
+			profileName: "user-created",
+			clientObjs: []runtime.Object{
+				&powerv1.PowerProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "user-created",
+						Namespace: IntelPowerNamespace,
+					},
+					Spec: powerv1.PowerProfileSpec{
+						Name: "user-created",
+						Max:  ptr.To(intstr.FromString("90-percent")),
+						Min:  ptr.To(intstr.FromString("10%")),
+					},
+				},
+				&corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "TestNode",
+					},
+					Status: corev1.NodeStatus{
+						Capacity: map[corev1.ResourceName]resource.Quantity{
+							CPUResource: *resource.NewQuantity(42, resource.DecimalSI),
+						},
+					},
+				},
+			},
+		},
+		{
+			testCase:    "Test Case 4 - Min value passed as non-numeric string",
+			nodeName:    "TestNode",
+			profileName: "user-created",
+			clientObjs: []runtime.Object{
+				&powerv1.PowerProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "user-created",
+						Namespace: IntelPowerNamespace,
+					},
+					Spec: powerv1.PowerProfileSpec{
+						Name: "user-created",
+						Max:  ptr.To(intstr.FromString("90%")),
+						Min:  ptr.To(intstr.FromString("10-percent")),
+					},
+				},
+				&corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "TestNode",
+					},
+					Status: corev1.NodeStatus{
+						Capacity: map[corev1.ResourceName]resource.Quantity{
+							CPUResource: *resource.NewQuantity(42, resource.DecimalSI),
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range tcases {
+		t.Setenv("NODE_NAME", tc.nodeName)
+
+		r, err := createProfileReconcilerObject(tc.clientObjs)
+		if err != nil {
+			t.Error(err)
+			t.Fatalf("%s - error creating the reconciler object", tc.testCase)
+		}
+
+		nodemk := new(testutils.MockHost)
+		freqSetmk := new(testutils.FrequencySetMock)
+		nodemk.On("GetFreqRanges").Return(power.CoreTypeList{freqSetmk})
+		freqSetmk.On("GetMax").Return(uint(9000000))
+		freqSetmk.On("GetMin").Return(uint(100000))
+		r.PowerLibrary = nodemk
+
+		req := reconcile.Request{
+			NamespacedName: client.ObjectKey{
+				Name:      tc.profileName,
+				Namespace: IntelPowerNamespace,
+			},
+		}
+
+		_, err = r.Reconcile(context.TODO(), req)
+		assert.ErrorContains(t, err, "invalid value for IntOrString: invalid type: string is not a percentage")
+	}
+}
+
+func TestPowerProfile_Reconcile_MaxAndMinValueHandling(t *testing.T) {
+	tcases := []struct {
+		testCase    string
+		nodeName    string
+		profileName string
+		clientObjs  []runtime.Object
+		expectedMax uint
+		expectedMin uint
+	}{
+		{
+			testCase:    "Test Case 1 - Max and Min value specified, Epp value specified",
+			nodeName:    "TestNode",
+			profileName: "user-created",
+			clientObjs: []runtime.Object{
+				&powerv1.PowerProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "user-created",
+						Namespace: IntelPowerNamespace,
+					},
+					Spec: powerv1.PowerProfileSpec{
+						Name: "user-created",
+						Max:  ptr.To(intstr.FromInt32(3600)),
+						Min:  ptr.To(intstr.FromInt32(3200)),
 						Epp:  "performance",
 					},
 				},
@@ -1077,7 +1437,7 @@ func TestPowerProfile_Reconcile_MaxAndMinValueHandling(t *testing.T) {
 			expectedMin: 3200000,
 		},
 		{
-			testCase:    "Test Case 2 - Max and Min value not zero, Epp value empty",
+			testCase:    "Test Case 2 - Max and Min value specified, Epp value omitted",
 			nodeName:    "TestNode",
 			profileName: "user-created",
 			clientObjs: []runtime.Object{
@@ -1088,9 +1448,8 @@ func TestPowerProfile_Reconcile_MaxAndMinValueHandling(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name: "user-created",
-						Max:  3600,
-						Min:  3200,
-						Epp:  "",
+						Max:  ptr.To(intstr.FromInt32(3600)),
+						Min:  ptr.To(intstr.FromInt32(3200)),
 					},
 				},
 				&corev1.Node{
@@ -1108,7 +1467,7 @@ func TestPowerProfile_Reconcile_MaxAndMinValueHandling(t *testing.T) {
 			expectedMin: 3200000,
 		},
 		{
-			testCase:    "Test Case 3 - Max and Min value zero, Epp value not empty",
+			testCase:    "Test Case 3 - Max and Min value omitted, Epp value specified",
 			nodeName:    "TestNode",
 			profileName: "user-created",
 			clientObjs: []runtime.Object{
@@ -1119,8 +1478,6 @@ func TestPowerProfile_Reconcile_MaxAndMinValueHandling(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name: "user-created",
-						Max:  0,
-						Min:  0,
 						Epp:  "performance",
 					},
 				},
@@ -1139,7 +1496,7 @@ func TestPowerProfile_Reconcile_MaxAndMinValueHandling(t *testing.T) {
 			expectedMin: 3500000, // Max - MinFreqOffset
 		},
 		{
-			testCase:    "Test Case 4 - Max and Min value zero, Epp value empty",
+			testCase:    "Test Case 4 - Max and Min value omitted, Epp value omitted",
 			nodeName:    "TestNode",
 			profileName: "user-created",
 			clientObjs: []runtime.Object{
@@ -1150,9 +1507,6 @@ func TestPowerProfile_Reconcile_MaxAndMinValueHandling(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name: "user-created",
-						Max:  0,
-						Min:  0,
-						Epp:  "",
 					},
 				},
 				&corev1.Node{
@@ -1168,6 +1522,67 @@ func TestPowerProfile_Reconcile_MaxAndMinValueHandling(t *testing.T) {
 			},
 			expectedMax: 3700000,
 			expectedMin: 1000000,
+		},
+		{
+			testCase:    "Test Case 5 - Max and Min percentage specified, Epp value specified",
+			nodeName:    "TestNode",
+			profileName: "user-created",
+			clientObjs: []runtime.Object{
+				&powerv1.PowerProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "user-created",
+						Namespace: IntelPowerNamespace,
+					},
+					Spec: powerv1.PowerProfileSpec{
+						Name: "user-created",
+						Max:  ptr.To(intstr.FromString("75%")),
+						Min:  ptr.To(intstr.FromString("25%")),
+						Epp:  "performance",
+					},
+				},
+				&corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "TestNode",
+					},
+					Status: corev1.NodeStatus{
+						Capacity: map[corev1.ResourceName]resource.Quantity{
+							CPUResource: *resource.NewQuantity(42, resource.DecimalSI),
+						},
+					},
+				},
+			},
+			expectedMax: 3025000, // Min + 75% * (Max - Min)
+			expectedMin: 1675000, // Min + 25% * (Max - Min)
+		},
+		{
+			testCase:    "Test Case 6 - Max and Min percentage specified, Epp value omitted",
+			nodeName:    "TestNode",
+			profileName: "user-created",
+			clientObjs: []runtime.Object{
+				&powerv1.PowerProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "user-created",
+						Namespace: IntelPowerNamespace,
+					},
+					Spec: powerv1.PowerProfileSpec{
+						Name: "user-created",
+						Max:  ptr.To(intstr.FromString("75%")),
+						Min:  ptr.To(intstr.FromString("25%")),
+					},
+				},
+				&corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "TestNode",
+					},
+					Status: corev1.NodeStatus{
+						Capacity: map[corev1.ResourceName]resource.Quantity{
+							CPUResource: *resource.NewQuantity(42, resource.DecimalSI),
+						},
+					},
+				},
+			},
+			expectedMax: 3025000, // Min + 75% * (Max - Min)
+			expectedMin: 1675000, // Min + 25% * (Max - Min)
 		},
 	}
 
@@ -1288,8 +1703,8 @@ func TestPowerProfile_Reconcile_LibraryErrs(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name: "performance",
-						Max:  3600,
-						Min:  3200,
+						Max:  ptr.To(intstr.FromInt32(3600)),
+						Min:  ptr.To(intstr.FromInt32(3200)),
 						Epp:  "performance",
 					},
 				},
@@ -1331,8 +1746,8 @@ func TestPowerProfile_Reconcile_LibraryErrs(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name: "performance",
-						Max:  3600,
-						Min:  3200,
+						Max:  ptr.To(intstr.FromInt32(3600)),
+						Min:  ptr.To(intstr.FromInt32(3200)),
 						Epp:  "performance",
 					},
 				},
@@ -1470,8 +1885,8 @@ func TestPowerProfile_Reconcile_FeatureNotSupportedErr(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name:   "shared",
-						Max:    3600,
-						Min:    3200,
+						Max:    ptr.To(intstr.FromInt32(3600)),
+						Min:    ptr.To(intstr.FromInt32(3200)),
 						Shared: true,
 						Epp:    "power",
 					},
@@ -1506,8 +1921,8 @@ func TestPowerProfile_Reconcile_FeatureNotSupportedErr(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name: "performance",
-						Max:  3600,
-						Min:  3200,
+						Max:  ptr.To(intstr.FromInt32(3600)),
+						Min:  ptr.To(intstr.FromInt32(3200)),
 						Epp:  "power",
 					},
 				},
@@ -1686,8 +2101,8 @@ func TestPowerProfile_Reconcile_UnsupportedGovernor(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name:     "performance",
-						Max:      3600,
-						Min:      3200,
+						Max:      ptr.To(intstr.FromInt32(3600)),
+						Min:      ptr.To(intstr.FromInt32(3200)),
 						Epp:      "performance",
 						Governor: "made up",
 					},
@@ -1716,8 +2131,8 @@ func TestPowerProfile_Reconcile_UnsupportedGovernor(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name:     "shared",
-						Max:      1000,
-						Min:      1000,
+						Max:      ptr.To(intstr.FromInt32(1000)),
+						Min:      ptr.To(intstr.FromInt32(1000)),
 						Shared:   true,
 						Governor: "made up",
 					},
@@ -1795,8 +2210,8 @@ func FuzzPowerProfileController(f *testing.F) {
 				},
 				Spec: powerv1.PowerProfileSpec{
 					Name:     prof,
-					Max:      maxVal,
-					Min:      minVal,
+					Max:      ptr.To(intstr.FromInt(maxVal)),
+					Min:      ptr.To(intstr.FromInt(minVal)),
 					Epp:      epp,
 					Governor: governor,
 					Shared:   shared,

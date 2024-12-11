@@ -31,6 +31,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
@@ -192,17 +193,17 @@ func (r *PowerProfileReconciler) Reconcile(c context.Context, req ctrl.Request) 
 	}
 
 	logger.V(5).Info("making sure max and min values are both specified or omitted")
-	if profile.Spec.Max != profile.Spec.Min && (profile.Spec.Max == 0 || profile.Spec.Min == 0) {
+	if profile.Spec.Max != profile.Spec.Min && (profile.Spec.Max == nil || profile.Spec.Min == nil) {
 		maxOrMinNotSpecifiedErr := errors.NewServiceUnavailable("max and min frequency values must be both specified or omitted")
 		logger.Error(maxOrMinNotSpecifiedErr, fmt.Sprintf("error creating the profile '%s'", profile.Spec.Name))
 		return ctrl.Result{Requeue: false}, maxOrMinNotSpecifiedErr
 	}
 
-	logger.V(5).Info("making sure max value is greater than or equal to min value")
-	if profile.Spec.Max < profile.Spec.Min {
-		maxLessThanMinErr := errors.NewServiceUnavailable("max frequency value cannot be lower than the min frequency value")
-		logger.Error(maxLessThanMinErr, fmt.Sprintf("error creating the profile '%s'", profile.Spec.Name))
-		return ctrl.Result{Requeue: false}, maxLessThanMinErr
+	logger.V(5).Info("making sure max and min values are both numeric or percentage")
+	if profile.Spec.Max != nil && profile.Spec.Min != nil && profile.Spec.Max.Type != profile.Spec.Min.Type {
+		typeMismatchErr := errors.NewServiceUnavailable("max and min frequency values must be both numeric or percentage")
+		logger.Error(typeMismatchErr, fmt.Sprintf("error creating the profile '%s'", profile.Spec.Name))
+		return ctrl.Result{Requeue: false}, typeMismatchErr
 	}
 
 	absoluteMinimumFrequency, absoluteMaximumFrequency, err := getMaxMinFrequencyValues(r.PowerLibrary)
@@ -212,20 +213,39 @@ func (r *PowerProfileReconciler) Reconcile(c context.Context, req ctrl.Request) 
 		return ctrl.Result{Requeue: false}, err
 	}
 
+	logger.V(5).Info("making sure max possible value is greater than or equal to min possible value")
+	if absoluteMaximumFrequency < absoluteMinimumFrequency {
+		maxLessThanMinErr := errors.NewServiceUnavailable("max possible frequency value must be greater than or equal to the min possible frequency value")
+		logger.Error(maxLessThanMinErr, fmt.Sprintf("error creating the profile '%s'", profile.Spec.Name))
+		return ctrl.Result{Requeue: false}, maxLessThanMinErr
+	}
+
 	var profileMaxFreq int
 	var profileMinFreq int
-	// check if max and min frequency values are specified
-	if profile.Spec.Max == 0 && profile.Spec.Min == 0 {
-		if profile.Spec.Epp != "" {
-			profileMaxFreq = int(float64(absoluteMaximumFrequency) - (float64((absoluteMaximumFrequency - absoluteMinimumFrequency)) * profilePercentages[profile.Spec.Epp]["difference"]))
-			profileMinFreq = int(profileMaxFreq) - MinFreqOffset
-		} else {
-			profileMaxFreq = absoluteMaximumFrequency
-			profileMinFreq = absoluteMinimumFrequency
-		}
+	if profile.Spec.Max == nil && profile.Spec.Min == nil && profile.Spec.Epp != "" {
+		profileMaxFreq = absoluteMaximumFrequency - int(float64(absoluteMaximumFrequency-absoluteMinimumFrequency)*profilePercentages[profile.Spec.Epp]["difference"])
+		profileMinFreq = profileMaxFreq - MinFreqOffset
 	} else {
-		profileMaxFreq = profile.Spec.Max
-		profileMinFreq = profile.Spec.Min
+		if profileMaxFreq, err = resolveFrequency(
+			profile.Spec.Max, intstr.FromInt(absoluteMaximumFrequency), absoluteMinimumFrequency, absoluteMaximumFrequency,
+		); err != nil {
+			logger.Error(err, "error resolving max frequency value")
+			return ctrl.Result{Requeue: false}, err
+		}
+
+		if profileMinFreq, err = resolveFrequency(
+			profile.Spec.Min, intstr.FromInt(absoluteMinimumFrequency), absoluteMinimumFrequency, absoluteMaximumFrequency,
+		); err != nil {
+			logger.Error(err, "error resolving min frequency value")
+			return ctrl.Result{Requeue: false}, err
+		}
+	}
+
+	logger.V(5).Info("making sure max value is greater than or equal to min value")
+	if profileMaxFreq < profileMinFreq {
+		maxLessThanMinErr := errors.NewServiceUnavailable("max frequency value must be greater than or equal to the min frequency value")
+		logger.Error(maxLessThanMinErr, fmt.Sprintf("error creating the profile '%s'", profile.Spec.Name))
+		return ctrl.Result{Requeue: false}, maxLessThanMinErr
 	}
 	if profileMaxFreq > absoluteMaximumFrequency || profileMinFreq < absoluteMinimumFrequency {
 		InvalidRangeError := fmt.Errorf("max and min frequency must be within the range %d-%d", absoluteMinimumFrequency, absoluteMaximumFrequency)
@@ -434,4 +454,19 @@ func checkGovs(profileGovernor string) bool {
 		}
 	}
 	return false
+}
+
+func resolveFrequency(
+	intOrPercent *intstr.IntOrString, defaultValue intstr.IntOrString, minFreq int, maxFreq int,
+) (int, error) {
+	intOrPercent = intstr.ValueOrDefault(intOrPercent, defaultValue)
+	if intOrPercent.Type == intstr.Int {
+		return intOrPercent.IntValue(), nil
+	}
+	delta := maxFreq - minFreq
+	scaledDelta, err := intstr.GetScaledValueFromIntOrPercent(intOrPercent, delta, true)
+	if err != nil {
+		return 0, err
+	}
+	return minFreq + scaledDelta, nil
 }

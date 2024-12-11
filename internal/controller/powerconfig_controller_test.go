@@ -17,6 +17,8 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -779,8 +781,8 @@ func TestPowerConfig_Reconcile_ProfilesNoLongerRequested(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name: "performance",
-						Max:  3600,
-						Min:  3200,
+						Max:  ptr.To(intstr.FromInt32(3600)),
+						Min:  ptr.To(intstr.FromInt32(3200)),
 						Epp:  "performance",
 					},
 				},
@@ -832,8 +834,8 @@ func TestPowerConfig_Reconcile_ProfilesNoLongerRequested(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name: "balance-performance",
-						Max:  3600,
-						Min:  3200,
+						Max:  ptr.To(intstr.FromInt32(3600)),
+						Min:  ptr.To(intstr.FromInt32(3200)),
 						Epp:  "balance-performance",
 					},
 				},
@@ -885,8 +887,8 @@ func TestPowerConfig_Reconcile_ProfilesNoLongerRequested(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name: "balance-performance",
-						Max:  3600,
-						Min:  3200,
+						Max:  ptr.To(intstr.FromInt32(3600)),
+						Min:  ptr.To(intstr.FromInt32(3200)),
 						Epp:  "balance-performance",
 					},
 				},
@@ -897,8 +899,8 @@ func TestPowerConfig_Reconcile_ProfilesNoLongerRequested(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name: "balance-power",
-						Max:  3600,
-						Min:  3200,
+						Max:  ptr.To(intstr.FromInt32(3600)),
+						Min:  ptr.To(intstr.FromInt32(3200)),
 						Epp:  "balance-power",
 					},
 				},
@@ -1004,8 +1006,8 @@ func TestPowerConfig_Reconcile_Deletion(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name: "performance",
-						Max:  3600,
-						Min:  3200,
+						Max:  ptr.To(intstr.FromInt32(3600)),
+						Min:  ptr.To(intstr.FromInt32(3200)),
 						Epp:  "performance",
 					},
 				},

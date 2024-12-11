@@ -9,6 +9,8 @@ import (
 	"go.uber.org/zap/zapcore"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -82,8 +84,8 @@ var defaultProf = &powerv1.PowerProfile{
 	Spec: powerv1.PowerProfileSpec{
 		Name: "performance",
 		Epp:  "",
-		Max:  3600,
-		Min:  3200,
+		Max:  ptr.To(intstr.FromInt32(3600)),
+		Min:  ptr.To(intstr.FromInt32(3200)),
 	},
 }
 var defaultWload = &powerv1.PowerWorkload{
