@@ -31,12 +31,12 @@ type PowerProfileSpec struct {
 	Shared bool `json:"shared,omitempty"`
 	// Max frequency cores can run at
 	//+kubebuilder:validation:XIntOrString
-	//+kubebuilder:validation:Pattern="^(0|[1-9][0-9]?|100)%$"
+	//+kubebuilder:validation:Pattern="^([1-9]?[0-9]|100)%$"
 	Max *intstr.IntOrString `json:"max,omitempty"`
 
 	// Min frequency cores can run at
 	//+kubebuilder:validation:XIntOrString
-	//+kubebuilder:validation:Pattern="^(0|[1-9][0-9]?|100)%$"
+	//+kubebuilder:validation:Pattern="^([1-9]?[0-9]|100)%$"
 	Min *intstr.IntOrString `json:"min,omitempty"`
 
 	// The priority value associated with this Power Profile

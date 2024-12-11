@@ -51,14 +51,14 @@ spec:
                 - type: integer
                 - type: string
                 description: Max frequency cores can run at
-                pattern: ^(0|[1-9][0-9]?|100)%$
+                pattern: ^([1-9]?[0-9]|100)%$
                 x-kubernetes-int-or-string: true
               min:
                 anyOf:
                 - type: integer
                 - type: string
                 description: Min frequency cores can run at
-                pattern: ^(0|[1-9][0-9]?|100)%$
+                pattern: ^([1-9]?[0-9]|100)%$
                 x-kubernetes-int-or-string: true
               name:
                 description: The name of the PowerProfile
