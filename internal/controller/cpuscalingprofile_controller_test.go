@@ -137,7 +137,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
 						Min:          ptr.To(intstr.FromInt32(2000)),
-						SamplePeriod: metav1.Duration{Duration: 500 * time.Millisecond},
+						SamplePeriod: &metav1.Duration{Duration: 500 * time.Millisecond},
 					},
 				},
 			},
@@ -166,7 +166,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
 						Max:          ptr.To(intstr.FromInt32(3000)),
-						SamplePeriod: metav1.Duration{Duration: 500 * time.Millisecond},
+						SamplePeriod: &metav1.Duration{Duration: 500 * time.Millisecond},
 					},
 				},
 			},
@@ -196,7 +196,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 					Spec: powerv1.CPUScalingProfileSpec{
 						Min:          ptr.To(intstr.FromInt32(2000)),
 						Max:          ptr.To(intstr.FromString("100%")),
-						SamplePeriod: metav1.Duration{Duration: 500 * time.Millisecond},
+						SamplePeriod: &metav1.Duration{Duration: 500 * time.Millisecond},
 					},
 				},
 			},
@@ -225,7 +225,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 					Spec: powerv1.CPUScalingProfileSpec{
 						Min:          ptr.To(intstr.FromString("0%")),
 						Max:          ptr.To(intstr.FromString("90-percent")),
-						SamplePeriod: metav1.Duration{Duration: 500 * time.Millisecond},
+						SamplePeriod: &metav1.Duration{Duration: 500 * time.Millisecond},
 					},
 				},
 			},
@@ -254,7 +254,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 					Spec: powerv1.CPUScalingProfileSpec{
 						Min:          ptr.To(intstr.FromString("8-percent")),
 						Max:          ptr.To(intstr.FromString("100%")),
-						SamplePeriod: metav1.Duration{Duration: 500 * time.Millisecond},
+						SamplePeriod: &metav1.Duration{Duration: 500 * time.Millisecond},
 					},
 				},
 			},
@@ -283,7 +283,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 					Spec: powerv1.CPUScalingProfileSpec{
 						Min:          ptr.To(intstr.FromString("60%")),
 						Max:          ptr.To(intstr.FromString("50%")),
-						SamplePeriod: metav1.Duration{Duration: 500 * time.Millisecond},
+						SamplePeriod: &metav1.Duration{Duration: 500 * time.Millisecond},
 					},
 				},
 			},
@@ -312,7 +312,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 					Spec: powerv1.CPUScalingProfileSpec{
 						Min:          ptr.To(intstr.FromInt32(3000)),
 						Max:          ptr.To(intstr.FromInt32(2700)),
-						SamplePeriod: metav1.Duration{Duration: 500 * time.Millisecond},
+						SamplePeriod: &metav1.Duration{Duration: 500 * time.Millisecond},
 					},
 				},
 			},
@@ -341,7 +341,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 					Spec: powerv1.CPUScalingProfileSpec{
 						Min:          ptr.To(intstr.FromInt32(3000)),
 						Max:          ptr.To(intstr.FromInt32(3100)),
-						SamplePeriod: metav1.Duration{Duration: 1100 * time.Millisecond},
+						SamplePeriod: &metav1.Duration{Duration: 1100 * time.Millisecond},
 					},
 				},
 			},
@@ -370,7 +370,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 					Spec: powerv1.CPUScalingProfileSpec{
 						Min:          ptr.To(intstr.FromInt32(3000)),
 						Max:          ptr.To(intstr.FromInt32(3100)),
-						SamplePeriod: metav1.Duration{Duration: 5 * time.Millisecond},
+						SamplePeriod: &metav1.Duration{Duration: 5 * time.Millisecond},
 					},
 				},
 			},
@@ -441,7 +441,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					Min:      ptr.To(intstr.FromInt32(2000)),
 					Max:      ptr.To(intstr.FromInt32(3000)),
 					Governor: userspaceGovernor,
-					Epp:      "balance_performance",
+					Epp:      powerv1.EPPBalancePerformance,
 					Shared:   false,
 				}, pp.Spec)
 			},
@@ -455,8 +455,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					Spec: powerv1.CPUScalingProfileSpec{
 						Min:          ptr.To(intstr.FromInt32(2000)),
 						Max:          ptr.To(intstr.FromInt32(3000)),
-						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
-						Epp:          "balance_performance",
+						SamplePeriod: &metav1.Duration{Duration: 15 * time.Millisecond},
+						Epp:          powerv1.EPPBalancePerformance,
 					},
 				},
 			},
@@ -496,7 +496,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					Min:      ptr.To(intstr.FromInt32(2000)),
 					Max:      ptr.To(intstr.FromInt32(3000)),
 					Governor: userspaceGovernor,
-					Epp:      "balance_performance",
+					Epp:      powerv1.EPPBalancePerformance,
 					Shared:   false,
 				}, pp.Spec)
 			},
@@ -510,8 +510,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					Spec: powerv1.CPUScalingProfileSpec{
 						Min:          ptr.To(intstr.FromInt32(2000)),
 						Max:          ptr.To(intstr.FromInt32(3000)),
-						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
-						Epp:          "balance_performance",
+						SamplePeriod: &metav1.Duration{Duration: 15 * time.Millisecond},
+						Epp:          powerv1.EPPBalancePerformance,
 					},
 				},
 				&powerv1.PowerProfile{
@@ -536,7 +536,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						Min:      ptr.To(intstr.FromInt32(1999)),
 						Max:      ptr.To(intstr.FromInt32(2001)),
 						Shared:   false,
-						Epp:      "balance_performance",
+						Epp:      powerv1.EPPBalancePerformance,
 						Governor: "powersave",
 					},
 				},
@@ -635,7 +635,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					Min:      ptr.To(intstr.FromString("20%")),
 					Max:      ptr.To(intstr.FromString("70%")),
 					Shared:   false,
-					Epp:      "performance",
+					Epp:      powerv1.EPPPerformance,
 					Governor: "performance",
 				}, pp.Spec)
 			},
@@ -649,8 +649,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					Spec: powerv1.CPUScalingProfileSpec{
 						Min:          ptr.To(intstr.FromString("30%")),
 						Max:          ptr.To(intstr.FromString("80%")),
-						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
-						Epp:          "balance_performance",
+						SamplePeriod: &metav1.Duration{Duration: 15 * time.Millisecond},
+						Epp:          powerv1.EPPBalancePerformance,
 					},
 				},
 				&powerv1.PowerProfile{
@@ -665,7 +665,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						Min:      ptr.To(intstr.FromString("20%")),
 						Max:      ptr.To(intstr.FromString("70%")),
 						Shared:   false,
-						Epp:      "performance",
+						Epp:      powerv1.EPPPerformance,
 						Governor: "performance",
 					},
 				},
@@ -713,7 +713,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					Min:      ptr.To(intstr.FromString("30%")),
 					Max:      ptr.To(intstr.FromString("80%")),
 					Shared:   false,
-					Epp:      "balance_performance",
+					Epp:      powerv1.EPPBalancePerformance,
 					Governor: userspaceGovernor,
 				}, pp.Spec)
 			},
@@ -727,8 +727,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					Spec: powerv1.CPUScalingProfileSpec{
 						Min:          ptr.To(intstr.FromString("30%")),
 						Max:          ptr.To(intstr.FromString("80%")),
-						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
-						Epp:          "balance_performance",
+						SamplePeriod: &metav1.Duration{Duration: 15 * time.Millisecond},
+						Epp:          powerv1.EPPBalancePerformance,
 					},
 				},
 				&powerv1.PowerProfile{
@@ -759,7 +759,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						Min:      ptr.To(intstr.FromString("20%")),
 						Max:      ptr.To(intstr.FromString("70%")),
 						Shared:   false,
-						Epp:      "balance_performance",
+						Epp:      powerv1.EPPBalancePerformance,
 						Governor: "powersave",
 					},
 				},
@@ -800,7 +800,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					Min:      ptr.To(intstr.FromInt32(2000)),
 					Max:      ptr.To(intstr.FromInt32(3000)),
 					Shared:   false,
-					Epp:      "balance_performance",
+					Epp:      powerv1.EPPBalancePerformance,
 					Governor: userspaceGovernor,
 				}, pp.Spec)
 			},
@@ -814,8 +814,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					Spec: powerv1.CPUScalingProfileSpec{
 						Min:          ptr.To(intstr.FromInt32(2000)),
 						Max:          ptr.To(intstr.FromInt32(3000)),
-						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
-						Epp:          "balance_performance",
+						SamplePeriod: &metav1.Duration{Duration: 15 * time.Millisecond},
+						Epp:          powerv1.EPPBalancePerformance,
 					},
 				},
 				&powerv1.PowerProfile{
@@ -840,7 +840,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						Min:      ptr.To(intstr.FromInt32(2000)),
 						Max:      ptr.To(intstr.FromInt32(2500)),
 						Shared:   false,
-						Epp:      "balance_performance",
+						Epp:      powerv1.EPPBalancePerformance,
 						Governor: "powersave",
 					},
 				},
@@ -895,8 +895,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					Spec: powerv1.CPUScalingProfileSpec{
 						Min:          ptr.To(intstr.FromInt32(2000)),
 						Max:          ptr.To(intstr.FromInt32(3000)),
-						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
-						Epp:          "balance_performance",
+						SamplePeriod: &metav1.Duration{Duration: 15 * time.Millisecond},
+						Epp:          powerv1.EPPBalancePerformance,
 					},
 				},
 			},
@@ -992,8 +992,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					Spec: powerv1.CPUScalingProfileSpec{
 						Min:          ptr.To(intstr.FromInt32(2000)),
 						Max:          ptr.To(intstr.FromInt32(3000)),
-						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
-						Epp:          "balance_performance",
+						SamplePeriod: &metav1.Duration{Duration: 15 * time.Millisecond},
+						Epp:          powerv1.EPPBalancePerformance,
 					},
 				},
 				&powerv1.CPUScalingProfile{
@@ -1005,7 +1005,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					Spec: powerv1.CPUScalingProfileSpec{
 						Min:          ptr.To(intstr.FromInt32(1000)),
 						Max:          ptr.To(intstr.FromInt32(2000)),
-						SamplePeriod: metav1.Duration{Duration: 89 * time.Millisecond},
+						SamplePeriod: &metav1.Duration{Duration: 89 * time.Millisecond},
 						Epp:          "balance_power",
 					},
 				},
@@ -1137,8 +1137,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					Spec: powerv1.CPUScalingProfileSpec{
 						Min:          ptr.To(intstr.FromString("30%")),
 						Max:          ptr.To(intstr.FromString("80%")),
-						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
-						Epp:          "balance_performance",
+						SamplePeriod: &metav1.Duration{Duration: 15 * time.Millisecond},
+						Epp:          powerv1.EPPBalancePerformance,
 					},
 				},
 				&powerv1.CPUScalingProfile{
@@ -1150,7 +1150,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					Spec: powerv1.CPUScalingProfileSpec{
 						Min:          ptr.To(intstr.FromString("20%")),
 						Max:          ptr.To(intstr.FromString("70%")),
-						SamplePeriod: metav1.Duration{Duration: 89 * time.Millisecond},
+						SamplePeriod: &metav1.Duration{Duration: 89 * time.Millisecond},
 						Epp:          "balance_power",
 					},
 				},
@@ -1265,8 +1265,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					Spec: powerv1.CPUScalingProfileSpec{
 						Min:          ptr.To(intstr.FromInt32(2000)),
 						Max:          ptr.To(intstr.FromInt32(3000)),
-						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
-						Epp:          "balance_performance",
+						SamplePeriod: &metav1.Duration{Duration: 15 * time.Millisecond},
+						Epp:          powerv1.EPPBalancePerformance,
 					},
 				},
 				&powerv1.CPUScalingConfiguration{
@@ -1362,8 +1362,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					Spec: powerv1.CPUScalingProfileSpec{
 						Min:          ptr.To(intstr.FromString("30%")),
 						Max:          ptr.To(intstr.FromString("80%")),
-						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
-						Epp:          "balance_performance",
+						SamplePeriod: &metav1.Duration{Duration: 15 * time.Millisecond},
+						Epp:          powerv1.EPPBalancePerformance,
 					},
 				},
 				&powerv1.CPUScalingConfiguration{
@@ -1458,7 +1458,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					Min:      ptr.To(intstr.FromString("20%")),
 					Max:      ptr.To(intstr.FromString("70%")),
 					Shared:   false,
-					Epp:      "balance_performance",
+					Epp:      powerv1.EPPBalancePerformance,
 					Governor: userspaceGovernor,
 				}, pp.Spec)
 				csc := &powerv1.CPUScalingConfiguration{}
@@ -1495,8 +1495,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					Spec: powerv1.CPUScalingProfileSpec{
 						Min:          ptr.To(intstr.FromString("20%")),
 						Max:          ptr.To(intstr.FromString("70%")),
-						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
-						Epp:          "balance_performance",
+						SamplePeriod: &metav1.Duration{Duration: 15 * time.Millisecond},
+						Epp:          powerv1.EPPBalancePerformance,
 					},
 				},
 				&powerv1.PowerProfile{
@@ -1521,7 +1521,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						Min:      ptr.To(intstr.FromString("20%")),
 						Max:      ptr.To(intstr.FromString("70%")),
 						Shared:   false,
-						Epp:      "balance_performance",
+						Epp:      powerv1.EPPBalancePerformance,
 						Governor: userspaceGovernor,
 					},
 				},
@@ -1603,14 +1603,14 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					Spec: powerv1.CPUScalingProfileSpec{
 						Min:          ptr.To(intstr.FromInt32(1000)),
 						Max:          ptr.To(intstr.FromInt32(2000)),
-						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
-						Epp:          "balance_performance",
+						SamplePeriod: &metav1.Duration{Duration: 15 * time.Millisecond},
+						Epp:          powerv1.EPPBalancePerformance,
 					},
 				},
 			},
 		},
 		{
-			testCase:              "Test Case 14 - CPUScalingProfile without Min and Max is added",
+			testCase:              "Test Case 14 - Empty CPUScalingProfile is added",
 			cpuScalingProfileName: "cpuscalingprofile1",
 			validateReconcileAndStatus: func(err error, c client.Client) {
 				if !assert.NoError(t, err) {
@@ -1641,12 +1641,35 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				}, pp.ObjectMeta.OwnerReferences)
 				assert.Equal(t, powerv1.PowerProfileSpec{
 					Name:     "cpuscalingprofile1",
-					Min:      nil,
-					Max:      nil,
+					Min:      eppDefaults[powerv1.EPPPower].cpuScalingProfileSpec.Min,
+					Max:      eppDefaults[powerv1.EPPPower].cpuScalingProfileSpec.Max,
 					Governor: userspaceGovernor,
-					Epp:      "balance_performance",
+					Epp:      powerv1.EPPPower,
 					Shared:   false,
 				}, pp.Spec)
+				csc := &powerv1.CPUScalingConfiguration{}
+				if !assert.NoError(t, c.Get(context.TODO(),
+					client.ObjectKey{Name: "worker1", Namespace: IntelPowerNamespace}, csc)) {
+					return
+				}
+				assert.ElementsMatch(t, []metav1.OwnerReference{
+					{
+						Name:       "cpuscalingprofile1",
+						UID:        "lkj",
+						Kind:       "CPUScalingProfile",
+						APIVersion: "power.intel.com/v1",
+					},
+				}, csc.ObjectMeta.OwnerReferences)
+				assert.Equal(t, powerv1.CPUScalingConfigurationSpec{
+					Items: []powerv1.ConfigItem{
+						{
+							PowerProfile: "cpuscalingprofile1",
+							CpuIDs:       []uint{5, 6, 7, 8},
+							SamplePeriod: *eppDefaults[powerv1.EPPPower].cpuScalingProfileSpec.SamplePeriod,
+							PodUID:       "abcde",
+						},
+					},
+				}, csc.Spec)
 			},
 			clientObjs: []client.Object{
 				&powerv1.CPUScalingProfile{
@@ -1655,10 +1678,35 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						Namespace: IntelPowerNamespace,
 						UID:       "lkj",
 					},
-					Spec: powerv1.CPUScalingProfileSpec{
-						Name:         "cpuscalingprofile1",
-						SamplePeriod: metav1.Duration{Duration: 100 * time.Millisecond},
-						Epp:          "balance_performance",
+					Spec: powerv1.CPUScalingProfileSpec{},
+				},
+			},
+			objsLists: []client.ObjectList{
+				&powerv1.PowerWorkloadList{
+					Items: []powerv1.PowerWorkload{
+						{
+							ObjectMeta: metav1.ObjectMeta{
+								Name:      "cpuscalingprofile1-worker1",
+								Namespace: IntelPowerNamespace,
+							},
+							Spec: powerv1.PowerWorkloadSpec{
+								PowerProfile: "cpuscalingprofile1",
+								Node: powerv1.WorkloadNode{
+									Name: "worker1",
+									Containers: []powerv1.Container{
+										{
+											Name:          "container1",
+											Namespace:     IntelPowerNamespace,
+											Pod:           "pod1",
+											PodUID:        "abcde",
+											ExclusiveCPUs: []uint{5, 6, 7, 8},
+											PowerProfile:  "cpuscalingprofile1",
+										},
+									},
+									CpuIds: []uint{5, 6, 7, 8},
+								},
+							},
+						},
 					},
 				},
 			},

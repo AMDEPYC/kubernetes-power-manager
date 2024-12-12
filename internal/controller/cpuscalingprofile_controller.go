@@ -115,6 +115,20 @@ func (r *CPUScalingProfileReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, nil
 	}
 
+	if scalingProfile.Spec.Epp == "" {
+		scalingProfile.Spec.Epp = powerv1.EPPPower
+	}
+
+	if scalingProfile.Spec.SamplePeriod == nil {
+		scalingProfile.Spec.SamplePeriod = eppDefaults[scalingProfile.Spec.Epp].cpuScalingProfileSpec.SamplePeriod
+	}
+	if scalingProfile.Spec.Min == nil {
+		scalingProfile.Spec.Min = eppDefaults[scalingProfile.Spec.Epp].cpuScalingProfileSpec.Min
+	}
+	if scalingProfile.Spec.Max == nil {
+		scalingProfile.Spec.Max = eppDefaults[scalingProfile.Spec.Epp].cpuScalingProfileSpec.Max
+	}
+
 	err = r.createOrUpdatePowerProfile(scalingProfile, logger)
 	if err != nil {
 		return ctrl.Result{}, err
@@ -234,9 +248,11 @@ func (r *CPUScalingProfileReconciler) createOrUpdatePowerProfile(scalingProfile 
 func (r *CPUScalingProfileReconciler) verifyCPUScalingProfileParams(scalingSpec *powerv1.CPUScalingProfileSpec,
 ) error {
 	errMsg := "cpuscalingprofile spec is not correct"
-	if scalingSpec.SamplePeriod.Duration < minSamplePeriod || scalingSpec.SamplePeriod.Duration > maxSamplePeriod {
-		return fmt.Errorf("%s: SamplePeriod must be larger than %d and lower than %d",
-			errMsg, minSamplePeriod, maxSamplePeriod)
+	if scalingSpec.SamplePeriod != nil {
+		if scalingSpec.SamplePeriod.Duration < minSamplePeriod || scalingSpec.SamplePeriod.Duration > maxSamplePeriod {
+			return fmt.Errorf("%s: SamplePeriod must be larger than %d and lower than %d",
+				errMsg, minSamplePeriod, maxSamplePeriod)
+		}
 	}
 
 	if (scalingSpec.Max == nil && scalingSpec.Min != nil) || (scalingSpec.Max != nil && scalingSpec.Min == nil) {
@@ -318,7 +334,7 @@ func (r *CPUScalingProfileReconciler) createConfigItems(powerWorkloadList *power
 					powerv1.ConfigItem{
 						PowerProfile: scalingProfile.Name,
 						CpuIDs:       container.ExclusiveCPUs,
-						SamplePeriod: scalingProfile.Spec.SamplePeriod,
+						SamplePeriod: *scalingProfile.Spec.SamplePeriod,
 						PodUID:       container.PodUID,
 					},
 				)

@@ -274,7 +274,7 @@ func (r *PowerConfigReconciler) Reconcile(c context.Context, req ctrl.Request) (
 				epp := strings.Replace(profile, "-", "_", 1)
 				powerProfileSpec := &powerv1.PowerProfileSpec{
 					Name: profile,
-					Epp:  epp,
+					Epp:  powerv1.EPP(epp),
 				}
 				powerProfile := &powerv1.PowerProfile{
 					ObjectMeta: metav1.ObjectMeta{
@@ -309,7 +309,7 @@ func (r *PowerConfigReconciler) Reconcile(c context.Context, req ctrl.Request) (
 	for _, profile := range powerProfiles.Items {
 		logger.V(5).Info("checking if the power profile exists and is not requested")
 		convertedName := strings.Replace(profile.Spec.Name, "-", "_", 1)
-		if _, exists := profilePercentages[convertedName]; exists {
+		if _, exists := profilePercentages[powerv1.EPP(convertedName)]; exists {
 			if !util.StringInStringList(profile.Spec.Name, config.Spec.PowerProfiles) {
 				err = r.Client.Delete(c, &profile)
 				if err != nil {

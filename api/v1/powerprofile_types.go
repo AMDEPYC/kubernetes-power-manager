@@ -21,6 +21,16 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
+// +kubebuilder:validation:Enum=power;balance_power;balance_performance;performance
+type EPP string
+
+const (
+	EPPPerformance        EPP = "performance"
+	EPPBalancePerformance EPP = "balance_performance"
+	EPPBalancePower       EPP = "balance_power"
+	EPPPower              EPP = "power"
+)
+
 // PowerProfileSpec defines the desired state of PowerProfile
 type PowerProfileSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
@@ -40,7 +50,7 @@ type PowerProfileSpec struct {
 	Min *intstr.IntOrString `json:"min,omitempty"`
 
 	// The priority value associated with this Power Profile
-	Epp string `json:"epp,omitempty"`
+	Epp EPP `json:"epp,omitempty"`
 
 	// Governor to be used
 	//+kubebuilder:default=powersave

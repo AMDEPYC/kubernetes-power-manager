@@ -41,6 +41,11 @@ spec:
             properties:
               epp:
                 description: The priority value associated with this Power Profile
+                enum:
+                - power
+                - balance_power
+                - balance_performance
+                - performance
                 type: string
               governor:
                 default: powersave

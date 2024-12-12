@@ -210,7 +210,7 @@ func (r *TimeOfDayCronJobReconciler) Reconcile(c context.Context, req ctrl.Reque
 					}
 				}
 
-				powerProfile, err := power.NewPowerProfile(profile.Spec.Name, uint(profileMinFreq), uint(profileMaxFreq), profile.Spec.Governor, profile.Spec.Epp)
+				powerProfile, err := power.NewPowerProfile(profile.Spec.Name, uint(profileMinFreq), uint(profileMaxFreq), profile.Spec.Governor, string(profile.Spec.Epp))
 				if err != nil {
 					logger.Error(err, "could not set the power profile for the shared pool")
 					return ctrl.Result{Requeue: false}, err

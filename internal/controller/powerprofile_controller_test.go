@@ -2212,7 +2212,7 @@ func FuzzPowerProfileController(f *testing.F) {
 					Name:     prof,
 					Max:      ptr.To(intstr.FromInt(maxVal)),
 					Min:      ptr.To(intstr.FromInt(minVal)),
-					Epp:      epp,
+					Epp:      powerv1.EPP(epp),
 					Governor: governor,
 					Shared:   shared,
 				},

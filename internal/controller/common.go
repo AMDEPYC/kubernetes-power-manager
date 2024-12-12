@@ -16,14 +16,58 @@ package controller
 import (
 	"context"
 	"reflect"
+	"time"
 
 	"github.com/go-logr/logr"
 	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
 	"github.com/intel/kubernetes-power-manager/pkg/util"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const userspaceGovernor = "userspace"
+
+type eppValues struct {
+	cpuScalingProfileSpec powerv1.CPUScalingProfileSpec
+	configItem            powerv1.ConfigItem
+}
+
+var eppDefaults map[powerv1.EPP]eppValues = map[powerv1.EPP]eppValues{
+	powerv1.EPPPerformance: {
+		cpuScalingProfileSpec: powerv1.CPUScalingProfileSpec{
+			Min:          ptr.To(intstr.FromString("0%")),
+			Max:          ptr.To(intstr.FromString("100%")),
+			SamplePeriod: &metav1.Duration{Duration: 10 * time.Millisecond},
+		},
+		configItem: powerv1.ConfigItem{},
+	},
+	powerv1.EPPBalancePerformance: {
+		cpuScalingProfileSpec: powerv1.CPUScalingProfileSpec{
+			Min:          ptr.To(intstr.FromString("0%")),
+			Max:          ptr.To(intstr.FromString("100%")),
+			SamplePeriod: &metav1.Duration{Duration: 10 * time.Millisecond},
+		},
+		configItem: powerv1.ConfigItem{},
+	},
+	powerv1.EPPBalancePower: {
+		cpuScalingProfileSpec: powerv1.CPUScalingProfileSpec{
+			Min:          ptr.To(intstr.FromString("0%")),
+			Max:          ptr.To(intstr.FromString("100%")),
+			SamplePeriod: &metav1.Duration{Duration: 10 * time.Millisecond},
+		},
+		configItem: powerv1.ConfigItem{},
+	},
+	powerv1.EPPPower: {
+		cpuScalingProfileSpec: powerv1.CPUScalingProfileSpec{
+			Min:          ptr.To(intstr.FromString("0%")),
+			Max:          ptr.To(intstr.FromString("100%")),
+			SamplePeriod: &metav1.Duration{Duration: 10 * time.Millisecond},
+		},
+		configItem: powerv1.ConfigItem{},
+	},
+}
 
 // write errors to the status filed, pass nil to clear errors, will only do update resource is valid and not being deleted
 // if object already has the correct errors it will not be updated in the API

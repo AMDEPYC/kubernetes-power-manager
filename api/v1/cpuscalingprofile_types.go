@@ -31,8 +31,7 @@ type CPUScalingProfileSpec struct {
 
 	// Minimum time to elapse between two CPU sample periods
 	//+kubebuilder:validation:Format=duration
-	//+kubebuilder:default="10ms"
-	SamplePeriod metav1.Duration `json:"samplePeriod,omitempty"`
+	SamplePeriod *metav1.Duration `json:"samplePeriod,omitempty"`
 
 	// Max frequency cores can run at
 	//+kubebuilder:validation:XIntOrString
@@ -45,7 +44,7 @@ type CPUScalingProfileSpec struct {
 	Min *intstr.IntOrString `json:"min,omitempty"`
 
 	// The priority value associated with this CPUScalingProfile
-	Epp string `json:"epp,omitempty"`
+	Epp EPP `json:"epp,omitempty"`
 }
 
 // CPUScalingProfileStatus defines the observed state of CPUScalingProfile
