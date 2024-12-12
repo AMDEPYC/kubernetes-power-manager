@@ -27,56 +27,45 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-const (
-	userspaceGovernor = "userspace"
-
-	perfEPP         = "performance"
-	balancePerfEPP  = "balance_performance"
-	balancePowerEPP = "balance_power"
-	powerEPP        = "power"
-)
+const userspaceGovernor = "userspace"
 
 type eppValues struct {
-	powerv1.PowerProfileSpec
-	powerv1.ConfigItem
+	cpuScalingProfileSpec powerv1.CPUScalingProfileSpec
+	configItem            powerv1.ConfigItem
 }
 
-var eppDefaults map[string]eppValues = map[string]eppValues{
-	perfEPP: {
-		PowerProfileSpec: powerv1.PowerProfileSpec{
-			Min: ptr.To(intstr.FromString("0%")),
-			Max: ptr.To(intstr.FromString("100%")),
+var eppDefaults map[powerv1.EPP]eppValues = map[powerv1.EPP]eppValues{
+	powerv1.EPPPerformance: {
+		cpuScalingProfileSpec: powerv1.CPUScalingProfileSpec{
+			Min:          ptr.To(intstr.FromString("0%")),
+			Max:          ptr.To(intstr.FromString("100%")),
+			SamplePeriod: &metav1.Duration{Duration: 10 * time.Millisecond},
 		},
-		ConfigItem: powerv1.ConfigItem{
-			SamplePeriod: metav1.Duration{Duration: 10 * time.Millisecond},
-		},
+		configItem: powerv1.ConfigItem{},
 	},
-	balancePerfEPP: {
-		PowerProfileSpec: powerv1.PowerProfileSpec{
-			Min: ptr.To(intstr.FromString("0%")),
-			Max: ptr.To(intstr.FromString("100%")),
+	powerv1.EPPBalancePerformance: {
+		cpuScalingProfileSpec: powerv1.CPUScalingProfileSpec{
+			Min:          ptr.To(intstr.FromString("0%")),
+			Max:          ptr.To(intstr.FromString("100%")),
+			SamplePeriod: &metav1.Duration{Duration: 10 * time.Millisecond},
 		},
-		ConfigItem: powerv1.ConfigItem{
-			SamplePeriod: metav1.Duration{Duration: 10 * time.Millisecond},
-		},
+		configItem: powerv1.ConfigItem{},
 	},
-	balancePowerEPP: {
-		PowerProfileSpec: powerv1.PowerProfileSpec{
-			Min: ptr.To(intstr.FromString("0%")),
-			Max: ptr.To(intstr.FromString("100%")),
+	powerv1.EPPBalancePower: {
+		cpuScalingProfileSpec: powerv1.CPUScalingProfileSpec{
+			Min:          ptr.To(intstr.FromString("0%")),
+			Max:          ptr.To(intstr.FromString("100%")),
+			SamplePeriod: &metav1.Duration{Duration: 10 * time.Millisecond},
 		},
-		ConfigItem: powerv1.ConfigItem{
-			SamplePeriod: metav1.Duration{Duration: 10 * time.Millisecond},
-		},
+		configItem: powerv1.ConfigItem{},
 	},
-	powerEPP: {
-		PowerProfileSpec: powerv1.PowerProfileSpec{
-			Min: ptr.To(intstr.FromString("0%")),
-			Max: ptr.To(intstr.FromString("100%")),
+	powerv1.EPPPower: {
+		cpuScalingProfileSpec: powerv1.CPUScalingProfileSpec{
+			Min:          ptr.To(intstr.FromString("0%")),
+			Max:          ptr.To(intstr.FromString("100%")),
+			SamplePeriod: &metav1.Duration{Duration: 10 * time.Millisecond},
 		},
-		ConfigItem: powerv1.ConfigItem{
-			SamplePeriod: metav1.Duration{Duration: 10 * time.Millisecond},
-		},
+		configItem: powerv1.ConfigItem{},
 	},
 }
 

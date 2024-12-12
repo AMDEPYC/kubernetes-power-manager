@@ -46,20 +46,20 @@ const MinFreqOffset = 200
 // balance_power        ===>  priority level 2
 // power                ===>  priority level 3
 
-var profilePercentages map[string]map[string]float64 = map[string]map[string]float64{
-	"performance": {
+var profilePercentages map[powerv1.EPP]map[string]float64 = map[powerv1.EPP]map[string]float64{
+	powerv1.EPPPerformance: {
 		"resource":   .40,
 		"difference": 0.0,
 	},
-	"balance_performance": {
+	powerv1.EPPBalancePerformance: {
 		"resource":   .60,
 		"difference": .25,
 	},
-	"balance_power": {
+	powerv1.EPPBalancePower: {
 		"resource":   .80,
 		"difference": .50,
 	},
-	"power": {
+	powerv1.EPPPower: {
 		"resource":   1.0,
 		"difference": 0.0,
 	},
@@ -264,7 +264,7 @@ func (r *PowerProfileReconciler) Reconcile(c context.Context, req ctrl.Request) 
 		logger.Error(err, "invalid governor")
 		return ctrl.Result{Requeue: false}, err
 	}
-	powerProfile, err := power.NewPowerProfile(profile.Spec.Name, uint(profileMinFreq), uint(profileMaxFreq), profile.Spec.Governor, actualEpp)
+	powerProfile, err := power.NewPowerProfile(profile.Spec.Name, uint(profileMinFreq), uint(profileMaxFreq), profile.Spec.Governor, string(actualEpp))
 	if err != nil {
 		logger.Error(err, "could not create the power profile")
 		return ctrl.Result{Requeue: false}, err
@@ -370,7 +370,7 @@ func (r *PowerProfileReconciler) Reconcile(c context.Context, req ctrl.Request) 
 	return ctrl.Result{}, nil
 }
 
-func (r *PowerProfileReconciler) createExtendedResources(nodeName string, profileName string, eppValue string, logger *logr.Logger) error {
+func (r *PowerProfileReconciler) createExtendedResources(nodeName string, profileName string, eppValue powerv1.EPP, logger *logr.Logger) error {
 	node := &corev1.Node{}
 	err := r.Client.Get(context.TODO(), client.ObjectKey{
 		Name: nodeName,
