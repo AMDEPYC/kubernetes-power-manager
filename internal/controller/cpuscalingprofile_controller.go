@@ -31,7 +31,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -199,17 +198,10 @@ func (r *CPUScalingProfileReconciler) createOrUpdatePowerProfile(scalingProfile 
 			}
 		}
 
-		var max, min *intstr.IntOrString
-		if scalingProfile.Spec.Max != 0 {
-			max = ptr.To(intstr.FromInt(scalingProfile.Spec.Max))
-		}
-		if scalingProfile.Spec.Min != 0 {
-			min = ptr.To(intstr.FromInt(scalingProfile.Spec.Min))
-		}
 		powerProfile.Spec = powerv1.PowerProfileSpec{
 			Name:     scalingProfile.Name,
-			Max:      max,
-			Min:      min,
+			Max:      scalingProfile.Spec.Max,
+			Min:      scalingProfile.Spec.Min,
 			Governor: userspaceGovernor,
 			Shared:   false,
 			Epp:      scalingProfile.Spec.Epp,
@@ -242,13 +234,30 @@ func (r *CPUScalingProfileReconciler) createOrUpdatePowerProfile(scalingProfile 
 func (r *CPUScalingProfileReconciler) verifyCPUScalingProfileParams(scalingSpec *powerv1.CPUScalingProfileSpec,
 ) error {
 	errMsg := "cpuscalingprofile spec is not correct"
-	if scalingSpec.Min > scalingSpec.Max {
-		return fmt.Errorf("%s: Min must be lower or equal to Max", errMsg)
-	}
-
 	if scalingSpec.SamplePeriod.Duration < minSamplePeriod || scalingSpec.SamplePeriod.Duration > maxSamplePeriod {
 		return fmt.Errorf("%s: SamplePeriod must be larger than %d and lower than %d",
 			errMsg, minSamplePeriod, maxSamplePeriod)
+	}
+
+	if (scalingSpec.Max == nil && scalingSpec.Min != nil) || (scalingSpec.Max != nil && scalingSpec.Min == nil) {
+		return fmt.Errorf("%s: Max and Min frequency values must be both provided or omitted", errMsg)
+	}
+
+	if scalingSpec.Max != nil && scalingSpec.Min != nil {
+		if scalingSpec.Max.Type != scalingSpec.Min.Type {
+			return fmt.Errorf("%s: Max and Min frequency values must be both numeric or percentage", errMsg)
+		}
+		max, err := intstr.GetScaledValueFromIntOrPercent(scalingSpec.Max, 100, true)
+		if err != nil {
+			return fmt.Errorf("%s: Max is not correct: %w", errMsg, err)
+		}
+		min, err := intstr.GetScaledValueFromIntOrPercent(scalingSpec.Min, 100, true)
+		if err != nil {
+			return fmt.Errorf("%s: Min is not correct: %w", errMsg, err)
+		}
+		if min > max {
+			return fmt.Errorf("%s: Min must be lower or equal to Max", errMsg)
+		}
 	}
 
 	return nil

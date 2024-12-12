@@ -43,11 +43,19 @@ spec:
                 description: The priority value associated with this CPUScalingProfile
                 type: string
               max:
-                description: Maximum frequency cores can run at
-                type: integer
+                anyOf:
+                - type: integer
+                - type: string
+                description: Max frequency cores can run at
+                pattern: ^([1-9]?[0-9]|100)%$
+                x-kubernetes-int-or-string: true
               min:
-                description: Minimum frequency cores can run at
-                type: integer
+                anyOf:
+                - type: integer
+                - type: string
+                description: Min frequency cores can run at
+                pattern: ^([1-9]?[0-9]|100)%$
+                x-kubernetes-int-or-string: true
               name:
                 description: Name of the CPUScalingProfile
                 type: string
