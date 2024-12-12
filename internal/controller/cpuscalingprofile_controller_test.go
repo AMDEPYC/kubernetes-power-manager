@@ -114,14 +114,163 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 		clientObjs     []client.Object
 	}{
 		{
-			testCase: "Test Case 1 - Min larger than Max",
+			testCase: "Test Case 1 - Min is provied and Max is omitted",
 			validateStatus: func(c client.Client) {
 				csc := &powerv1.CPUScalingProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
 					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
 					return
 				}
-				assert.Contains(t, csc.Status.Errors,
+				if !assert.Len(t, csc.Status.Errors, 1) {
+					return
+				}
+				assert.Contains(t, csc.Status.Errors[0],
+					"cpuscalingprofile spec is not correct: Max and Min "+
+						"frequency values must be both provided or omitted")
+			},
+			clientObjs: []client.Object{
+				&powerv1.CPUScalingProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "cpuscalingprofile1",
+						Namespace: IntelPowerNamespace,
+						UID:       "lkj",
+					},
+					Spec: powerv1.CPUScalingProfileSpec{
+						Min:          ptr.To(intstr.FromInt32(2000)),
+						SamplePeriod: metav1.Duration{Duration: 500 * time.Millisecond},
+					},
+				},
+			},
+		},
+		{
+			testCase: "Test Case 2 - Max is provied and Min is omitted",
+			validateStatus: func(c client.Client) {
+				csc := &powerv1.CPUScalingProfile{}
+				if !assert.NoError(t, c.Get(context.TODO(),
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					return
+				}
+				if !assert.Len(t, csc.Status.Errors, 1) {
+					return
+				}
+				assert.Contains(t, csc.Status.Errors[0],
+					"cpuscalingprofile spec is not correct: Max and Min "+
+						"frequency values must be both provided or omitted")
+			},
+			clientObjs: []client.Object{
+				&powerv1.CPUScalingProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "cpuscalingprofile1",
+						Namespace: IntelPowerNamespace,
+						UID:       "lkj",
+					},
+					Spec: powerv1.CPUScalingProfileSpec{
+						Max:          ptr.To(intstr.FromInt32(3000)),
+						SamplePeriod: metav1.Duration{Duration: 500 * time.Millisecond},
+					},
+				},
+			},
+		},
+		{
+			testCase: "Test Case 3 - Min must be of the same type as Max",
+			validateStatus: func(c client.Client) {
+				csc := &powerv1.CPUScalingProfile{}
+				if !assert.NoError(t, c.Get(context.TODO(),
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					return
+				}
+				if !assert.Len(t, csc.Status.Errors, 1) {
+					return
+				}
+				assert.Contains(t, csc.Status.Errors[0],
+					"cpuscalingprofile spec is not correct: Max and Min frequency "+
+						"values must be both numeric or percentage")
+			},
+			clientObjs: []client.Object{
+				&powerv1.CPUScalingProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "cpuscalingprofile1",
+						Namespace: IntelPowerNamespace,
+						UID:       "lkj",
+					},
+					Spec: powerv1.CPUScalingProfileSpec{
+						Min:          ptr.To(intstr.FromInt32(2000)),
+						Max:          ptr.To(intstr.FromString("100%")),
+						SamplePeriod: metav1.Duration{Duration: 500 * time.Millisecond},
+					},
+				},
+			},
+		},
+		{
+			testCase: "Test Case 4 - Max is string in invalid format",
+			validateStatus: func(c client.Client) {
+				csc := &powerv1.CPUScalingProfile{}
+				if !assert.NoError(t, c.Get(context.TODO(),
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					return
+				}
+				if !assert.Len(t, csc.Status.Errors, 1) {
+					return
+				}
+				assert.Contains(t, csc.Status.Errors[0],
+					"cpuscalingprofile spec is not correct: Max is not correct: ")
+			},
+			clientObjs: []client.Object{
+				&powerv1.CPUScalingProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "cpuscalingprofile1",
+						Namespace: IntelPowerNamespace,
+						UID:       "lkj",
+					},
+					Spec: powerv1.CPUScalingProfileSpec{
+						Min:          ptr.To(intstr.FromString("0%")),
+						Max:          ptr.To(intstr.FromString("90-percent")),
+						SamplePeriod: metav1.Duration{Duration: 500 * time.Millisecond},
+					},
+				},
+			},
+		},
+		{
+			testCase: "Test Case 5 - Min is string in invalid format",
+			validateStatus: func(c client.Client) {
+				csc := &powerv1.CPUScalingProfile{}
+				if !assert.NoError(t, c.Get(context.TODO(),
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					return
+				}
+				if !assert.Len(t, csc.Status.Errors, 1) {
+					return
+				}
+				assert.Contains(t, csc.Status.Errors[0],
+					"cpuscalingprofile spec is not correct: Min is not correct: ")
+			},
+			clientObjs: []client.Object{
+				&powerv1.CPUScalingProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "cpuscalingprofile1",
+						Namespace: IntelPowerNamespace,
+						UID:       "lkj",
+					},
+					Spec: powerv1.CPUScalingProfileSpec{
+						Min:          ptr.To(intstr.FromString("8-percent")),
+						Max:          ptr.To(intstr.FromString("100%")),
+						SamplePeriod: metav1.Duration{Duration: 500 * time.Millisecond},
+					},
+				},
+			},
+		},
+		{
+			testCase: "Test Case 6 - Min larger than Max in string format",
+			validateStatus: func(c client.Client) {
+				csc := &powerv1.CPUScalingProfile{}
+				if !assert.NoError(t, c.Get(context.TODO(),
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					return
+				}
+				if !assert.Len(t, csc.Status.Errors, 1) {
+					return
+				}
+				assert.Contains(t, csc.Status.Errors[0],
 					"cpuscalingprofile spec is not correct: Min must be lower or equal to Max")
 			},
 			clientObjs: []client.Object{
@@ -132,15 +281,44 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
-						Max:          2900,
-						Min:          3050,
+						Min:          ptr.To(intstr.FromString("60%")),
+						Max:          ptr.To(intstr.FromString("50%")),
 						SamplePeriod: metav1.Duration{Duration: 500 * time.Millisecond},
 					},
 				},
 			},
 		},
 		{
-			testCase: "Test Case 2 - Sample period too large",
+			testCase: "Test Case 7 - Min larger than Max in int format",
+			validateStatus: func(c client.Client) {
+				csc := &powerv1.CPUScalingProfile{}
+				if !assert.NoError(t, c.Get(context.TODO(),
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					return
+				}
+				if !assert.Len(t, csc.Status.Errors, 1) {
+					return
+				}
+				assert.Contains(t, csc.Status.Errors[0],
+					"cpuscalingprofile spec is not correct: Min must be lower or equal to Max")
+			},
+			clientObjs: []client.Object{
+				&powerv1.CPUScalingProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "cpuscalingprofile1",
+						Namespace: IntelPowerNamespace,
+						UID:       "lkj",
+					},
+					Spec: powerv1.CPUScalingProfileSpec{
+						Min:          ptr.To(intstr.FromInt32(3000)),
+						Max:          ptr.To(intstr.FromInt32(2700)),
+						SamplePeriod: metav1.Duration{Duration: 500 * time.Millisecond},
+					},
+				},
+			},
+		},
+		{
+			testCase: "Test Case 8 - Sample period too large",
 			validateStatus: func(c client.Client) {
 				csc := &powerv1.CPUScalingProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
@@ -161,15 +339,15 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
-						Max:          3100,
-						Min:          3000,
+						Min:          ptr.To(intstr.FromInt32(3000)),
+						Max:          ptr.To(intstr.FromInt32(3100)),
 						SamplePeriod: metav1.Duration{Duration: 1100 * time.Millisecond},
 					},
 				},
 			},
 		},
 		{
-			testCase: "Test Case 3 - Sample period too small",
+			testCase: "Test Case 9 - Sample period too small",
 			validateStatus: func(c client.Client) {
 				csc := &powerv1.CPUScalingProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
@@ -190,8 +368,8 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
-						Max:          3100,
-						Min:          3000,
+						Min:          ptr.To(intstr.FromInt32(3000)),
+						Max:          ptr.To(intstr.FromInt32(3100)),
 						SamplePeriod: metav1.Duration{Duration: 5 * time.Millisecond},
 					},
 				},
@@ -275,8 +453,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
-						Min:          2000,
-						Max:          3000,
+						Min:          ptr.To(intstr.FromInt32(2000)),
+						Max:          ptr.To(intstr.FromInt32(3000)),
 						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
 						Epp:          "balance_performance",
 					},
@@ -330,8 +508,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
-						Min:          2000,
-						Max:          3000,
+						Min:          ptr.To(intstr.FromInt32(2000)),
+						Max:          ptr.To(intstr.FromInt32(3000)),
 						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
 						Epp:          "balance_performance",
 					},
@@ -454,8 +632,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				assert.Empty(t, pp.ObjectMeta.OwnerReferences)
 				assert.Equal(t, powerv1.PowerProfileSpec{
 					Name:     "performance",
-					Min:      ptr.To(intstr.FromInt32(1000)),
-					Max:      ptr.To(intstr.FromInt32(2000)),
+					Min:      ptr.To(intstr.FromString("20%")),
+					Max:      ptr.To(intstr.FromString("70%")),
 					Shared:   false,
 					Epp:      "performance",
 					Governor: "performance",
@@ -469,8 +647,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
-						Min:          2000,
-						Max:          3000,
+						Min:          ptr.To(intstr.FromString("30%")),
+						Max:          ptr.To(intstr.FromString("80%")),
 						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
 						Epp:          "balance_performance",
 					},
@@ -484,8 +662,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name:     "performance",
-						Min:      ptr.To(intstr.FromInt32(1000)),
-						Max:      ptr.To(intstr.FromInt32(2000)),
+						Min:      ptr.To(intstr.FromString("20%")),
+						Max:      ptr.To(intstr.FromString("70%")),
 						Shared:   false,
 						Epp:      "performance",
 						Governor: "performance",
@@ -532,8 +710,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				}, pp.ObjectMeta.OwnerReferences)
 				assert.Equal(t, powerv1.PowerProfileSpec{
 					Name:     "cpuscalingprofile1",
-					Min:      ptr.To(intstr.FromInt32(2000)),
-					Max:      ptr.To(intstr.FromInt32(3000)),
+					Min:      ptr.To(intstr.FromString("30%")),
+					Max:      ptr.To(intstr.FromString("80%")),
 					Shared:   false,
 					Epp:      "balance_performance",
 					Governor: userspaceGovernor,
@@ -547,8 +725,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
-						Min:          2000,
-						Max:          3000,
+						Min:          ptr.To(intstr.FromString("30%")),
+						Max:          ptr.To(intstr.FromString("80%")),
 						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
 						Epp:          "balance_performance",
 					},
@@ -578,8 +756,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name:     "cpuscalingprofile1",
-						Min:      ptr.To(intstr.FromInt32(2000)),
-						Max:      ptr.To(intstr.FromInt32(1000)),
+						Min:      ptr.To(intstr.FromString("20%")),
+						Max:      ptr.To(intstr.FromString("70%")),
 						Shared:   false,
 						Epp:      "balance_performance",
 						Governor: "powersave",
@@ -634,8 +812,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
-						Min:          2000,
-						Max:          3000,
+						Min:          ptr.To(intstr.FromInt32(2000)),
+						Max:          ptr.To(intstr.FromInt32(3000)),
 						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
 						Epp:          "balance_performance",
 					},
@@ -715,8 +893,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
-						Min:          2000,
-						Max:          3000,
+						Min:          ptr.To(intstr.FromInt32(2000)),
+						Max:          ptr.To(intstr.FromInt32(3000)),
 						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
 						Epp:          "balance_performance",
 					},
@@ -812,8 +990,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
-						Min:          2000,
-						Max:          3000,
+						Min:          ptr.To(intstr.FromInt32(2000)),
+						Max:          ptr.To(intstr.FromInt32(3000)),
 						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
 						Epp:          "balance_performance",
 					},
@@ -825,8 +1003,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						UID:       "hgf",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
-						Min:          1000,
-						Max:          2000,
+						Min:          ptr.To(intstr.FromInt32(1000)),
+						Max:          ptr.To(intstr.FromInt32(2000)),
 						SamplePeriod: metav1.Duration{Duration: 89 * time.Millisecond},
 						Epp:          "balance_power",
 					},
@@ -957,8 +1135,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
-						Min:          2000,
-						Max:          3000,
+						Min:          ptr.To(intstr.FromString("30%")),
+						Max:          ptr.To(intstr.FromString("80%")),
 						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
 						Epp:          "balance_performance",
 					},
@@ -970,8 +1148,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						UID:       "hgf",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
-						Min:          1000,
-						Max:          2000,
+						Min:          ptr.To(intstr.FromString("20%")),
+						Max:          ptr.To(intstr.FromString("70%")),
 						SamplePeriod: metav1.Duration{Duration: 89 * time.Millisecond},
 						Epp:          "balance_power",
 					},
@@ -1085,8 +1263,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
-						Min:          2000,
-						Max:          3000,
+						Min:          ptr.To(intstr.FromInt32(2000)),
+						Max:          ptr.To(intstr.FromInt32(3000)),
 						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
 						Epp:          "balance_performance",
 					},
@@ -1182,8 +1360,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
-						Min:          2000,
-						Max:          3000,
+						Min:          ptr.To(intstr.FromString("30%")),
+						Max:          ptr.To(intstr.FromString("80%")),
 						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
 						Epp:          "balance_performance",
 					},
@@ -1277,8 +1455,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				}, pp.ObjectMeta.OwnerReferences)
 				assert.Equal(t, powerv1.PowerProfileSpec{
 					Name:     "cpuscalingprofile1",
-					Min:      ptr.To(intstr.FromInt32(1000)),
-					Max:      ptr.To(intstr.FromInt32(2000)),
+					Min:      ptr.To(intstr.FromString("20%")),
+					Max:      ptr.To(intstr.FromString("70%")),
 					Shared:   false,
 					Epp:      "balance_performance",
 					Governor: userspaceGovernor,
@@ -1315,8 +1493,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
-						Min:          1000,
-						Max:          2000,
+						Min:          ptr.To(intstr.FromString("20%")),
+						Max:          ptr.To(intstr.FromString("70%")),
 						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
 						Epp:          "balance_performance",
 					},
@@ -1340,8 +1518,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					},
 					Spec: powerv1.PowerProfileSpec{
 						Name:     "cpuscalingprofile1",
-						Min:      ptr.To(intstr.FromInt32(1000)),
-						Max:      ptr.To(intstr.FromInt32(2000)),
+						Min:      ptr.To(intstr.FromString("20%")),
+						Max:      ptr.To(intstr.FromString("70%")),
 						Shared:   false,
 						Epp:      "balance_performance",
 						Governor: userspaceGovernor,
@@ -1423,9 +1601,63 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						},
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
-						Min:          1000,
-						Max:          2000,
+						Min:          ptr.To(intstr.FromInt32(1000)),
+						Max:          ptr.To(intstr.FromInt32(2000)),
 						SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
+						Epp:          "balance_performance",
+					},
+				},
+			},
+		},
+		{
+			testCase:              "Test Case 14 - CPUScalingProfile without Min and Max is added",
+			cpuScalingProfileName: "cpuscalingprofile1",
+			validateReconcileAndStatus: func(err error, c client.Client) {
+				if !assert.NoError(t, err) {
+					return
+				}
+				csc := &powerv1.CPUScalingProfile{}
+				if !assert.NoError(t, c.Get(context.TODO(),
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					return
+				}
+				assert.Empty(t, csc.Status.Errors)
+			},
+			validateObjects: func(c client.Client) {
+				pp := &powerv1.PowerProfile{}
+				if !assert.NoError(t, c.Get(context.TODO(),
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, pp)) {
+					return
+				}
+				assert.ElementsMatch(t, []metav1.OwnerReference{
+					{
+						Name:               "cpuscalingprofile1",
+						UID:                "lkj",
+						Kind:               "CPUScalingProfile",
+						APIVersion:         "power.intel.com/v1",
+						Controller:         ptr.To(true),
+						BlockOwnerDeletion: ptr.To(true),
+					},
+				}, pp.ObjectMeta.OwnerReferences)
+				assert.Equal(t, powerv1.PowerProfileSpec{
+					Name:     "cpuscalingprofile1",
+					Min:      nil,
+					Max:      nil,
+					Governor: userspaceGovernor,
+					Epp:      "balance_performance",
+					Shared:   false,
+				}, pp.Spec)
+			},
+			clientObjs: []client.Object{
+				&powerv1.CPUScalingProfile{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "cpuscalingprofile1",
+						Namespace: IntelPowerNamespace,
+						UID:       "lkj",
+					},
+					Spec: powerv1.CPUScalingProfileSpec{
+						Name:         "cpuscalingprofile1",
+						SamplePeriod: metav1.Duration{Duration: 100 * time.Millisecond},
 						Epp:          "balance_performance",
 					},
 				},

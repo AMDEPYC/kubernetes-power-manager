@@ -18,6 +18,7 @@ package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -33,11 +34,15 @@ type CPUScalingProfileSpec struct {
 	//+kubebuilder:default="10ms"
 	SamplePeriod metav1.Duration `json:"samplePeriod,omitempty"`
 
-	// Minimum frequency cores can run at
-	Min int `json:"min,omitempty"`
+	// Max frequency cores can run at
+	//+kubebuilder:validation:XIntOrString
+	//+kubebuilder:validation:Pattern="^([1-9]?[0-9]|100)%$"
+	Max *intstr.IntOrString `json:"max,omitempty"`
 
-	// Maximum frequency cores can run at
-	Max int `json:"max,omitempty"`
+	// Min frequency cores can run at
+	//+kubebuilder:validation:XIntOrString
+	//+kubebuilder:validation:Pattern="^([1-9]?[0-9]|100)%$"
+	Min *intstr.IntOrString `json:"min,omitempty"`
 
 	// The priority value associated with this CPUScalingProfile
 	Epp string `json:"epp,omitempty"`
