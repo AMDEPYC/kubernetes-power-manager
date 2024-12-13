@@ -115,19 +115,7 @@ func (r *CPUScalingProfileReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, nil
 	}
 
-	if scalingProfile.Spec.Epp == "" {
-		scalingProfile.Spec.Epp = powerv1.EPPPower
-	}
-
-	if scalingProfile.Spec.SamplePeriod == nil {
-		scalingProfile.Spec.SamplePeriod = eppDefaults[scalingProfile.Spec.Epp].cpuScalingProfileSpec.SamplePeriod
-	}
-	if scalingProfile.Spec.Min == nil {
-		scalingProfile.Spec.Min = eppDefaults[scalingProfile.Spec.Epp].cpuScalingProfileSpec.Min
-	}
-	if scalingProfile.Spec.Max == nil {
-		scalingProfile.Spec.Max = eppDefaults[scalingProfile.Spec.Epp].cpuScalingProfileSpec.Max
-	}
+	r.fillEmptyWithDefaults(scalingProfile)
 
 	err = r.createOrUpdatePowerProfile(scalingProfile, logger)
 	if err != nil {
@@ -255,6 +243,12 @@ func (r *CPUScalingProfileReconciler) verifyCPUScalingProfileParams(scalingSpec 
 		}
 	}
 
+	if scalingSpec.CooldownPeriod != nil {
+		if scalingSpec.CooldownPeriod.Duration < scalingSpec.SamplePeriod.Duration {
+			return fmt.Errorf("%s: CooldownPeriod must be larger than SamplePeriod", errMsg)
+		}
+	}
+
 	if (scalingSpec.Max == nil && scalingSpec.Min != nil) || (scalingSpec.Max != nil && scalingSpec.Min == nil) {
 		return fmt.Errorf("%s: Max and Min frequency values must be both provided or omitted", errMsg)
 	}
@@ -332,11 +326,15 @@ func (r *CPUScalingProfileReconciler) createConfigItems(powerWorkloadList *power
 			for _, container := range powerWorkload.Spec.Node.Containers {
 				nodesItems[powerWorkload.Spec.Node.Name] = append(nodesItems[powerWorkload.Spec.Node.Name],
 					powerv1.ConfigItem{
-						PowerProfile:        scalingProfile.Name,
-						CpuIDs:              container.ExclusiveCPUs,
-						SamplePeriod:        *scalingProfile.Spec.SamplePeriod,
-						FallbackFreqPercent: eppDefaults[scalingProfile.Spec.Epp].configItem.FallbackFreqPercent,
-						PodUID:              container.PodUID,
+						PowerProfile:               scalingProfile.Name,
+						CpuIDs:                     container.ExclusiveCPUs,
+						SamplePeriod:               *scalingProfile.Spec.SamplePeriod,
+						CooldownPeriod:             *scalingProfile.Spec.CooldownPeriod,
+						TargetBusyness:             *scalingProfile.Spec.TargetBusyness,
+						AllowedBusynessDifference:  *scalingProfile.Spec.AllowedBusynessDifference,
+						AllowedFrequencyDifference: *scalingProfile.Spec.AllowedFrequencyDifference,
+						FallbackFreqPercent:        eppDefaults[scalingProfile.Spec.Epp].configItem.FallbackFreqPercent,
+						PodUID:                     container.PodUID,
 					},
 				)
 			}
@@ -377,6 +375,37 @@ func (r *CPUScalingProfileReconciler) setCPUScalingConfiguration(scalingConfig *
 	}
 
 	return nil
+}
+
+// fillEmptyWithDefaults sets any empty fields in CPUScalingProfile.Spec to defaults from EPP profile
+func (r *CPUScalingProfileReconciler) fillEmptyWithDefaults(scalingProfile *powerv1.CPUScalingProfile) {
+	if scalingProfile.Spec.Epp == "" {
+		scalingProfile.Spec.Epp = powerv1.EPPPower
+	}
+
+	if scalingProfile.Spec.SamplePeriod == nil {
+		scalingProfile.Spec.SamplePeriod = eppDefaults[scalingProfile.Spec.Epp].cpuScalingProfileSpec.SamplePeriod
+	}
+	if scalingProfile.Spec.CooldownPeriod == nil {
+		scalingProfile.Spec.CooldownPeriod = eppDefaults[scalingProfile.Spec.Epp].cpuScalingProfileSpec.CooldownPeriod
+	}
+	if scalingProfile.Spec.TargetBusyness == nil {
+		scalingProfile.Spec.TargetBusyness = eppDefaults[scalingProfile.Spec.Epp].cpuScalingProfileSpec.TargetBusyness
+	}
+	if scalingProfile.Spec.AllowedBusynessDifference == nil {
+		scalingProfile.Spec.AllowedBusynessDifference = eppDefaults[scalingProfile.Spec.Epp].cpuScalingProfileSpec.
+			AllowedBusynessDifference
+	}
+	if scalingProfile.Spec.AllowedFrequencyDifference == nil {
+		scalingProfile.Spec.AllowedFrequencyDifference = eppDefaults[scalingProfile.Spec.Epp].cpuScalingProfileSpec.
+			AllowedFrequencyDifference
+	}
+	if scalingProfile.Spec.Min == nil {
+		scalingProfile.Spec.Min = eppDefaults[scalingProfile.Spec.Epp].cpuScalingProfileSpec.Min
+	}
+	if scalingProfile.Spec.Max == nil {
+		scalingProfile.Spec.Max = eppDefaults[scalingProfile.Spec.Epp].cpuScalingProfileSpec.Max
+	}
 }
 
 func (r *CPUScalingProfileReconciler) mapPowerWorkloadToCPUScalingProfile(ctx context.Context, o client.Object,

@@ -41,6 +41,26 @@ type ConfigItem struct {
 	//+kubebuilder:validation:Format=duration
 	SamplePeriod metav1.Duration `json:"samplePeriod"`
 
+	// Time to elapse after setting a new frequency target before next CPU sampling
+	//+kubebuilder:validation:Format=duration
+	CooldownPeriod metav1.Duration `json:"cooldownPeriod"`
+
+	// Target CPU busyness, in percents
+	// +kubebuilder:validation:Minimum=0
+	// +kubebuilder:validation:Maximum=100
+	TargetBusyness int `json:"targetBusyness"`
+
+	// Maximum difference between target and actual CPU busyness on which
+	// frequency re-evaluation will not happen, in percent points
+	// +kubebuilder:validation:Minimum=0
+	// +kubebuilder:validation:Maximum=50
+	AllowedBusynessDifference int `json:"allowedBusynessDifference"`
+
+	// Maximum difference between target and actual CPU frequency on which
+	// frequency re-evaluation will not happen, in MHz
+	// +kubebuilder:validation:Minimum=0
+	AllowedFrequencyDifference int `json:"allowedFrequencyDifference,omitempty"`
+
 	// UID of the Pod that this ConfigItem is associated with
 	PodUID types.UID `json:"podUID"`
 }

@@ -37,9 +37,13 @@ type eppValues struct {
 var eppDefaults map[powerv1.EPP]eppValues = map[powerv1.EPP]eppValues{
 	powerv1.EPPPerformance: {
 		cpuScalingProfileSpec: powerv1.CPUScalingProfileSpec{
-			Min:          ptr.To(intstr.FromString("0%")),
-			Max:          ptr.To(intstr.FromString("100%")),
-			SamplePeriod: &metav1.Duration{Duration: 10 * time.Millisecond},
+			Min:                        ptr.To(intstr.FromString("0%")),
+			Max:                        ptr.To(intstr.FromString("100%")),
+			SamplePeriod:               &metav1.Duration{Duration: 10 * time.Millisecond},
+			CooldownPeriod:             &metav1.Duration{Duration: 3 * 10 * time.Millisecond},
+			TargetBusyness:             ptr.To(80),
+			AllowedBusynessDifference:  ptr.To(5),
+			AllowedFrequencyDifference: ptr.To(25),
 		},
 		configItem: powerv1.ConfigItem{
 			FallbackFreqPercent: 100,
@@ -47,9 +51,13 @@ var eppDefaults map[powerv1.EPP]eppValues = map[powerv1.EPP]eppValues{
 	},
 	powerv1.EPPBalancePerformance: {
 		cpuScalingProfileSpec: powerv1.CPUScalingProfileSpec{
-			Min:          ptr.To(intstr.FromString("0%")),
-			Max:          ptr.To(intstr.FromString("100%")),
-			SamplePeriod: &metav1.Duration{Duration: 10 * time.Millisecond},
+			Min:                        ptr.To(intstr.FromString("0%")),
+			Max:                        ptr.To(intstr.FromString("100%")),
+			SamplePeriod:               &metav1.Duration{Duration: 10 * time.Millisecond},
+			CooldownPeriod:             &metav1.Duration{Duration: 3 * 10 * time.Millisecond},
+			TargetBusyness:             ptr.To(80),
+			AllowedBusynessDifference:  ptr.To(5),
+			AllowedFrequencyDifference: ptr.To(25),
 		},
 		configItem: powerv1.ConfigItem{
 			FallbackFreqPercent: 50,
@@ -57,9 +65,13 @@ var eppDefaults map[powerv1.EPP]eppValues = map[powerv1.EPP]eppValues{
 	},
 	powerv1.EPPBalancePower: {
 		cpuScalingProfileSpec: powerv1.CPUScalingProfileSpec{
-			Min:          ptr.To(intstr.FromString("0%")),
-			Max:          ptr.To(intstr.FromString("100%")),
-			SamplePeriod: &metav1.Duration{Duration: 10 * time.Millisecond},
+			Min:                        ptr.To(intstr.FromString("0%")),
+			Max:                        ptr.To(intstr.FromString("100%")),
+			SamplePeriod:               &metav1.Duration{Duration: 10 * time.Millisecond},
+			CooldownPeriod:             &metav1.Duration{Duration: 3 * 10 * time.Millisecond},
+			TargetBusyness:             ptr.To(80),
+			AllowedBusynessDifference:  ptr.To(5),
+			AllowedFrequencyDifference: ptr.To(25),
 		},
 		configItem: powerv1.ConfigItem{
 			FallbackFreqPercent: 25,
@@ -67,9 +79,13 @@ var eppDefaults map[powerv1.EPP]eppValues = map[powerv1.EPP]eppValues{
 	},
 	powerv1.EPPPower: {
 		cpuScalingProfileSpec: powerv1.CPUScalingProfileSpec{
-			Min:          ptr.To(intstr.FromString("0%")),
-			Max:          ptr.To(intstr.FromString("100%")),
-			SamplePeriod: &metav1.Duration{Duration: 10 * time.Millisecond},
+			Min:                        ptr.To(intstr.FromString("0%")),
+			Max:                        ptr.To(intstr.FromString("100%")),
+			SamplePeriod:               &metav1.Duration{Duration: 10 * time.Millisecond},
+			CooldownPeriod:             &metav1.Duration{Duration: 3 * 10 * time.Millisecond},
+			TargetBusyness:             ptr.To(80),
+			AllowedBusynessDifference:  ptr.To(5),
+			AllowedFrequencyDifference: ptr.To(25),
 		},
 		configItem: powerv1.ConfigItem{
 			FallbackFreqPercent: 0,

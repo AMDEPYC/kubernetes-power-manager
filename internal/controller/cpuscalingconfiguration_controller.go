@@ -103,6 +103,11 @@ func (r *CPUScalingConfigurationReconciler) Reconcile(ctx context.Context, req c
 		logger.Error(err, "error validating sample periods")
 		return ctrl.Result{}, nil
 	}
+	err = r.validateCooldownPeriods(config.Spec.Items)
+	if err != nil {
+		logger.Error(err, "error validating cooldown periods")
+		return ctrl.Result{}, nil
+	}
 
 	r.CPUScalingManager.UpdateConfig(
 		r.parseConfig(config.Spec.Items),
@@ -145,6 +150,18 @@ func (r *CPUScalingConfigurationReconciler) validateSamplePeriods(configItems []
 	return nil
 }
 
+func (r *CPUScalingConfigurationReconciler) validateCooldownPeriods(configItems []powerv1.ConfigItem) error {
+	for _, item := range configItems {
+		cooldownPeriod := item.CooldownPeriod.Duration
+		samplePeriod := item.SamplePeriod.Duration
+		if cooldownPeriod < samplePeriod {
+			return fmt.Errorf("cooldown period %s must be larger than sample period %s", cooldownPeriod, samplePeriod)
+		}
+	}
+
+	return nil
+}
+
 func (r *CPUScalingConfigurationReconciler) parseConfig(configItems []powerv1.ConfigItem) []scaling.CPUScalingOpts {
 	optsList := make([]scaling.CPUScalingOpts, 0)
 
@@ -156,9 +173,13 @@ func (r *CPUScalingConfigurationReconciler) parseConfig(configItems []powerv1.Co
 		}
 		for _, cpuID := range item.CpuIDs {
 			opts := scaling.CPUScalingOpts{
-				CPUID:        cpuID,
-				SamplePeriod: item.SamplePeriod.Duration,
-				FallbackFreq: fallbackFreq,
+				CPUID:                      cpuID,
+				SamplePeriod:               item.SamplePeriod.Duration,
+				CooldownPeriod:             item.CooldownPeriod.Duration,
+				TargetBusyness:             item.TargetBusyness,
+				AllowedBusynessDifference:  item.AllowedBusynessDifference,
+				AllowedFrequencyDifference: item.AllowedFrequencyDifference,
+				FallbackFreq:               fallbackFreq,
 			}
 			optsList = append(optsList, opts)
 		}
