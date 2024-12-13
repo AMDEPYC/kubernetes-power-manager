@@ -52,6 +52,12 @@ spec:
                         type: integer
                       minItems: 1
                       type: array
+                    fallbackFreqPercent:
+                      description: Frequency to set when CPU busyness is not available,
+                        in percent of max frequency
+                      maximum: 100
+                      minimum: 0
+                      type: integer
                     podUID:
                       description: UID of the Pod that this ConfigItem is associated
                         with
@@ -66,6 +72,7 @@ spec:
                       type: string
                   required:
                   - cpuIDs
+                  - fallbackFreqPercent
                   - podUID
                   - powerProfile
                   - samplePeriod

@@ -149,16 +149,32 @@ func (r *CPUScalingConfigurationReconciler) parseConfig(configItems []powerv1.Co
 	optsList := make([]scaling.CPUScalingOpts, 0)
 
 	for _, item := range configItems {
+		fallbackFreq, err := r.getFallbackCPUFrequency(item.FallbackFreqPercent)
+		if err != nil {
+			r.Log.Error(err, "error calculating fallback frequency")
+			continue
+		}
 		for _, cpuID := range item.CpuIDs {
 			opts := scaling.CPUScalingOpts{
 				CPUID:        cpuID,
 				SamplePeriod: item.SamplePeriod.Duration,
+				FallbackFreq: fallbackFreq,
 			}
 			optsList = append(optsList, opts)
 		}
 	}
 
 	return optsList
+}
+
+func (r *CPUScalingConfigurationReconciler) getFallbackCPUFrequency(fallbackPercent int) (int, error) {
+	minFreq, maxFreq, err := getMaxMinFrequencyValues(r.PowerLibrary)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get max and min frequency: %w", err)
+	}
+
+	// We need to convert the frequencies back to KHz
+	return scaling.GetFrequencyFromPercent(minFreq*1000, maxFreq*1000, fallbackPercent), nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

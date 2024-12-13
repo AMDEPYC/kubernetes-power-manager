@@ -110,6 +110,19 @@ func (m *MockHost) GetAllCpus() *power.CpuList {
 	}
 }
 
+type MockFreqSet struct {
+	mock.Mock
+	power.FreqSet
+}
+
+func (m *MockFreqSet) GetMin() uint {
+	return m.Called().Get(0).(uint)
+}
+
+func (m *MockFreqSet) GetMax() uint {
+	return m.Called().Get(0).(uint)
+}
+
 type MockPool struct {
 	mock.Mock
 	power.Pool

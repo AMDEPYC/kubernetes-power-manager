@@ -5,4 +5,5 @@ import "time"
 type CPUScalingOpts struct {
 	CPUID        uint
 	SamplePeriod time.Duration
+	FallbackFreq int
 }

@@ -332,10 +332,11 @@ func (r *CPUScalingProfileReconciler) createConfigItems(powerWorkloadList *power
 			for _, container := range powerWorkload.Spec.Node.Containers {
 				nodesItems[powerWorkload.Spec.Node.Name] = append(nodesItems[powerWorkload.Spec.Node.Name],
 					powerv1.ConfigItem{
-						PowerProfile: scalingProfile.Name,
-						CpuIDs:       container.ExclusiveCPUs,
-						SamplePeriod: *scalingProfile.Spec.SamplePeriod,
-						PodUID:       container.PodUID,
+						PowerProfile:        scalingProfile.Name,
+						CpuIDs:              container.ExclusiveCPUs,
+						SamplePeriod:        *scalingProfile.Spec.SamplePeriod,
+						FallbackFreqPercent: eppDefaults[scalingProfile.Spec.Epp].configItem.FallbackFreqPercent,
+						PodUID:              container.PodUID,
 					},
 				)
 			}

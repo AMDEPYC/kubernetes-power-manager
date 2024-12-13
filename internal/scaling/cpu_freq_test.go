@@ -40,6 +40,43 @@ func overrideGetCPUFreqPath(t *testing.T, cpu uint, resource string) string {
 	return ""
 }
 
+func TestGetFrequencyFromPercent(t *testing.T) {
+	for _, tc := range []struct {
+		min     int
+		max     int
+		percent int
+		result  int
+	}{
+		{
+			min:     40000,
+			max:     370000,
+			percent: 60,
+			result:  238000,
+		},
+		{
+			min:     40000,
+			max:     370000,
+			percent: 33,
+			result:  148900,
+		},
+		{
+			min:     70000,
+			max:     420000,
+			percent: 100,
+			result:  420000,
+		},
+		{
+			min:     120000,
+			max:     250000,
+			percent: 0,
+			result:  120000,
+		},
+	} {
+		freq := GetFrequencyFromPercent(tc.min, tc.max, tc.percent)
+		assert.Equal(t, tc.result, freq)
+	}
+}
+
 func TestGetCurrentGovernorUserspace(t *testing.T) {
 	originalGetCPUFreqPath := getCPUFreqPathFunction
 	getCPUFreqPathFunction = func(cpu uint, resource string) string {
