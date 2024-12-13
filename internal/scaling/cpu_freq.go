@@ -13,6 +13,10 @@ const (
 	cpuFreqBasePath   = "/sys/devices/system/cpu/cpu%d/cpufreq"
 )
 
+func GetFrequencyFromPercent(minFreq, maxFreq int, percent int) int {
+	return minFreq + (maxFreq-minFreq)*percent/100
+}
+
 func getCPUFreqPath(cpu uint, resource string) string {
 	cpuFreqPath := fmt.Sprintf(cpuFreqBasePath, cpu)
 	return filepath.Join(cpuFreqPath, resource)

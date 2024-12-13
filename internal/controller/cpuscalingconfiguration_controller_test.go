@@ -244,12 +244,21 @@ func TestCPUScalingConfiguration_Reconcile_Success(t *testing.T) {
 					SamplePeriod: metav1.Duration{
 						Duration: 10 * time.Millisecond,
 					},
+					FallbackFreqPercent: 50,
 				},
 				{
 					CpuIDs: []uint{5},
 					SamplePeriod: metav1.Duration{
 						Duration: 100 * time.Millisecond,
 					},
+					FallbackFreqPercent: 0,
+				},
+				{
+					CpuIDs: []uint{7},
+					SamplePeriod: metav1.Duration{
+						Duration: 300 * time.Millisecond,
+					},
+					FallbackFreqPercent: 100,
 				},
 			},
 		},
@@ -258,14 +267,22 @@ func TestCPUScalingConfiguration_Reconcile_Success(t *testing.T) {
 		{
 			CPUID:        0,
 			SamplePeriod: 10 * time.Millisecond,
+			FallbackFreq: 2050000,
 		},
 		{
 			CPUID:        1,
 			SamplePeriod: 10 * time.Millisecond,
+			FallbackFreq: 2050000,
 		},
 		{
 			CPUID:        5,
 			SamplePeriod: 100 * time.Millisecond,
+			FallbackFreq: 400000,
+		},
+		{
+			CPUID:        7,
+			SamplePeriod: 300 * time.Millisecond,
+			FallbackFreq: 3700000,
 		},
 	}
 
@@ -277,6 +294,11 @@ func TestCPUScalingConfiguration_Reconcile_Success(t *testing.T) {
 	}
 	nodemk := new(testutils.MockHost)
 	nodemk.On("GetAllCpus").Return(&cpuListMock)
+
+	freqsetmk := new(testutils.MockFreqSet)
+	freqsetmk.On("GetMin").Return(uint(400000))
+	freqsetmk.On("GetMax").Return(uint(3700000))
+	nodemk.On("GetFreqRanges").Return(power.CoreTypeList{freqsetmk})
 
 	mgrmk := new(ScalingMgrMock)
 	mgrmk.On("UpdateConfig", expectedOpts).Return()

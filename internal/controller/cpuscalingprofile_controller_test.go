@@ -881,6 +881,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 							CpuIDs:       []uint{5, 6, 7, 8},
 							SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
 							PodUID:       "abcde",
+							FallbackFreqPercent: eppDefaults[powerv1.EPPBalancePerformance].
+								configItem.FallbackFreqPercent,
 						},
 					},
 				}, csc.Spec)
@@ -972,12 +974,15 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 							CpuIDs:       []uint{3, 4},
 							SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
 							PodUID:       "abcde",
+							FallbackFreqPercent: eppDefaults[powerv1.EPPBalancePerformance].
+								configItem.FallbackFreqPercent,
 						},
 						{
-							PowerProfile: "cpuscalingprofile2",
-							CpuIDs:       []uint{1, 2},
-							SamplePeriod: metav1.Duration{Duration: 89 * time.Millisecond},
-							PodUID:       "fghij",
+							PowerProfile:        "cpuscalingprofile2",
+							CpuIDs:              []uint{1, 2},
+							SamplePeriod:        metav1.Duration{Duration: 89 * time.Millisecond},
+							PodUID:              "fghij",
+							FallbackFreqPercent: eppDefaults[powerv1.EPPBalancePower].configItem.FallbackFreqPercent,
 						},
 					},
 				}, csc.Spec)
@@ -1029,6 +1034,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 								CpuIDs:       []uint{3, 4},
 								SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
 								PodUID:       "abcde",
+								FallbackFreqPercent: eppDefaults[powerv1.EPPBalancePerformance].
+									configItem.FallbackFreqPercent,
 							},
 						},
 					},
@@ -1119,10 +1126,11 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				assert.Equal(t, powerv1.CPUScalingConfigurationSpec{
 					Items: []powerv1.ConfigItem{
 						{
-							PowerProfile: "cpuscalingprofile2",
-							CpuIDs:       []uint{1, 2},
-							SamplePeriod: metav1.Duration{Duration: 89 * time.Millisecond},
-							PodUID:       "fghij",
+							PowerProfile:        "cpuscalingprofile2",
+							CpuIDs:              []uint{1, 2},
+							SamplePeriod:        metav1.Duration{Duration: 89 * time.Millisecond},
+							PodUID:              "fghij",
+							FallbackFreqPercent: eppDefaults[powerv1.EPPBalancePower].configItem.FallbackFreqPercent,
 						},
 					},
 				}, csc.Spec)
@@ -1180,12 +1188,16 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 								CpuIDs:       []uint{5, 6, 7, 8},
 								SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
 								PodUID:       "abcde",
+								FallbackFreqPercent: eppDefaults[powerv1.EPPBalancePerformance].
+									configItem.FallbackFreqPercent,
 							},
 							{
 								PowerProfile: "cpuscalingprofile2",
 								CpuIDs:       []uint{1, 2},
 								SamplePeriod: metav1.Duration{Duration: 89 * time.Millisecond},
 								PodUID:       "fghij",
+								FallbackFreqPercent: eppDefaults[powerv1.EPPBalancePower].
+									configItem.FallbackFreqPercent,
 							},
 						},
 					},
@@ -1289,6 +1301,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 								CpuIDs:       []uint{5, 6, 7, 8},
 								SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
 								PodUID:       "abcde",
+								FallbackFreqPercent: eppDefaults[powerv1.EPPBalancePerformance].
+									configItem.FallbackFreqPercent,
 							},
 						},
 					},
@@ -1348,6 +1362,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 							CpuIDs:       []uint{5, 6, 7, 8},
 							SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
 							PodUID:       "abcde",
+							FallbackFreqPercent: eppDefaults[powerv1.EPPBalancePerformance].
+								configItem.FallbackFreqPercent,
 						},
 					},
 				}, csc.Spec)
@@ -1384,10 +1400,11 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					Spec: powerv1.CPUScalingConfigurationSpec{
 						Items: []powerv1.ConfigItem{
 							{
-								PowerProfile: "cpuscalingprofile1",
-								CpuIDs:       []uint{99, 999},
-								SamplePeriod: metav1.Duration{Duration: 99 * time.Millisecond},
-								PodUID:       "mnbvc",
+								PowerProfile:        "cpuscalingprofile1",
+								CpuIDs:              []uint{99, 999},
+								SamplePeriod:        metav1.Duration{Duration: 99 * time.Millisecond},
+								PodUID:              "mnbvc",
+								FallbackFreqPercent: eppDefaults[powerv1.EPPPerformance].configItem.FallbackFreqPercent,
 							},
 						},
 					},
@@ -1481,6 +1498,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 							CpuIDs:       []uint{1, 2},
 							SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
 							PodUID:       "abcde",
+							FallbackFreqPercent: eppDefaults[powerv1.EPPBalancePerformance].
+								configItem.FallbackFreqPercent,
 						},
 					},
 				}, csc.Spec)
@@ -1537,6 +1556,8 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 								CpuIDs:       []uint{1, 2},
 								SamplePeriod: metav1.Duration{Duration: 15 * time.Millisecond},
 								PodUID:       "abcde",
+								FallbackFreqPercent: eppDefaults[powerv1.EPPBalancePerformance].
+									configItem.FallbackFreqPercent,
 							},
 						},
 					},
@@ -1663,10 +1684,11 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				assert.Equal(t, powerv1.CPUScalingConfigurationSpec{
 					Items: []powerv1.ConfigItem{
 						{
-							PowerProfile: "cpuscalingprofile1",
-							CpuIDs:       []uint{5, 6, 7, 8},
-							SamplePeriod: *eppDefaults[powerv1.EPPPower].cpuScalingProfileSpec.SamplePeriod,
-							PodUID:       "abcde",
+							PowerProfile:        "cpuscalingprofile1",
+							CpuIDs:              []uint{5, 6, 7, 8},
+							SamplePeriod:        *eppDefaults[powerv1.EPPPower].cpuScalingProfileSpec.SamplePeriod,
+							FallbackFreqPercent: eppDefaults[powerv1.EPPPower].configItem.FallbackFreqPercent,
+							PodUID:              "abcde",
 						},
 					},
 				}, csc.Spec)

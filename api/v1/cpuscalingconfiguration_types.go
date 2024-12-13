@@ -28,6 +28,11 @@ type ConfigItem struct {
 	// PowerProfile is the CPUScalingProfile that this CPUScalingConfiguration is based on
 	PowerProfile string `json:"powerProfile"`
 
+	// Frequency to set when CPU busyness is not available, in percent of max frequency
+	// +kubebuilder:validation:Minimum=0
+	// +kubebuilder:validation:Maximum=100
+	FallbackFreqPercent int `json:"fallbackFreqPercent"`
+
 	// List of CPU IDs which should adhere to the configuration in this item
 	//+kubebuilder:validation:MinItems=1
 	CpuIDs []uint `json:"cpuIDs"`

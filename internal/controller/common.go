@@ -41,7 +41,9 @@ var eppDefaults map[powerv1.EPP]eppValues = map[powerv1.EPP]eppValues{
 			Max:          ptr.To(intstr.FromString("100%")),
 			SamplePeriod: &metav1.Duration{Duration: 10 * time.Millisecond},
 		},
-		configItem: powerv1.ConfigItem{},
+		configItem: powerv1.ConfigItem{
+			FallbackFreqPercent: 100,
+		},
 	},
 	powerv1.EPPBalancePerformance: {
 		cpuScalingProfileSpec: powerv1.CPUScalingProfileSpec{
@@ -49,7 +51,9 @@ var eppDefaults map[powerv1.EPP]eppValues = map[powerv1.EPP]eppValues{
 			Max:          ptr.To(intstr.FromString("100%")),
 			SamplePeriod: &metav1.Duration{Duration: 10 * time.Millisecond},
 		},
-		configItem: powerv1.ConfigItem{},
+		configItem: powerv1.ConfigItem{
+			FallbackFreqPercent: 50,
+		},
 	},
 	powerv1.EPPBalancePower: {
 		cpuScalingProfileSpec: powerv1.CPUScalingProfileSpec{
@@ -57,7 +61,9 @@ var eppDefaults map[powerv1.EPP]eppValues = map[powerv1.EPP]eppValues{
 			Max:          ptr.To(intstr.FromString("100%")),
 			SamplePeriod: &metav1.Duration{Duration: 10 * time.Millisecond},
 		},
-		configItem: powerv1.ConfigItem{},
+		configItem: powerv1.ConfigItem{
+			FallbackFreqPercent: 25,
+		},
 	},
 	powerv1.EPPPower: {
 		cpuScalingProfileSpec: powerv1.CPUScalingProfileSpec{
@@ -65,7 +71,9 @@ var eppDefaults map[powerv1.EPP]eppValues = map[powerv1.EPP]eppValues{
 			Max:          ptr.To(intstr.FromString("100%")),
 			SamplePeriod: &metav1.Duration{Duration: 10 * time.Millisecond},
 		},
-		configItem: powerv1.ConfigItem{},
+		configItem: powerv1.ConfigItem{
+			FallbackFreqPercent: 0,
+		},
 	},
 }
 
