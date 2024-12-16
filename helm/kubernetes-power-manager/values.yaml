@@ -100,7 +100,7 @@ sharedprofile:
   namespace: power-manager
   spec:
     name: "shared"
-    max: ""
-    min: ""
+    max: 1000
+    min: 1000
     epp: "power"
     governor: "powersave"
