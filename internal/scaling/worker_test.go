@@ -76,7 +76,7 @@ func TestCPUScalingWorker_runLoop(t *testing.T) {
 	wrk.opts.Store(opts)
 
 	upd := &updaterMock{}
-	upd.On("Update", opts).Return()
+	upd.On("Update", opts).Return(opts.SamplePeriod)
 	wrk.updater = upd
 	wrk.waitGroup.Add(1)
 
