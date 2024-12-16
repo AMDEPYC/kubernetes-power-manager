@@ -62,6 +62,8 @@ func (w *cpuScalingWorkerImpl) Stop() {
 func (w *cpuScalingWorkerImpl) runLoop(ctx context.Context) {
 	defer w.waitGroup.Done()
 
+	opts := w.opts.Load()
+	waitFor := opts.SamplePeriod
 	for {
 		if testHookStopLoop != nil {
 			if testHookStopLoop() {
@@ -69,12 +71,12 @@ func (w *cpuScalingWorkerImpl) runLoop(ctx context.Context) {
 			}
 		}
 
-		opts := w.opts.Load()
+		opts = w.opts.Load()
 		select {
 		case <-ctx.Done():
 			return
-		case <-time.After(opts.SamplePeriod):
-			w.updater.Update(opts)
+		case <-time.After(waitFor):
+			waitFor = w.updater.Update(opts)
 		}
 	}
 }
