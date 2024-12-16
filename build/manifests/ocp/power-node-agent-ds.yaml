@@ -46,6 +46,9 @@ spec:
             - mountPath: /var/lib/kubelet/pod-resources/
               name: kubesock
               readOnly: true
+            - mountPath: /var/lib/power-node-agent/pods
+              name: pods
+              readOnly: true
       volumes:
         - name: cpusetup
           hostPath:
@@ -56,3 +59,7 @@ spec:
         - name: kubesock
           hostPath:
             path: /var/lib/kubelet/pod-resources
+        - name: pods
+          hostPath:
+            path: /var/lib/power-node-agent/pods
+            type: DirectoryOrCreate
