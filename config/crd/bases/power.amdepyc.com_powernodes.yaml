@@ -4,9 +4,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.14.0
-  name: powernodes.power.intel.com
+  name: powernodes.power.amdepyc.com
 spec:
-  group: power.intel.com
+  group: power.amdepyc.com
   names:
     kind: PowerNode
     listKind: PowerNodeList

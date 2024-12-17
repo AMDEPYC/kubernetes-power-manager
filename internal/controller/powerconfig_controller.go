@@ -41,7 +41,7 @@ import (
 )
 
 const (
-	ExtendedResourcePrefix = "power.intel.com/"
+	ExtendedResourcePrefix = "power.amdepyc.com/"
 	NodeAgentDSName        = "power-node-agent"
 	IntelPowerNamespace    = "power-manager"
 )
@@ -56,8 +56,8 @@ type PowerConfigReconciler struct {
 	State  *state.PowerNodeData
 }
 
-// +kubebuilder:rbac:groups=power.intel.com,resources=powerconfigs,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=power.intel.com,resources=powerconfigs/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=power.amdepyc.com,resources=powerconfigs,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=power.amdepyc.com,resources=powerconfigs/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=security.openshift.io,resources=securitycontextconstraints,resourceNames=privileged,verbs=use
 
 func (r *PowerConfigReconciler) Reconcile(c context.Context, req ctrl.Request) (ctrl.Result, error) {

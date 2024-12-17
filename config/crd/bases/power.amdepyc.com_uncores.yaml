@@ -4,20 +4,20 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.14.0
-  name: powerpods.power.intel.com
+  name: uncores.power.amdepyc.com
 spec:
-  group: power.intel.com
+  group: power.amdepyc.com
   names:
-    kind: PowerPod
-    listKind: PowerPodList
-    plural: powerpods
-    singular: powerpod
+    kind: Uncore
+    listKind: UncoreList
+    plural: uncores
+    singular: uncore
   scope: Namespaced
   versions:
   - name: v1
     schema:
       openAPIV3Schema:
-        description: PowerPod is the Schema for the powerpods API
+        description: Uncore is the Schema for the uncores API
         properties:
           apiVersion:
             description: |-
@@ -37,10 +37,37 @@ spec:
           metadata:
             type: object
           spec:
-            description: PowerPodSpec defines the desired state of PowerPod
+            description: UncoreSpec defines the desired state of Uncore
+            properties:
+              dieSelector:
+                items:
+                  properties:
+                    die:
+                      type: integer
+                    max:
+                      type: integer
+                    min:
+                      type: integer
+                    package:
+                      type: integer
+                  required:
+                  - max
+                  - min
+                  - package
+                  type: object
+                type: array
+              sysMax:
+                type: integer
+              sysMin:
+                type: integer
             type: object
           status:
-            description: PowerPodStatus defines the observed state of PowerPod
+            description: UncoreStatus defines the observed state of Uncore
+            properties:
+              errors:
+                items:
+                  type: string
+                type: array
             type: object
         type: object
     served: true

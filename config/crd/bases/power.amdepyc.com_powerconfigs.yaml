@@ -4,20 +4,20 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.14.0
-  name: uncores.power.intel.com
+  name: powerconfigs.power.amdepyc.com
 spec:
-  group: power.intel.com
+  group: power.amdepyc.com
   names:
-    kind: Uncore
-    listKind: UncoreList
-    plural: uncores
-    singular: uncore
+    kind: PowerConfig
+    listKind: PowerConfigList
+    plural: powerconfigs
+    singular: powerconfig
   scope: Namespaced
   versions:
   - name: v1
     schema:
       openAPIV3Schema:
-        description: Uncore is the Schema for the uncores API
+        description: PowerConfig is the Schema for the powerconfigs API
         properties:
           apiVersion:
             description: |-
@@ -37,34 +37,35 @@ spec:
           metadata:
             type: object
           spec:
-            description: UncoreSpec defines the desired state of Uncore
+            description: PowerConfigSpec defines the desired state of PowerConfig
             properties:
-              dieSelector:
+              customDevices:
+                description: The CustomDevices include alternative devices that represent
+                  other resources
                 items:
-                  properties:
-                    die:
-                      type: integer
-                    max:
-                      type: integer
-                    min:
-                      type: integer
-                    package:
-                      type: integer
-                  required:
-                  - max
-                  - min
-                  - package
-                  type: object
+                  type: string
                 type: array
-              sysMax:
-                type: integer
-              sysMin:
-                type: integer
+              powerNodeSelector:
+                additionalProperties:
+                  type: string
+                description: The label on the Nodes you the Operator will look for
+                  to deploy the Node Agent
+                type: object
+              powerProfiles:
+                description: The PowerProfiles that will be created by the Operator
+                items:
+                  type: string
+                type: array
             type: object
           status:
-            description: UncoreStatus defines the observed state of Uncore
+            description: PowerConfigStatus defines the observed state of PowerConfig
             properties:
               errors:
+                items:
+                  type: string
+                type: array
+              nodes:
+                description: The Nodes that the Node Agent has been deployed to
                 items:
                   type: string
                 type: array

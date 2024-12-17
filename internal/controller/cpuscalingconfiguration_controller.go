@@ -56,9 +56,9 @@ var (
 	maxSamplePeriod = time.Duration(1 * time.Second)
 )
 
-//+kubebuilder:rbac:groups=power.intel.com,resources=cpuscalingconfigurations,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=power.intel.com,resources=cpuscalingconfigurations/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=power.intel.com,resources=cpuscalingconfigurations/finalizers,verbs=update
+//+kubebuilder:rbac:groups=power.amdepyc.com,resources=cpuscalingconfigurations,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=power.amdepyc.com,resources=cpuscalingconfigurations/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=power.amdepyc.com,resources=cpuscalingconfigurations/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
