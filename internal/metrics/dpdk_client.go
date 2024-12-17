@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 	"reflect"
+	"strings"
 	"sync"
 	"time"
 
@@ -105,7 +106,6 @@ func (cl *dpdkTelemetryClientImpl) CreateConnection(data *DPDKTelemetryConnectio
 		} else {
 			newConn.waitGroup.Add(1)
 			go newConn.connect(ctx)
-			cl.log.V(4).Info("started new connection.", "podUID", podUID)
 		}
 	}
 }
@@ -222,6 +222,9 @@ func (c *dpdkTelemetryConnection) connectLoop(ctx context.Context) net.Conn {
 			if err == nil {
 				c.log.V(4).Info("connection opened")
 				return conn
+			}
+			if strings.Contains(err.Error(), "no such file or directory") {
+				c.log.Error(err, "dpdk telemetry socket not found")
 			}
 		}
 	}
