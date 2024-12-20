@@ -91,7 +91,7 @@ spec:
                     scalePercentage:
                       description: Percentage factor of CPU frequency change when
                         scaling
-                      maximum: 100
+                      maximum: 200
                       minimum: 10
                       type: integer
                     targetBusyness:

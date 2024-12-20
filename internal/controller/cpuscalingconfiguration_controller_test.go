@@ -287,6 +287,7 @@ func TestCPUScalingConfiguration_Reconcile_Success(t *testing.T) {
 					TargetBusyness:             100,
 					AllowedBusynessDifference:  10,
 					AllowedFrequencyDifference: 25,
+					ScalePercentage:            100,
 					FallbackFreqPercent:        50,
 					PodUID:                     "foo",
 				},
@@ -302,6 +303,7 @@ func TestCPUScalingConfiguration_Reconcile_Success(t *testing.T) {
 					AllowedBusynessDifference:  5,
 					AllowedFrequencyDifference: 45,
 					FallbackFreqPercent:        0,
+					ScalePercentage:            130,
 					PodUID:                     "bar",
 				},
 				{
@@ -316,6 +318,7 @@ func TestCPUScalingConfiguration_Reconcile_Success(t *testing.T) {
 					AllowedBusynessDifference:  0,
 					AllowedFrequencyDifference: 0,
 					FallbackFreqPercent:        100,
+					ScalePercentage:            47,
 					PodUID:                     "qux",
 				},
 			},
@@ -332,6 +335,7 @@ func TestCPUScalingConfiguration_Reconcile_Success(t *testing.T) {
 			HWMaxFrequency:             3700000,
 			HWMinFrequency:             400000,
 			CurrentTargetFrequency:     -1,
+			ScaleFactor:                1.0,
 			FallbackFreq:               2050000,
 		},
 		{
@@ -344,6 +348,7 @@ func TestCPUScalingConfiguration_Reconcile_Success(t *testing.T) {
 			HWMaxFrequency:             3700000,
 			HWMinFrequency:             400000,
 			CurrentTargetFrequency:     -1,
+			ScaleFactor:                1.0,
 			FallbackFreq:               2050000,
 		},
 		{
@@ -356,6 +361,7 @@ func TestCPUScalingConfiguration_Reconcile_Success(t *testing.T) {
 			HWMaxFrequency:             3700000,
 			HWMinFrequency:             400000,
 			CurrentTargetFrequency:     -1,
+			ScaleFactor:                1.3,
 			FallbackFreq:               400000,
 		},
 		{
@@ -368,6 +374,7 @@ func TestCPUScalingConfiguration_Reconcile_Success(t *testing.T) {
 			HWMaxFrequency:             3700000,
 			HWMinFrequency:             400000,
 			CurrentTargetFrequency:     -1,
+			ScaleFactor:                0.47,
 			FallbackFreq:               3700000,
 		},
 	}
