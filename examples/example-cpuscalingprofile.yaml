@@ -1,9 +1,6 @@
-apiVersion: power.amdepyc.com/v1
+apiVersion: power.intel.com/v1
 kind: CPUScalingProfile
 metadata:
-  labels:
-    app.kubernetes.io/name: intel-kubernetes-power-manager
-    app.kubernetes.io/managed-by: kustomize
   name: cpuscalingprofile-sample
 spec:
   samplePeriod: 100ms
@@ -12,5 +9,5 @@ spec:
   allowedBusynessDifference: 5
   allowedFrequencyDifference: 10
   min: "100%" # can be percentage of max frequency passed as a string, or regular value in MHz passed as int
-  max: "0%"   # can be percentage of max frequency passed as a string, or regular value in MHz passed as int
+  max: "0%" # can be percentage of max frequency passed as a string, or regular value in MHz passed as int
   epp: "power"
