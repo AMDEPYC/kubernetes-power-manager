@@ -88,6 +88,12 @@ spec:
                       description: Minimum time to elapse between two CPU sample periods
                       format: duration
                       type: string
+                    scalePercentage:
+                      description: Percentage factor of CPU frequency change when
+                        scaling
+                      maximum: 100
+                      minimum: 10
+                      type: integer
                     targetBusyness:
                       description: Target CPU busyness, in percents
                       maximum: 100

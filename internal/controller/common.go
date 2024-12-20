@@ -44,6 +44,7 @@ var eppDefaults map[powerv1.EPP]eppValues = map[powerv1.EPP]eppValues{
 			TargetBusyness:             ptr.To(80),
 			AllowedBusynessDifference:  ptr.To(5),
 			AllowedFrequencyDifference: ptr.To(25),
+			ScalePercentage:            ptr.To(50),
 		},
 		configItem: powerv1.ConfigItem{
 			FallbackFreqPercent: 100,
@@ -58,6 +59,7 @@ var eppDefaults map[powerv1.EPP]eppValues = map[powerv1.EPP]eppValues{
 			TargetBusyness:             ptr.To(80),
 			AllowedBusynessDifference:  ptr.To(5),
 			AllowedFrequencyDifference: ptr.To(25),
+			ScalePercentage:            ptr.To(50),
 		},
 		configItem: powerv1.ConfigItem{
 			FallbackFreqPercent: 50,
@@ -72,6 +74,7 @@ var eppDefaults map[powerv1.EPP]eppValues = map[powerv1.EPP]eppValues{
 			TargetBusyness:             ptr.To(80),
 			AllowedBusynessDifference:  ptr.To(5),
 			AllowedFrequencyDifference: ptr.To(25),
+			ScalePercentage:            ptr.To(50),
 		},
 		configItem: powerv1.ConfigItem{
 			FallbackFreqPercent: 25,
@@ -86,6 +89,7 @@ var eppDefaults map[powerv1.EPP]eppValues = map[powerv1.EPP]eppValues{
 			TargetBusyness:             ptr.To(80),
 			AllowedBusynessDifference:  ptr.To(5),
 			AllowedFrequencyDifference: ptr.To(25),
+			ScalePercentage:            ptr.To(50),
 		},
 		configItem: powerv1.ConfigItem{
 			FallbackFreqPercent: 0,

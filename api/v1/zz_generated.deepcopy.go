@@ -211,6 +211,11 @@ func (in *CPUScalingProfileSpec) DeepCopyInto(out *CPUScalingProfileSpec) {
 		*out = new(int)
 		**out = **in
 	}
+	if in.ScalePercentage != nil {
+		in, out := &in.ScalePercentage, &out.ScalePercentage
+		*out = new(int)
+		**out = **in
+	}
 	if in.Max != nil {
 		in, out := &in.Max, &out.Max
 		*out = new(intstr.IntOrString)

@@ -331,7 +331,7 @@ func TestCPUScalingConfiguration_Reconcile_Success(t *testing.T) {
 			AllowedFrequencyDifference: 25,
 			HWMaxFrequency:             3700000,
 			HWMinFrequency:             400000,
-			CurrentFrequency:           -1,
+			CurrentTargetFrequency:     -1,
 			FallbackFreq:               2050000,
 		},
 		{
@@ -343,7 +343,7 @@ func TestCPUScalingConfiguration_Reconcile_Success(t *testing.T) {
 			AllowedFrequencyDifference: 25,
 			HWMaxFrequency:             3700000,
 			HWMinFrequency:             400000,
-			CurrentFrequency:           -1,
+			CurrentTargetFrequency:     -1,
 			FallbackFreq:               2050000,
 		},
 		{
@@ -355,7 +355,7 @@ func TestCPUScalingConfiguration_Reconcile_Success(t *testing.T) {
 			AllowedFrequencyDifference: 45,
 			HWMaxFrequency:             3700000,
 			HWMinFrequency:             400000,
-			CurrentFrequency:           -1,
+			CurrentTargetFrequency:     -1,
 			FallbackFreq:               400000,
 		},
 		{
@@ -367,7 +367,7 @@ func TestCPUScalingConfiguration_Reconcile_Success(t *testing.T) {
 			AllowedFrequencyDifference: 0,
 			HWMaxFrequency:             3700000,
 			HWMinFrequency:             400000,
-			CurrentFrequency:           -1,
+			CurrentTargetFrequency:     -1,
 			FallbackFreq:               3700000,
 		},
 	}

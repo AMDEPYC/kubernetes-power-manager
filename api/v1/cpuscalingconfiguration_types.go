@@ -61,6 +61,11 @@ type ConfigItem struct {
 	// +kubebuilder:validation:Minimum=0
 	AllowedFrequencyDifference int `json:"allowedFrequencyDifference,omitempty"`
 
+	// Percentage factor of CPU frequency change when scaling
+	// +kubebuilder:validation:Minimum=10
+	// +kubebuilder:validation:Maximum=200
+	ScalePercentage int `json:"scalePercentage,omitempty"`
+
 	// UID of the Pod that this ConfigItem is associated with
 	PodUID types.UID `json:"podUID"`
 }

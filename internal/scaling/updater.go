@@ -26,8 +26,12 @@ func NewCPUScalingUpdater(powerLib *power.Host, dpdkClient metrics.DPDKTelemetry
 func (u *cpuScalingUpdaterImpl) Update(opts *CPUScalingOpts) time.Duration {
 	currentBusyness, err := u.dpdkClient.GetBusynessPercent(opts.CPUID)
 	if err != nil {
+		if frequencyInAllowedDifference(opts.FallbackFreq, opts) {
+			return opts.SamplePeriod
+		}
+
 		_ = setCPUFrequency(opts.CPUID, uint(opts.FallbackFreq))
-		opts.CurrentFrequency = opts.FallbackFreq
+		opts.CurrentTargetFrequency = opts.FallbackFreq
 		return opts.SamplePeriod
 	}
 
@@ -36,19 +40,45 @@ func (u *cpuScalingUpdaterImpl) Update(opts *CPUScalingOpts) time.Duration {
 		return opts.SamplePeriod
 	}
 
-	nextFrequency := opts.HWMinFrequency + currentBusyness*(opts.HWMaxFrequency-opts.HWMinFrequency)/opts.TargetBusyness
+	currentFrequencyUint, err := getCPUFrequency(opts.CPUID)
+	if err != nil {
+		if frequencyInAllowedDifference(opts.FallbackFreq, opts) {
+			return opts.SamplePeriod
+		}
 
+		_ = setCPUFrequency(opts.CPUID, uint(opts.FallbackFreq))
+		opts.CurrentTargetFrequency = opts.FallbackFreq
+		return opts.SamplePeriod
+	}
+	currentFrequency := int(currentFrequencyUint)
+
+	nextFrequencyFloat :=
+		float64(currentFrequency) * (1.0 + (float64(currentBusyness)/float64(opts.TargetBusyness)-1.0)*opts.ScaleFactor)
+	nextFrequency := int(nextFrequencyFloat)
+
+	if nextFrequency < opts.HWMinFrequency {
+		nextFrequency = opts.HWMinFrequency
+	}
 	if nextFrequency > opts.HWMaxFrequency {
 		nextFrequency = opts.HWMaxFrequency
 	}
 
-	if opts.CurrentFrequency != FrequencyNotYetSet &&
-		nextFrequency >= opts.CurrentFrequency-opts.AllowedFrequencyDifference &&
-		nextFrequency <= opts.CurrentFrequency+opts.AllowedFrequencyDifference {
+	if frequencyInAllowedDifference(nextFrequency, opts) {
 		return opts.SamplePeriod
 	}
 
 	_ = setCPUFrequency(opts.CPUID, uint(nextFrequency))
-	opts.CurrentFrequency = nextFrequency
+	opts.CurrentTargetFrequency = nextFrequency
+
 	return opts.CooldownPeriod
+}
+
+func frequencyInAllowedDifference(frequency int, opts *CPUScalingOpts) bool {
+	if opts.CurrentTargetFrequency != FrequencyNotYetSet &&
+		frequency >= opts.CurrentTargetFrequency-opts.AllowedFrequencyDifference &&
+		frequency <= opts.CurrentTargetFrequency+opts.AllowedFrequencyDifference {
+		return true
+	}
+
+	return false
 }

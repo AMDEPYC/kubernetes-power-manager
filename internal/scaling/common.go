@@ -13,6 +13,7 @@ type CPUScalingOpts struct {
 	AllowedFrequencyDifference int
 	HWMaxFrequency             int
 	HWMinFrequency             int
-	CurrentFrequency           int
+	CurrentTargetFrequency     int
+	ScaleFactor                float64
 	FallbackFreq               int
 }

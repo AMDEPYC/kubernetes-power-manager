@@ -50,6 +50,11 @@ type CPUScalingProfileSpec struct {
 	// +kubebuilder:validation:Minimum=0
 	AllowedFrequencyDifference *int `json:"allowedFrequencyDifference,omitempty"`
 
+	// Percentage factor of CPU frequency change when scaling
+	// +kubebuilder:validation:Minimum=10
+	// +kubebuilder:validation:Maximum=200
+	ScalePercentage *int `json:"scalePercentage,omitempty"`
+
 	// Maximum frequency CPUs can run at
 	//+kubebuilder:validation:XIntOrString
 	//+kubebuilder:validation:Pattern="^([1-9]?[0-9]|100)%$"

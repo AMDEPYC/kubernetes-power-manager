@@ -334,6 +334,7 @@ func (r *CPUScalingProfileReconciler) createConfigItems(powerWorkloadList *power
 						AllowedBusynessDifference:  *scalingProfile.Spec.AllowedBusynessDifference,
 						AllowedFrequencyDifference: *scalingProfile.Spec.AllowedFrequencyDifference,
 						FallbackFreqPercent:        eppDefaults[scalingProfile.Spec.Epp].configItem.FallbackFreqPercent,
+						ScalePercentage:            *scalingProfile.Spec.ScalePercentage,
 						PodUID:                     container.PodUID,
 					},
 				)
@@ -405,6 +406,9 @@ func (r *CPUScalingProfileReconciler) fillEmptyWithDefaults(scalingProfile *powe
 	}
 	if scalingProfile.Spec.Max == nil {
 		scalingProfile.Spec.Max = eppDefaults[scalingProfile.Spec.Epp].cpuScalingProfileSpec.Max
+	}
+	if scalingProfile.Spec.ScalePercentage == nil {
+		scalingProfile.Spec.ScalePercentage = eppDefaults[scalingProfile.Spec.Epp].cpuScalingProfileSpec.ScalePercentage
 	}
 }
 
