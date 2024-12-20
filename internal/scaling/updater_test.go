@@ -177,7 +177,7 @@ func TestCPUScalingUpdater_Update(t *testing.T) {
 				AllowedBusynessDifference:  1,
 				SamplePeriod:               15 * time.Millisecond,
 				FallbackFreq:               2000000,
-				CurrentTargetFrequency:     3517500,
+				CurrentTargetFrequency:     3418600,
 				HWMaxFrequency:             3700000,
 				HWMinFrequency:             400000,
 				ScaleFactor:                1.0,
