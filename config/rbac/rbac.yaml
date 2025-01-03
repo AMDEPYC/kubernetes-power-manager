@@ -20,7 +20,7 @@ metadata:
   name: operator-custom-resource-definitions-role
   namespace: power-manager
 rules:
-  - apiGroups: [ "", "power.intel.com", "apps", "coordination.k8s.io" ]
+  - apiGroups: [ "", "power.amdepyc.com", "apps", "coordination.k8s.io" ]
     resources: [ "powerconfigs", "powerconfigs/status", "powerprofiles", "powerprofiles/status", "events", "daemonsets", "configmaps", "configmaps/status", "leases","uncores" ]
     verbs: [ "*" ]
 ---
@@ -46,7 +46,7 @@ kind: ClusterRole
 metadata:
   name: operator-nodes
 rules:
-  - apiGroups: [ "", "power.intel.com", "apps" ]
+  - apiGroups: [ "", "power.amdepyc.com", "apps" ]
     resources: [ "nodes", "nodes/status", "configmaps", "configmaps/status", "powerconfigs", "powerconfigs/status", "powerprofiles", "powerprofiles/status", "powerworkloads", "powerworkloads/status", "powernodes", "powernodes/status", "events", "daemonsets","uncores" ]
     verbs: [ "*" ]
 
@@ -72,7 +72,7 @@ kind: ClusterRole
 metadata:
   name: node-agent-cluster-resources
 rules:
-  - apiGroups: [ "", "batch", "power.intel.com" ]
+  - apiGroups: [ "", "batch", "power.amdepyc.com" ]
     resources: [ "nodes", "nodes/status", "pods", "pods/status", "cronjobs", "cronjobs/status", "powerprofiles", "powerprofiles/status", "powerworkloads", "powerworkloads/status", "powernodes", "powernodes/status", "cstates", "cstates/status", "timeofdays", "timeofdays/status", "timeofdaycronjobs", "timeofdaycronjobs/status","uncores" ]
     verbs: [ "*" ]
 ---
