@@ -5,7 +5,7 @@ metadata:
     alm-examples: |-
       [
         {
-          "apiVersion": "power.intel.com/v1",
+          "apiVersion": "power.amdepyc.com/v1",
           "kind": "CStates",
           "metadata": {
             "labels": {
@@ -36,7 +36,7 @@ metadata:
           }
         },
         {
-          "apiVersion": "power.intel.com/v1",
+          "apiVersion": "power.amdepyc.com/v1",
           "kind": "PowerConfig",
           "metadata": {
             "labels": {
@@ -61,7 +61,7 @@ metadata:
           }
         },
         {
-          "apiVersion": "power.intel.com/v1",
+          "apiVersion": "power.amdepyc.com/v1",
           "kind": "PowerProfile",
           "metadata": {
             "labels": {
@@ -84,7 +84,7 @@ metadata:
           }
         },
         {
-          "apiVersion": "power.intel.com/v1",
+          "apiVersion": "power.amdepyc.com/v1",
           "kind": "PowerWorkload",
           "metadata": {
             "labels": {
@@ -111,7 +111,7 @@ metadata:
           }
         },
         {
-          "apiVersion": "power.intel.com/v1",
+          "apiVersion": "power.amdepyc.com/v1",
           "kind": "TimeOfDay",
           "metadata": {
             "labels": {
@@ -195,7 +195,7 @@ metadata:
           }
         },
         {
-          "apiVersion": "power.intel.com/v1",
+          "apiVersion": "power.amdepyc.com/v1",
           "kind": "Uncore",
           "metadata": {
             "labels": {

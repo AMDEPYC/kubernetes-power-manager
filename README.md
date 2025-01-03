@@ -291,7 +291,7 @@ PowerConfigs created after the first.
 ### Example
 
 ````yaml
-apiVersion: "power.intel.com/v1"
+apiVersion: "power.amdepyc.com/v1"
 kind: PowerConfig
 metadata:
   name: power-config
@@ -323,7 +323,7 @@ each Node with a Pod requesting a PowerProfile, based on the PowerProfile reques
 ### Example
 
 ````
-apiVersion: "power.intel.com/v1"
+apiVersion: "power.amdepyc.com/v1"
 kind: PowerWorkload
 metadata:
     name: performance-example-node-workload
@@ -367,7 +367,7 @@ A shared PowerProfile can be used for multiple shared PowerWorkloads.
 ### Example
 
 ````yaml
-apiVersion: "power.intel.com/v1"
+apiVersion: "power.amdepyc.com/v1"
 kind: PowerWorkload
 metadata:
   name: shared-example-node-workload
@@ -435,7 +435,7 @@ can determine the correct PowerProfile to use from the Base PowerProfile.
 #### Example
 
 ````yaml
-apiVersion: "power.intel.com/v1"
+apiVersion: "power.amdepyc.com/v1"
 kind: PowerProfile
 metadata:
   name: performance-example-node
@@ -453,7 +453,7 @@ This flag must be enabled when using a shared pool.
 #### Example
 
 ````yaml
-apiVersion: "power.intel.com/v1"
+apiVersion: "power.amdepyc.com/v1"
 kind: PowerProfile
 metadata:
   name: shared-example-node1
@@ -467,7 +467,7 @@ spec:
 ````
 
 ````yaml
-apiVersion: "power.intel.com/v1"
+apiVersion: "power.amdepyc.com/v1"
 kind: PowerProfile
 metadata:
   name: shared-example-node2
@@ -597,7 +597,7 @@ C6      Deep Power Down
 #### Example
 
 ````yaml
-apiVersion: power.intel.com/v1
+apiVersion: power.amdepyc.com/v1
 kind: CStates
 metadata:
   # Replace <NODE_NAME> with the name of the node to configure the C-States on that node
@@ -645,7 +645,7 @@ profile as well as the profile used by individual pods.
 #### Example
 
 ```yaml
-apiVersion: power.intel.com/v1
+apiVersion: power.amdepyc.com/v1
 kind: TimeOfDay
 metadata:
   # Replace <NODE_NAME> with the name of the node to use TOD on
@@ -713,7 +713,7 @@ Valid max and min uncore frequencies are determined by the hardware
 #### Example
 
 ````yaml
-apiVersion: power.intel.com/v1
+apiVersion: power.amdepyc.com/v1
 kind: Uncore
 metadata:
   name: <NODE_NAME>
@@ -738,7 +738,7 @@ spec:
 
 If any error occurs it will be displayed in the status field of the custom resource, eg.
 ````yaml
-apiVersion: power.intel.com/v1
+apiVersion: power.amdepyc.com/v1
 kind: CStates
   ...
 status:
@@ -747,7 +747,7 @@ status:
 ````
 If no errors occurred or were corrected, the list will be empty
 ````yaml
-apiVersion: power.intel.com/v1
+apiVersion: power.amdepyc.com/v1
 kind: CStates
   ...
 status:
@@ -1005,7 +1005,7 @@ The controller-manager-xxxx-xxxx pod will be created.
 The example PowerConfig in examples/example-powerconfig.yaml contains the following PowerConfig spec:
 
 ````yaml
-apiVersion: "power.intel.com/v1"
+apiVersion: "power.amdepyc.com/v1"
 kind: PowerConfig
 metadata:
   name: power-config
@@ -1030,7 +1030,7 @@ create the PowerProfiles that were requested on each Node.
 The example Shared PowerProfile in examples/example-shared-profile.yaml contains the following PowerProfile spec:
 
 ````yaml
-apiVersion: power.intel.com/v1
+apiVersion: power.amdepyc.com/v1
 kind: PowerProfile
 metadata:
   name: shared
@@ -1052,7 +1052,7 @@ Apply the Profile:
 The example Shared PowerWorkload in examples/example-shared-workload.yaml contains the following PowerWorkload spec:
 
 ````yaml
-apiVersion: power.intel.com/v1
+apiVersion: power.amdepyc.com/v1
 kind: PowerWorkload
 metadata:
   # Replace <NODE_NAME> with the Node associated with PowerWorkload 

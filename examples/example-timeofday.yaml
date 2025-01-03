@@ -1,4 +1,4 @@
-apiVersion: power.intel.com/v1
+apiVersion: power.amdepyc.com/v1
 kind: TimeOfDay
 metadata:
   # Replace <NODE_NAME> with the name of the node to use TOD on
