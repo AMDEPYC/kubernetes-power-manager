@@ -1,9 +1,6 @@
 apiVersion: power.amdepyc.com/v1
 kind: CPUScalingProfile
 metadata:
-  labels:
-    app.kubernetes.io/name: intel-kubernetes-power-manager
-    app.kubernetes.io/managed-by: kustomize
   name: cpuscalingprofile-sample
 spec:
   samplePeriod: 20ms
