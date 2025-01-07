@@ -5,7 +5,7 @@ metadata:
   name: cstates-viewer-role
 rules:
   - apiGroups:
-      - power.intel.com
+      - power.amdepyc.com
     resources:
       - cstates
     verbs:
@@ -13,7 +13,7 @@ rules:
       - list
       - watch
   - apiGroups:
-      - power.intel.com
+      - power.amdepyc.com
     resources:
       - cstates/status
     verbs:

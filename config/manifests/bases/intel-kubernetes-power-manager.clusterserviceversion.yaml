@@ -232,27 +232,27 @@ spec:
     - description: PowerConfig is the Schema for the powerconfigs API
       displayName: Power Config
       kind: PowerConfig
-      name: powerconfigs.power.intel.com
+      name: powerconfigs.power.amdepyc.com
       version: v1
     - description: PowerNode is the Schema for the powernodes API
       displayName: Power Node
       kind: PowerNode
-      name: powernodes.power.intel.com
+      name: powernodes.power.amdepyc.com
       version: v1
     - description: PowerPod is the Schema for the powerpods API
       displayName: Power Pod
       kind: PowerPod
-      name: powerpods.power.intel.com
+      name: powerpods.power.amdepyc.com
       version: v1
     - description: PowerProfile is the Schema for the powerprofiles API
       displayName: Power Profile
       kind: PowerProfile
-      name: powerprofiles.power.intel.com
+      name: powerprofiles.power.amdepyc.com
       version: v1
     - description: TimeOfDay is the Schema for the timeofdays API
       displayName: Time Of Day
       kind: TimeOfDay
-      name: timeofdays.power.intel.com
+      name: timeofdays.power.amdepyc.com
       version: v1
   description: The Kubernetes Power Manager bridges the gap between the container
     orchestration layer and hardware feature enablement, specifically Intel SST.

@@ -6,7 +6,7 @@ metadata:
   name: user-role
 rules:
   - apiGroups:
-      - power.intel.com
+      - power.amdepyc.com
     resources:
       - powerconfigs
     verbs:
@@ -15,14 +15,14 @@ rules:
       - update
       - watch
   - apiGroups:
-      - power.intel.com
+      - power.amdepyc.com
     resources:
       - powerconfigs/status
     verbs:
       - get
       - update
   - apiGroups:
-      - power.intel.com
+      - power.amdepyc.com
     resources:
       - powernodes
     verbs:
@@ -31,14 +31,14 @@ rules:
       - update
       - watch
   - apiGroups:
-      - power.intel.com
+      - power.amdepyc.com
     resources:
       - powernodes/status
     verbs:
       - get
       - update
   - apiGroups:
-      - power.intel.com
+      - power.amdepyc.com
     resources:
       - powerpods
     verbs:
@@ -47,14 +47,14 @@ rules:
       - update
       - watch
   - apiGroups:
-      - power.intel.com
+      - power.amdepyc.com
     resources:
       - powerpods/status
     verbs:
       - get
       - update
   - apiGroups:
-      - power.intel.com
+      - power.amdepyc.com
     resources:
       - powerprofiles
     verbs:
@@ -63,14 +63,14 @@ rules:
       - update
       - watch
   - apiGroups:
-      - power.intel.com
+      - power.amdepyc.com
     resources:
       - powerprofiles/status
     verbs:
       - get
       - update
   - apiGroups:
-      - power.intel.com
+      - power.amdepyc.com
     resources:
       - powerworkloads
     verbs:
@@ -79,14 +79,14 @@ rules:
       - update
       - watch
   - apiGroups:
-      - power.intel.com
+      - power.amdepyc.com
     resources:
       - powerworkloads/status
     verbs:
       - get
       - update
   - apiGroups:
-      - power.intel.com
+      - power.amdepyc.com
     resources:
       - timeofdays
     verbs:
@@ -95,7 +95,7 @@ rules:
       - update
       - watch
   - apiGroups:
-      - power.intel.com
+      - power.amdepyc.com
     resources:
       - timeofdays/status
     verbs:
