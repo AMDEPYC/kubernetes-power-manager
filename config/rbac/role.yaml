@@ -5,7 +5,7 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
-  - power.intel.com
+  - power.amdepyc.com
   resources:
   - cpuscalingconfigurations
   verbs:
@@ -17,13 +17,13 @@ rules:
   - update
   - watch
 - apiGroups:
-  - power.intel.com
+  - power.amdepyc.com
   resources:
   - cpuscalingconfigurations/finalizers
   verbs:
   - update
 - apiGroups:
-  - power.intel.com
+  - power.amdepyc.com
   resources:
   - cpuscalingconfigurations/status
   verbs:
@@ -31,7 +31,7 @@ rules:
   - patch
   - update
 - apiGroups:
-  - power.intel.com
+  - power.amdepyc.com
   resources:
   - cpuscalingprofiles
   verbs:
@@ -43,13 +43,13 @@ rules:
   - update
   - watch
 - apiGroups:
-  - power.intel.com
+  - power.amdepyc.com
   resources:
   - cpuscalingprofiles/finalizers
   verbs:
   - update
 - apiGroups:
-  - power.intel.com
+  - power.amdepyc.com
   resources:
   - cpuscalingprofiles/status
   verbs:
@@ -57,7 +57,7 @@ rules:
   - patch
   - update
 - apiGroups:
-  - power.intel.com
+  - power.amdepyc.com
   resources:
   - cstates
   verbs:
@@ -69,7 +69,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - power.intel.com
+  - power.amdepyc.com
   resources:
   - cstates/status
   verbs:
@@ -77,7 +77,7 @@ rules:
   - patch
   - update
 - apiGroups:
-  - power.intel.com
+  - power.amdepyc.com
   resources:
   - powerconfigs
   verbs:
@@ -89,7 +89,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - power.intel.com
+  - power.amdepyc.com
   resources:
   - powerconfigs/status
   verbs:
@@ -97,7 +97,7 @@ rules:
   - patch
   - update
 - apiGroups:
-  - power.intel.com
+  - power.amdepyc.com
   resources:
   - powernodes
   verbs:
@@ -109,7 +109,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - power.intel.com
+  - power.amdepyc.com
   resources:
   - powernodes/status
   verbs:
@@ -117,7 +117,7 @@ rules:
   - patch
   - update
 - apiGroups:
-  - power.intel.com
+  - power.amdepyc.com
   resources:
   - powerpods
   verbs:
@@ -129,7 +129,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - power.intel.com
+  - power.amdepyc.com
   resources:
   - powerpods/status
   verbs:
@@ -137,7 +137,7 @@ rules:
   - patch
   - update
 - apiGroups:
-  - power.intel.com
+  - power.amdepyc.com
   resources:
   - powerprofiles
   verbs:
@@ -149,7 +149,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - power.intel.com
+  - power.amdepyc.com
   resources:
   - powerprofiles/status
   verbs:
@@ -157,7 +157,7 @@ rules:
   - patch
   - update
 - apiGroups:
-  - power.intel.com
+  - power.amdepyc.com
   resources:
   - powerworkloads
   verbs:
@@ -169,7 +169,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - power.intel.com
+  - power.amdepyc.com
   resources:
   - powerworkloads/status
   verbs:
@@ -177,7 +177,7 @@ rules:
   - patch
   - update
 - apiGroups:
-  - power.intel.com
+  - power.amdepyc.com
   resources:
   - timeofdays
   verbs:
@@ -189,7 +189,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - power.intel.com
+  - power.amdepyc.com
   resources:
   - timeofdays/status
   verbs:
@@ -197,7 +197,7 @@ rules:
   - patch
   - update
 - apiGroups:
-  - power.intel.com
+  - power.amdepyc.com
   resources:
   - uncores
   verbs:
@@ -209,13 +209,13 @@ rules:
   - update
   - watch
 - apiGroups:
-  - power.intel.com
+  - power.amdepyc.com
   resources:
   - uncores/finalizers
   verbs:
   - update
 - apiGroups:
-  - power.intel.com
+  - power.amdepyc.com
   resources:
   - uncores/status
   verbs:

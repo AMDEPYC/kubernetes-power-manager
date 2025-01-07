@@ -23,7 +23,7 @@ metadata:
   name: {{ .Values.operatorrole.name }}
   namespace: {{ .Values.operatorrole.namespace }}
 rules:
-- apiGroups: ["", "power.intel.com", "apps", "coordination.k8s.io"]
+- apiGroups: ["", "power.amdepyc.com", "apps", "coordination.k8s.io"]
   resources: 
     {{ range .Values.operatorrole.resources }}
     - {{ . }}
@@ -65,7 +65,7 @@ kind: ClusterRole
 metadata:
   name: {{ .Values.operatorclusterrole.name }}
 rules:
-- apiGroups: ["", "power.intel.com", "apps"]
+- apiGroups: ["", "power.amdepyc.com", "apps"]
   resources: 
     {{ range .Values.operatorclusterrole.resources }}
     - {{ . }}
@@ -96,7 +96,7 @@ kind: ClusterRole
 metadata:
   name: {{ .Values.agentclusterrole.name }}
 rules:
-- apiGroups: ["", "batch", "power.intel.com"]
+- apiGroups: ["", "batch", "power.amdepyc.com"]
   resources: 
     {{ range .Values.agentclusterrole.resources }}
     - {{ . }}

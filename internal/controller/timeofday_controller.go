@@ -46,8 +46,8 @@ type TimeOfDayReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=power.intel.com,resources=timeofdays,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=power.intel.com,resources=timeofdays/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=power.amdepyc.com,resources=timeofdays,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=power.amdepyc.com,resources=timeofdays/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=security.openshift.io,resources=securitycontextconstraints,resourceNames=privileged,verbs=use
 
 func (r *TimeOfDayReconciler) Reconcile(c context.Context, req ctrl.Request) (ctrl.Result, error) {

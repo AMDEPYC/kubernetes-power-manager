@@ -743,8 +743,8 @@ func TestPowerProfile_Reconcile_DeleteProfile(t *testing.T) {
 					},
 					Status: corev1.NodeStatus{
 						Capacity: map[corev1.ResourceName]resource.Quantity{
-							CPUResource:                   *resource.NewQuantity(42, resource.DecimalSI),
-							"power.intel.com/performance": *resource.NewQuantity(42, resource.DecimalSI),
+							CPUResource:                     *resource.NewQuantity(42, resource.DecimalSI),
+							"power.amdepyc.com/performance": *resource.NewQuantity(42, resource.DecimalSI),
 						},
 					},
 				},

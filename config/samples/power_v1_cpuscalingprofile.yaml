@@ -1,4 +1,4 @@
-apiVersion: power.intel.com/v1
+apiVersion: power.amdepyc.com/v1
 kind: CPUScalingProfile
 metadata:
   labels:

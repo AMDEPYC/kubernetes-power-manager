@@ -1,4 +1,4 @@
-apiVersion: power.intel.com/v1
+apiVersion: power.amdepyc.com/v1
 kind: CStates
 metadata:
   # Replace <NODE_NAME> with the name of the node to configure the C-States on that node

@@ -4,9 +4,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.14.0
-  name: cpuscalingconfigurations.power.intel.com
+  name: cpuscalingconfigurations.power.amdepyc.com
 spec:
-  group: power.intel.com
+  group: power.amdepyc.com
   names:
     kind: CPUScalingConfiguration
     listKind: CPUScalingConfigurationList

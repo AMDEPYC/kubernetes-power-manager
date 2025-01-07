@@ -1,5 +1,5 @@
 {{- define "manager-chart-library.new-shared-profile" -}}
-apiVersion: power.intel.com/v1
+apiVersion: power.amdepyc.com/v1
 kind: PowerProfile
 metadata:
   name: {{ .Values.sharedprofile.name }}

@@ -1,5 +1,5 @@
 {{- define "manager-chart-library.powerconfig" -}}
-apiVersion: power.intel.com/v1
+apiVersion: power.amdepyc.com/v1
 kind: PowerConfig
 metadata:
   name: {{ .Values.powerconfig.name }}

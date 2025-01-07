@@ -2,85 +2,85 @@
 # This file is used to track the info used to scaffold your project
 # and allow the plugins properly work.
 # More info: https://book.kubebuilder.io/reference/project-config.html
-domain: intel.com
+domain: amdepyc.com
 layout:
 - go.kubebuilder.io/v4
 plugins:
   manifests.sdk.operatorframework.io/v2: {}
   scorecard.sdk.operatorframework.io/v2: {}
-projectName: intel-kubernetes-power-manager
-repo: github.com/intel/kubernetes-power-manager
+projectName: kubernetes-power-manager
+repo: github.com/AMDEPYC/kubernetes-power-manager
 resources:
 - api:
     crdVersion: v1
     namespaced: true
   controller: true
-  domain: intel.com
+  domain: amdepyc.com
   group: power
   kind: PowerNode
-  path: github.com/intel/kubernetes-power-manager/api/v1
+  path: github.com/AMDEPYC/kubernetes-power-manager/api/v1
   version: v1
 - api:
     crdVersion: v1
     namespaced: true
   controller: true
-  domain: intel.com
+  domain: amdepyc.com
   group: power
   kind: PowerProfile
-  path: github.com/intel/kubernetes-power-manager/api/v1
+  path: github.com/AMDEPYC/kubernetes-power-manager/api/v1
   version: v1
 - api:
     crdVersion: v1
     namespaced: true
   controller: true
-  domain: intel.com
+  domain: amdepyc.com
   group: power
   kind: PowerPod
-  path: github.com/intel/kubernetes-power-manager/api/v1
+  path: github.com/AMDEPYC/kubernetes-power-manager/api/v1
   version: v1
 - api:
     crdVersion: v1
     namespaced: true
   controller: true
-  domain: intel.com
+  domain: amdepyc.com
   group: power
   kind: PowerConfig
-  path: github.com/intel/kubernetes-power-manager/api/v1
+  path: github.com/AMDEPYC/kubernetes-power-manager/api/v1
   version: v1
 - api:
     crdVersion: v1
     namespaced: true
   controller: true
-  domain: intel.com
+  domain: amdepyc.com
   group: power
   kind: Time
-  path: github.com/intel/kubernetes-power-manager/api/v1
+  path: github.com/AMDEPYC/kubernetes-power-manager/api/v1
   version: v1
 - api:
     crdVersion: v1
     namespaced: true
   controller: true
-  domain: intel.com
+  domain: amdepyc.com
   group: power
   kind: TimeOfDay
-  path: github.com/intel/kubernetes-power-manager/api/v1
+  path: github.com/AMDEPYC/kubernetes-power-manager/api/v1
   version: v1
 - api:
     crdVersion: v1
     namespaced: true
   controller: true
-  domain: intel.com
+  domain: amdepyc.com
   group: power
   kind: CPUScalingProfile
-  path: github.com/intel/kubernetes-power-manager/api/v1
+  path: github.com/AMDEPYC/kubernetes-power-manager/api/v1
   version: v1
 - api:
     crdVersion: v1
     namespaced: true
   controller: true
-  domain: intel.com
+  domain: amdepyc.com
   group: power
   kind: CPUScalingConfiguration
-  path: github.com/intel/kubernetes-power-manager/api/v1
+  path: github.com/AMDEPYC/kubernetes-power-manager/api/v1
   version: v1
 version: "3"

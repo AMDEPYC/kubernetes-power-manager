@@ -46,9 +46,9 @@ type CPUScalingProfileReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=power.intel.com,resources=cpuscalingprofiles,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=power.intel.com,resources=cpuscalingprofiles/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=power.intel.com,resources=cpuscalingprofiles/finalizers,verbs=update
+//+kubebuilder:rbac:groups=power.amdepyc.com,resources=cpuscalingprofiles,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=power.amdepyc.com,resources=cpuscalingprofiles/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=power.amdepyc.com,resources=cpuscalingprofiles/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.

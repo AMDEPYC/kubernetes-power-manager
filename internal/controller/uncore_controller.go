@@ -40,9 +40,9 @@ type UncoreReconciler struct {
 	PowerLibrary power.Host
 }
 
-//+kubebuilder:rbac:groups=power.intel.com,resources=uncores,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=power.intel.com,resources=uncores/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=power.intel.com,resources=uncores/finalizers,verbs=update
+//+kubebuilder:rbac:groups=power.amdepyc.com,resources=uncores,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=power.amdepyc.com,resources=uncores/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=power.amdepyc.com,resources=uncores/finalizers,verbs=update
 //+kubebuilder:rbac:groups=security.openshift.io,resources=securitycontextconstraints,resourceNames=privileged,verbs=use
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to

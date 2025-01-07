@@ -37,14 +37,14 @@ var podSpec = corev1.PodSpec{
 			Name: "test-container-1",
 			Resources: corev1.ResourceRequirements{
 				Limits: map[corev1.ResourceName]resource.Quantity{
-					corev1.ResourceName("cpu"):                         *resource.NewQuantity(3, resource.DecimalSI),
-					corev1.ResourceName("memory"):                      *resource.NewQuantity(200, resource.DecimalSI),
-					corev1.ResourceName("power.intel.com/performance"): *resource.NewQuantity(2, resource.DecimalSI),
+					corev1.ResourceName("cpu"):                           *resource.NewQuantity(3, resource.DecimalSI),
+					corev1.ResourceName("memory"):                        *resource.NewQuantity(200, resource.DecimalSI),
+					corev1.ResourceName("power.amdepyc.com/performance"): *resource.NewQuantity(2, resource.DecimalSI),
 				},
 				Requests: map[corev1.ResourceName]resource.Quantity{
-					corev1.ResourceName("cpu"):                         *resource.NewQuantity(3, resource.DecimalSI),
-					corev1.ResourceName("memory"):                      *resource.NewQuantity(200, resource.DecimalSI),
-					corev1.ResourceName("power.intel.com/performance"): *resource.NewQuantity(2, resource.DecimalSI),
+					corev1.ResourceName("cpu"):                           *resource.NewQuantity(3, resource.DecimalSI),
+					corev1.ResourceName("memory"):                        *resource.NewQuantity(200, resource.DecimalSI),
+					corev1.ResourceName("power.amdepyc.com/performance"): *resource.NewQuantity(2, resource.DecimalSI),
 				},
 			},
 		},
