@@ -1,13 +1,14 @@
-apiVersion: power.intel.com/v1
+apiVersion: power.amdepyc.com/v1
 kind: CPUScalingProfile
 metadata:
   name: cpuscalingprofile-sample
 spec:
-  samplePeriod: 100ms
-  cooldownPeriod: 200ms
+  samplePeriod: 20ms
+  cooldownPeriod: 60ms
   targetBusyness: 80
   allowedBusynessDifference: 5
   allowedFrequencyDifference: 10
+  scalePercentage: 100
   min: "100%" # can be percentage of max frequency passed as a string, or regular value in MHz passed as int
   max: "0%" # can be percentage of max frequency passed as a string, or regular value in MHz passed as int
   epp: "power"
