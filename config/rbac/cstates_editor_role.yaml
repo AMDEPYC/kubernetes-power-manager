@@ -5,7 +5,7 @@ metadata:
   name: cstates-editor-role
 rules:
   - apiGroups:
-      - power.intel.com
+      - power.amdepyc.com
     resources:
       - cstates
     verbs:
@@ -17,7 +17,7 @@ rules:
       - update
       - watch
   - apiGroups:
-      - power.intel.com
+      - power.amdepyc.com
     resources:
       - cstates/status
     verbs:

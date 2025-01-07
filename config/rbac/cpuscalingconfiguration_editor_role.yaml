@@ -8,7 +8,7 @@ metadata:
   name: cpuscalingconfiguration-editor-role
 rules:
 - apiGroups:
-  - power.intel.com
+  - power.amdepyc.com
   resources:
   - cpuscalingconfigurations
   verbs:
@@ -20,7 +20,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - power.intel.com
+  - power.amdepyc.com
   resources:
   - cpuscalingconfigurations/status
   verbs:

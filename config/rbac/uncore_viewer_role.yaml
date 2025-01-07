@@ -12,7 +12,7 @@ metadata:
   name: uncore-viewer-role
 rules:
   - apiGroups:
-      - power.intel.com
+      - power.amdepyc.com
     resources:
       - uncores
     verbs:
@@ -20,7 +20,7 @@ rules:
       - list
       - watch
   - apiGroups:
-      - power.intel.com
+      - power.amdepyc.com
     resources:
       - uncores/status
     verbs:

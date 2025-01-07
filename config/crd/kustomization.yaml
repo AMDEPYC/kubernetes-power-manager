@@ -2,17 +2,17 @@
 # since it depends on service name and namespace that are out of this kustomize package.
 # It should be run by config/default
 resources:
-  - bases/power.intel.com_powernodes.yaml
-  - bases/power.intel.com_powerprofiles.yaml
-  - bases/power.intel.com_powerworkloads.yaml
-  - bases/power.intel.com_powerpods.yaml
-  - bases/power.intel.com_powerconfigs.yaml
-  - bases/power.intel.com_cstates.yaml
-  - bases/power.intel.com_timeofdays.yaml
-  - bases/power.intel.com_timeofdaycronjobs.yaml
-  - bases/power.intel.com_uncores.yaml
-  - bases/power.intel.com_cpuscalingprofiles.yaml
-  - bases/power.intel.com_cpuscalingconfigurations.yaml
+  - bases/power.amdepyc.com_powernodes.yaml
+  - bases/power.amdepyc.com_powerprofiles.yaml
+  - bases/power.amdepyc.com_powerworkloads.yaml
+  - bases/power.amdepyc.com_powerpods.yaml
+  - bases/power.amdepyc.com_powerconfigs.yaml
+  - bases/power.amdepyc.com_cstates.yaml
+  - bases/power.amdepyc.com_timeofdays.yaml
+  - bases/power.amdepyc.com_timeofdaycronjobs.yaml
+  - bases/power.amdepyc.com_uncores.yaml
+  - bases/power.amdepyc.com_cpuscalingprofiles.yaml
+  - bases/power.amdepyc.com_cpuscalingconfigurations.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
 patchesStrategicMerge:

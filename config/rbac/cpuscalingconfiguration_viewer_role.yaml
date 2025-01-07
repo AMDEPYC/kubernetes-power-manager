@@ -8,7 +8,7 @@ metadata:
   name: cpuscalingconfiguration-viewer-role
 rules:
 - apiGroups:
-  - power.intel.com
+  - power.amdepyc.com
   resources:
   - cpuscalingconfigurations
   verbs:
@@ -16,7 +16,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - power.intel.com
+  - power.amdepyc.com
   resources:
   - cpuscalingconfigurations/status
   verbs:
