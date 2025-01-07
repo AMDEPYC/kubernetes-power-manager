@@ -195,10 +195,11 @@ func (r *CPUScalingConfigurationReconciler) parseConfig(configItems []powerv1.Co
 				CooldownPeriod:             item.CooldownPeriod.Duration,
 				TargetBusyness:             item.TargetBusyness,
 				AllowedBusynessDifference:  item.AllowedBusynessDifference,
-				AllowedFrequencyDifference: item.AllowedFrequencyDifference,
+				AllowedFrequencyDifference: item.AllowedFrequencyDifference * 1000,
 				HWMaxFrequency:             maxFreq,
 				HWMinFrequency:             minFreq,
-				CurrentFrequency:           scaling.FrequencyNotYetSet,
+				CurrentTargetFrequency:     scaling.FrequencyNotYetSet,
+				ScaleFactor:                float64(item.ScalePercentage) / 100.0,
 				FallbackFreq:               fallbackFreq,
 			}
 			optsList = append(optsList, opts)
