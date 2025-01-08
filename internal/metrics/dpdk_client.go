@@ -205,6 +205,7 @@ func (c *dpdkTelemetryConnection) connect(ctx context.Context) {
 			return
 		}
 		if err := c.ioLoop(ctx, conn); err != nil {
+			c.clearMetrics(c.watchedCPUs)
 			c.log.Error(err, "connection closed")
 		}
 	}
