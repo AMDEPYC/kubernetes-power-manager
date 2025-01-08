@@ -38,7 +38,7 @@ function setup_dpdk_testapp {
         tmux new-session -d "dpdk-testpmd --lcores $CLIENT_CPUS --file-prefix=client --no-pci \
         --huge-dir=\"/hugepages-1Gi\" --vdev=\"net_memif0,role=client,socket=/var/run/memif/memif1.sock\" -- \
         --rxq=$SERVER_CPUS_NUM --txq=$SERVER_CPUS_NUM --nb-cores=$CLIENT_CPUS_NUM \
-        -i -a --rss-udp --forward-mode=txonly"
+        -a --tx-first --rss-udp --forward-mode=io"
 
     echo "Deployed successfully"
 }
