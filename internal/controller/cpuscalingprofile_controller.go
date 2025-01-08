@@ -244,8 +244,19 @@ func (r *CPUScalingProfileReconciler) verifyCPUScalingProfileParams(scalingSpec 
 	}
 
 	if scalingSpec.CooldownPeriod != nil {
-		if scalingSpec.CooldownPeriod.Duration < scalingSpec.SamplePeriod.Duration {
-			return fmt.Errorf("%s: CooldownPeriod must be larger than SamplePeriod", errMsg)
+		cdErr := fmt.Errorf("%s: CooldownPeriod must be larger than SamplePeriod", errMsg)
+		if scalingSpec.SamplePeriod != nil {
+			if scalingSpec.CooldownPeriod.Duration < scalingSpec.SamplePeriod.Duration {
+				return cdErr
+			}
+		} else if scalingSpec.Epp != "" {
+			if scalingSpec.CooldownPeriod.Duration < eppDefaults[scalingSpec.Epp].configItem.SamplePeriod.Duration {
+				return cdErr
+			}
+		} else {
+			if scalingSpec.CooldownPeriod.Duration < eppDefaults[powerv1.EPPPower].configItem.SamplePeriod.Duration {
+				return cdErr
+			}
 		}
 	}
 
