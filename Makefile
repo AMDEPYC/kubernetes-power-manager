@@ -265,6 +265,11 @@ push: ## Push docker images with the controller and agent.
 	$(MAKE) docker-push IMG=$(CONTROLLER_IMG_BASE):v$(VERSION)
 	$(MAKE) docker-push IMG=$(AGENT_IMG_BASE):v$(VERSION)
 
+.PHONY: push-ocp
+push-ocp: ## Push ocp docker images with the controller and agent.
+	$(MAKE) docker-push IMG=$(CONTROLLER_IMG_BASE)_ocp-$(OCP_VERSION):v$(VERSION)
+	$(MAKE) docker-push IMG=$(AGENT_IMG_BASE)_ocp-$(OCP_VERSION):v$(VERSION)
+
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
 	$(CONTAINER_TOOL) push ${IMG}
