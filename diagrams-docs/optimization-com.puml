@@ -1,0 +1,77 @@
+@startuml
+
+<style>
+node {
+  BackGroundColor effbda
+  LineThickness 2
+  LineColor black
+  FontSize 20
+}
+
+rectangle {
+  BackGroundColor #d1ffff
+  LineThickness 2
+  LineColor black
+  FontSize 25
+  FontStyle italic
+}
+
+agent {
+  BackGroundColor #d1ffff
+  LineThickness 1
+  LineColor black
+}
+</style>
+
+
+
+title <b>Optimization Logic component diagram
+skinparam roundCorner 15
+
+node "CPU Scaling Profile" {
+}
+
+node "Power Workload" {
+}
+
+node "PowerOperator" {
+rectangle "CPU Scaling Profile Controller"
+}
+node "Power Profile" {
+}
+
+node "CPU Scaling Configuration" {
+}
+
+node "Power Node Agent" {
+rectangle "CPU Scaling Configuration Controller"
+rectangle "CPU Scaling Manager"
+rectangle "DPDK Telemetry Client"
+rectangle "DPDK Telemetry Reader"
+
+"Power Workload" <--> "CPU Scaling Profile Controller"
+"CPU Scaling Profile" <--> "CPU Scaling Profile Controller"
+"Power Profile" <--> "CPU Scaling Profile Controller"
+"CPU Scaling Configuration" <--> "CPU Scaling Configuration Controller"
+"CPU Scaling Profile Controller" --> "CPU Scaling Configuration"
+"CPU Scaling Configuration Controller" --> "CPU Scaling Manager"
+"CPU Scaling Manager" --> "DPDK Telemetry Client"
+"DPDK Telemetry Client" --> "DPDK Telemetry Reader"
+}
+
+node "Workload" {
+}
+
+node "Linux OS" {
+rectangle "CPUFreq via sysfs"
+rectangle "DPDK Telemetry socket"
+
+"Workload" --> "DPDK Telemetry socket"
+"CPU Scaling Manager" --> "CPUFreq via sysfs"
+"DPDK Telemetry Reader" --> "DPDK Telemetry socket"
+"Workload" --> "Power Workload"
+"Workload" --> "CPU Scaling Profile"
+
+}
+
+@enduml
