@@ -1,13 +1,31 @@
+#!/usr/bin/env python3
+
 import glob
 import os
 import re
+import sys
 import socket
 import json
 import curses
 import time
 import struct
+import argparse
 
 TOPOPATH = "/sys/devices/system/cpu"
+
+
+def parse_intervals(interval_string):
+    intervals = interval_string.split(',')
+    result = []
+
+    for interval in intervals:
+        if '-' in interval:
+            start, end = map(int, interval.split('-'))
+            result.extend(range(start, end + 1))
+        else:
+            result.append(int(interval))
+
+    return result
 
 
 def connect_to_socket(socket_path):
@@ -244,6 +262,8 @@ class CpuTopology(object):
             return
         dpdk_busyness = read_busyness(os.path.join("/var/lib/power-node-agent/pods", self.pod_uid, "dpdk/rte/dpdk_telemetry.v2"))
         if not dpdk_busyness:
+            for cpu in self.cpus.values():
+                cpu.busyness = None
             return
         for cpu_id, busyness in dpdk_busyness['/eal/lcore/busyness'].items():
             self.cpus[int(cpu_id)].busyness = busyness
@@ -276,7 +296,7 @@ class CpuPresenter(object):
         column = 0
         for param in self.params:
             val = getattr(cpu, param.identifier, None)
-            if val:
+            if val is not None:
                 val_present = eval(f"f'''{param.fmt}'''")
             else:
                 val_present = " "
@@ -285,12 +305,12 @@ class CpuPresenter(object):
                 self.scr.addstr(row, column + len(val_present), " " * (param.width - len(val_present) + 1), curses.color_pair(color_pair))
             column += param.width + 1
 
-def main(stdscr):
-    refresh_interval_sec = 0.2
-    monitor_cpus = list(range(4, 12))
-    monitor_siblings = True
-    monitor_dpdk_telemetry = True
-    dpdk_pod_uid = "d914bdea-8b50-41f0-a102-1811af03e7ea"
+def main(stdscr, args):
+    refresh_interval_sec = args.interval
+    monitor_cpus = parse_intervals(args.cpu)
+    monitor_siblings = not args.no_siblings
+    monitor_dpdk_telemetry = args.dpdk_pod_uid != ""
+    dpdk_pod_uid = args.dpdk_pod_uid
     topology = CpuTopology(dpdk_pod_uid)
     topology.read_topology()
 
@@ -337,4 +357,10 @@ def main(stdscr):
         time.sleep(refresh_interval_sec)
 
 if __name__=="__main__":
-    curses.wrapper(main)
+    parser = argparse.ArgumentParser(description="Kubernetes Power Manager CPU monitor")
+    parser.add_argument("--interval", "-n", type=float, default=1.0, help="refresh interval in seconds")
+    parser.add_argument("--cpu", "-c", type=str, default="0", help="List of cpus to watch")
+    parser.add_argument("--no-siblings", "-s", action="store_true", help="Don't watch siblings")
+    parser.add_argument("--dpdk-pod-uid", "-d", type=str, default="", help="Watch dpdk busyness using dpdk application pod")
+    args = parser.parse_args()
+    curses.wrapper(main, args)
