@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dpdk-testapp
+  namespace: power-manager
+  labels:
+    app: dpdk-testapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dpdk-testapp
+  template:
+    metadata:
+      labels:
+        app: dpdk-testapp
+    spec:
+      nodeSelector:
+        "feature.node.kubernetes.io/power-node": "true"
+      containers:
+        - name: server
+          env:
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.uid
+          image: amdepyc/dpdk-testapp:0.0.1 # Subject to change
+          imagePullPolicy: Always # IfNotPresent
+          command: ["tail", "-f", "/dev/null"]
+          securityContext:
+            privileged: true
+          resources:
+            requests:
+              cpu: "32"
+              hugepages-1Gi: "10Gi"
+              memory: "6Gi"
+              power.amdepyc.com/cpuscalingprofile-power: "32"
+            limits:
+              cpu: "32"
+              hugepages-1Gi: "10Gi"
+              memory: "6Gi"
+              power.amdepyc.com/cpuscalingprofile-power: "32"
+          volumeMounts:
+            - mountPath: /hugepages-1Gi
+              name: hugepages-1gi
+            - mountPath: /var/run/memif
+              name: memif
+            - name: pods
+              mountPath: /var/run/dpdk/rte
+              subPathExpr: $(POD_UID)/dpdk/rte
+        - name: client
+          env:
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.uid
+          image: amdepyc/dpdk-testapp:0.0.1
+          imagePullPolicy: Always
+          command: ["tail", "-f", "/dev/null"]
+          securityContext:
+            privileged: true
+          resources:
+            requests:
+              cpu: "8"
+              hugepages-1Gi: "5Gi"
+              memory: "3Gi"
+              power.amdepyc.com/performance: "8"
+            limits:
+              cpu: "8"
+              hugepages-1Gi: "5Gi"
+              memory: "3Gi"
+              power.amdepyc.com/performance: "8"
+          volumeMounts:
+            - mountPath: /hugepages-1Gi
+              name: hugepages-1gi
+            - mountPath: /var/run/memif
+              name: memif
+            - name: pods
+              mountPath: /var/run/dpdk/rte
+              subPathExpr: $(POD_UID)/dpdk/rte
+      volumes:
+        - name: hugepages-1gi
+          emptyDir:
+            medium: HugePages-1Gi
+        - name: memif
+          emptyDir: {}
+        - name: pods
+          hostPath:
+            path: /var/lib/power-node-agent/pods
+            type: DirectoryOrCreate
