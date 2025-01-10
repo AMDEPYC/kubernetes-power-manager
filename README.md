@@ -379,7 +379,7 @@ spec:
 ````
 
 Max and min values can be ommitted. Then hardware frequency limits on respective machine will be taken.
-It is also possible to user percentages, where 0% = hardware minimum frequency,
+It is also possible to use percentages, where 0% = hardware minimum frequency,
 100% = hardware maiximum frequency.
 
 One or more shared PowerProfiles must be created by the user. The Power controller determines
