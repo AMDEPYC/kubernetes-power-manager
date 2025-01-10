@@ -326,6 +326,8 @@ not begin with ‘shared-’ is rejected and deleted by the PowerWorkload contro
 powerNodeSelector must also select a unique node, so it is recommended that the ‘kubernetes.io/hostname’ label be used.
 A shared PowerProfile can be used for multiple shared PowerWorkloads.
 
+Creating a shared Power Workload is a necessary precondition for every node to operate Kubernetes Power Manager features properly.
+
 ### Example - Shared workload
 
 ````yaml
@@ -1091,6 +1093,12 @@ shared-<NODE_NAME>-workload            61m
 ````
 
 - **Performance Pod with sample DPDK application**
+
+A precondition for this example is to have 1GiB hugepages configured on target nodes. This can be verified by:
+
+`kubectl get node <NODE_NAME> -o custom-columns=NAME:.metadata.name,HUGEPAGES-1GI:.status.allocatable."hugepages-1Gi" `
+
+Refer to the [Kubernetes hugepage documentation](https://kubernetes.io/docs/tasks/manage-hugepages/scheduling-hugepages/) for more details.
 
 The example Pod with sample DPDK application in examples/example-dpdk-testapp.yaml contains the following PodSpec:
 
