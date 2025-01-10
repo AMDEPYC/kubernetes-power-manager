@@ -70,7 +70,7 @@ operator:
       name: intel-power-operator
     command: /manager
     args: --leader-elect
-    image: intel/power-operator:v2.5.0
+    image: amdepyc/power-operator:v1.1.0
     name: manager
     cpu:
       limits: 200m
