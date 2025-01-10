@@ -33,7 +33,7 @@ spec:
             - name: RELATED_IMAGE_AGENT
               value: intel/power-node-agent_ocp-4.13:v2.3.1
           imagePullPolicy: IfNotPresent
-          image: intel/power-operator_ocp-4.13:v2.3.1
+          image: amdepyc/power-operator_ocp-4.13:v1.1.0
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

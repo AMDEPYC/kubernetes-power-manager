@@ -1,7 +1,7 @@
 export APP_NAME=intel-kubernetes-power-manager
 
-CONTROLLER_IMG ?= intel/power-operator
-AGENT_IMG ?= intel/power-node-agent
+CONTROLLER_IMG ?= amdepyc/power-operator
+AGENT_IMG ?= amdepyc/power-node-agent
 
 # Prepend registry address to image tags for controller and agent.
 # The address is sourced from IMAGE_REGISTRY environment variable.
@@ -18,7 +18,7 @@ endif
 # To re-generate a bundle for another specific version without changing the standard setup, you can:
 # - use the VERSION as arg of the bundle target (e.g make bundle VERSION=0.0.2)
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
-VERSION ?= 2.5.0
+VERSION ?= 1.1.0
 
 # CHANNELS define the bundle channels used in the bundle.
 # Add a new line here if you would like to change its default config. (E.g CHANNELS = "candidate,fast,stable")
@@ -93,7 +93,7 @@ SHELL = /usr/bin/env bash -o pipefail
 
 # parameters used for helm chart images
 HELM ?= helm
-HELM_CHART ?= v2.5.0
+HELM_CHART ?= v1.1.0
 HELM_VERSION := $(shell echo $(HELM_CHART) | cut -d "v" -f2)
 
 # used to detemine if certain targets should build for openshift
