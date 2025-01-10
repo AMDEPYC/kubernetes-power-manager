@@ -3,7 +3,7 @@
 ## Introduction
 
 Utilizing a container orchestration engine like Kubernetes, CPU resources are allocated from a pool of platforms
-entirely based on availability, without taking into account specific features like Intel Speed Select Technology (SST).
+entirely based on availability, without taking into account specific features of modern processors.
 
 The Kubernetes Power Manager is a Kubernetes Operator that has been developed to provide cluster users with a mechanism
 to dynamically request adjustment of worker node power management settings applied to cores allocated to the Pods. The
@@ -12,13 +12,12 @@ may have different policies applied. It is not required that every core in the s
 Kubernetes power manager. When the Power Manager is used to specify core power related policies, it overrides the
 default settings
 
-Powerful features from the Intel SST package give users more precise control over CPU performance and power use on a
+Powerful features of the AMD EPYC processors give users more precise control over CPU performance and power use on a
 per-core basis. Yet, Kubernetes is purposefully built to operate as an abstraction layer between the workload and such
 hardware capabilities as a workload orchestrator. Users of Kubernetes who are running performance-critical workloads
 with particular requirements reliant on hardware capabilities encounter a challenge as a consequence.
 
-The Kubernetes Power Manager bridges the gap between the container orchestration layer and hardware features enablement,
-specifically Intel SST.
+The Kubernetes Power Manager bridges the gap between the container orchestration layer and hardware features enablement.
 
 ### Kubernetes Power Manager' main responsibilities:
 
@@ -40,9 +39,10 @@ specifically Intel SST.
 
 ### Further Info:
   Please see the _diagrams-docs_ directory for diagrams with a visual breakdown of the power manager and its components.
+
 ## Functionality of the Kubernetes Power Manager
 
-- **SST-CP - (Speed Select Technology - Core Power)**
+- **Power profiles**
 
   The user can arrange cores according to priority levels using this capability. When the system has extra power, it can
   be distributed among the cores according to their priority level. Although it cannot be guaranteed, the system will
@@ -60,11 +60,23 @@ specifically Intel SST.
 - **Frequency Tuning**
 
   Frequency tuning allows the individual cores on the system to be sped up or slowed down by changing their frequency.
-  This tuning is done via the [Intel Power Optimization Library](https://github.com/intel/power-optimization-library).
+  This tuning is done via the Power Optimization Library.
   The min and max values for a core are defined in the Power Profile and the tuning is done after the core has been
   assigned by the Native CPU Manager.
   How exactly the frequency of the cores is changed is by simply writing the new frequency value to the
   /sys/devices/system/cpu/cpuN/cpufreq/scaling_max|min_freq file for the given core.
+
+- **Dynamic CPU Frequency Management**
+
+  CPU frequency can be dynamically adjusted based on CPU busyness. This can be achieved in two ways:
+
+  1. **PowerProfile with schedutil governor**: This approach considers kernel-based CPU load for frequency scaling.
+
+  2. **CPUScalingProfile**: This option leverages DPDK Telemetry to assess busyness, allowing for efficient
+     CPU frequency management in poll-based applications, which are common in the networking domain.
+
+  By utilizing these methods, it is possible to save energy even for workloads that may appear to fully
+  utilize CPU resources from the kernel's perspective.
 
 - **Time of Day**
 
@@ -74,16 +86,8 @@ specifically Intel SST.
 -  **Scaling Drivers**
     * **P-State**
   
-      Modern Intel CPUs automatically employ the Intel P_State CPU power scaling driver. This driver is integrated rather
-      than a module, giving it precedence over other drivers. For Sandy Bridge and newer CPUs, this driver is currently used
-      automatically. The BIOS P-State settings might be disregarded by Intel P-State.
-      The Intel P-State driver utilizes the "Performance" and "Powersave" governors.
-      ***Performance***
-      The CPUfreq governor "performance" sets the CPU statically to the highest frequency within the borders of
-      scaling_min_freq and scaling_max_freq.
-      ***Powersave***
-      The CPUfreq governor "powersave" sets the CPU statically to the lowest frequency within the borders of
-      scaling_min_freq and scaling_max_freq.
+      AMD EPYC CPUs automatically employ the P_State CPU power scaling driver.
+      The AMD P-State driver utilizes CPUFreq governors.
     * **acpi-cpufreq**
       
       The acpi-cpufreq driver setting operates much like the P-state driver but has a different set of available governors. For more information see [here](https://www.kernel.org/doc/html/v4.12/admin-guide/pm/cpufreq.html).
@@ -92,44 +96,24 @@ specifically Intel SST.
       This is important to take into account when setting frequencies for profiles.
 
 - **Uncore**
-  The largest part of modern CPUs is outside the actual cores. On Intel CPUs this is part is called the "Uncore" and has
+  The largest part of modern CPUs is outside the actual cores. On AMD EPYC CPUs this is part is called the "Uncore" and has
   last level caches, PCI-Express, memory controller, QPI, power management and other functionalities.
   The previous deployment pattern was that an uncore setting was applied to sets of servers that are allocated as
   capacity for handling a particular type of workload. This is typically a one-time configuration today. The Kubenetes
   Power Manager now makes this dynamic and through a cloud native pattern. The implication is that the cluster-level
-  capacity for the workload can then configured dynamically, as well as scaled dynamically. Uncore frequency applies to
-  Xeon scalable and D processors could save up to 40% of CPU power or improved performance gains.
+  capacity for the workload can then configured dynamically, as well as scaled dynamically.
 
 - **Metric reporting**
 
   Processor-related metrics are available for scraping by Telegraf or similar metrics agent. Metrics are provided in Prometheus exposition format.
   Metrics are collected from various sources, like Linux PMU, MSR, or dedicated libraries.
 
-## Future planned additions to the Kubernetes Power Manager
-
-- **SST-BF - (Speed Select Technology - Base Frequency)**
-
-  The base frequency of some cores can be changed by the user using this feature. The CPU's performance is ensured at
-  the basic frequency (a CPU will never go below its base frequency). Priority cores can apply their crucial workloads
-  for a guaranteed performance at a base frequency that is greater than the majority of the other cores on the system.
-
-- **SST-TF - Turbo Frequency**
-
-  This feature allows the user to set different “All-Core Turbo Frequency” values to individual cores based on their
-  priority.
-  All-Core Turbo is the Turbo Frequency at which all cores can run on the system at the same time.
-  The user can set certain cores to have a higher All-Core Turbo Frequency by lowering this value for other cores or
-  setting them to no value at all.
-
-  This feature is only useful when all cores on the system are being utilized, but the user still wants to be able to
-  configure certain cores to get a higher performance than others.
-
 ## Prerequisites
 
 * Node Feature Discovery ([NFD](https://github.com/kubernetes-sigs/node-feature-discovery)) should be deployed in the
-  cluster before running the Kubernetes Power Manager. NFD is used to detect node-level features such as *Intel Speed
-  Select Technology - Base Frequency (SST-BF)*. Once detected, the user can instruct the Kubernetes Power Manager to
-  deploy the Power Node Agent to Nodes with SST-specific labels, allowing the Power Node Agent to take advantage of such
+  cluster before running the Kubernetes Power Manager. NFD is used to detect node-level features.
+  Once detected, the user can instruct the Kubernetes Power Manager to deploy the Power Node Agent
+  to Nodes with specific labels, allowing the Power Node Agent to take advantage of such
   features by configuring cores on the host to optimise performance for containerized workloads.
   Note: NFD is recommended, but not essential. Node labels can also be applied manually. See
   the [NFD repo](https://github.com/kubernetes-sigs/node-feature-discovery#feature-labels) for a full list of features
@@ -222,44 +206,19 @@ To uninstall the latest version, use the following command:
 
 You can use the HELM_CHART and OCP parameters to deploy an older or Openshift specific version of the Kubernetes Power Manager:
 
-`HELM_CHART=v2.3.1 OCP=true make helm-install`
-`HELM_CHART=v2.2.0 make helm-install`
-`HELM_CHART=v2.1.0 make helm-install`
+`HELM_CHART=v1.1.0 OCP=true make helm-install`
+`HELM_CHART=v1.1.0 make helm-install`
+`HELM_CHART=v1.1.0 make helm-install`
 
 Please note when installing older versions that certain features listed in this README may not be supported.
 
-## Working environments
-
-The Kubernetes Power Manager has been tested in different environments.  
-The below table are results that have been tested and confirmed to function as desired:
-
-|   OS           |   Kernel                        |  Container runtime         | Kubernetes   |
-| :------------: |  :------------------------:     |  :-----------------------: |  :--------:  |
-| Rocky 8.6      | 6.0.9-1.el8.elrepo.x86_64       | Docker 20.10.18            | v1.25.0      |
-| Ubuntu 20.04   | 5.15.0-50-generic               | Containerd 1.6.9           | 1.25.4       |
-| Ubuntu 20.04   | 5.15.0-50-generic               | cri-o 1.23.4               | 1.25.4       |
-| Ubuntu 20.04   | 5.15.0-50-generic               | Docker 22.6.0              | 1.25.4       |
-| Ubuntu 20.04   | 5.15.0-50-generic               | Containerd 1.6.9           | 1.24.3       |
-| Ubuntu 20.04   | 5.15.0-50-generic               | Containerd 1.6.9           | 1.24.2       |
-| Ubuntu 20.04   | 5.15.0-50-generic               | Containerd 1.6.9           | 1.23.3       |
-| Ubuntu 20.04   | 5.15.0-50-generic               | Docker 20.10.12            | 1.23.3       |
-| Ubuntu 20.04   | 5.10.0-132-generic              | Docker 22.6.0              | 1.25.4       | 
-| Ubuntu 20.04   | 5.4.0-132-generic               | Containerd 1.6.9           | 1.25.4       |
-| Ubuntu 20.04   | 5.4.0-122-generic               | Containerd 1.6.9           | 1.24.4       |
-| CentOS 8       | 4.18.0-372.19.1.el8_6.x86_64    |Containerd 1.6.9            | 1.24.3       |
-| Rocky 8.6      | 4.18.0-372.19.1.el8_6.x86_64    | Docker  20.10.18           | 1.25.0       |
-
-
-Note: this does not include additional environments.
-
 ## Components
 
-### Intel Power Optimization Library
+### Power Optimization Library
 
-[Intel Power Optimization Library](https://github.com/intel/power-optimization-library), takes the desired configuration
+Power Optimization Library takes the desired configuration
 for the cores associated with Exclusive Pods and tune them based on the requested Power Profile. The Power Optimization
-Library will also facilitate the use of the Intel SST (Speed Select Technology) Suite (SST-CP - Speed Select
-Technology-Core Power, and Frequency Tuning) and C-States functionality.
+Library will also facilitate the use of the C-States functionality.
 
 ### Power Node Agent
 
@@ -307,7 +266,7 @@ spec:
 
 ### Workload Controller
 
-The Workload Controller is responsible for the actual tuning of the cores. The Workload Controller uses the Intel Power
+The Workload Controller is responsible for the actual tuning of the cores. The Workload Controller uses the Power
 Optimization Library and requests that it creates the Pools. The Pools hold the PowerProfile associated with the cores
 and the cores that need to be configured.
 
@@ -320,16 +279,17 @@ PowerWorkload is created, the cores that remain in the ‘shared pool’ on the 
 values instead of being tuned to lower frequencies. PowerWorkloads are specific to a given node, so one is created for
 each Node with a Pod requesting a PowerProfile, based on the PowerProfile requested.
 
-### Example
+### Example - automatically created PowerWorkload
 
 ````
 apiVersion: "power.amdepyc.com/v1"
 kind: PowerWorkload
 metadata:
-    name: performance-example-node-workload
+    name: performance-example-node
     namespace: power-manager
 spec:
-   name: "performance-example-node-workload"
+   name: performance-example-node
+   powerProfile: performance
    nodeInfo:
      containers:
      - exclusiveCPUs:
@@ -339,15 +299,17 @@ spec:
        - 67
        id: f1be89f7dda457a7bb8929d4da8d3b3092c9e2a35d91065f1b1c9e71d19bcd4f
        name: example-container
+       namespace: app-namespace
        pod: example-pod
-       powerProfile: “performance-example-node”
-     name: “example-node”
+       podUID: e90ec778-006b-4bac-a954-7b022d08d5c7
+       powerProfile: performance
+       workload: performance-example-node
+     name: example-node
      cpuIds:
      - 2
      - 3
      - 66
      - 67
-   powerProfile: "performance-example-node"
 ````
 
 This workload assigns the “performance” PowerProfile to cores 2, 3, 66, and 67 on the node “example-node”
@@ -364,7 +326,9 @@ not begin with ‘shared-’ is rejected and deleted by the PowerWorkload contro
 powerNodeSelector must also select a unique node, so it is recommended that the ‘kubernetes.io/hostname’ label be used.
 A shared PowerProfile can be used for multiple shared PowerWorkloads.
 
-### Example
+Creating a shared Power Workload is a necessary precondition for every node to operate Kubernetes Power Manager features properly.
+
+### Example - Shared workload
 
 ````yaml
 apiVersion: "power.amdepyc.com/v1"
@@ -381,56 +345,26 @@ spec:
   powerNodeSelector:
     # Labels other than hostname can be used
     - “kubernetes.io/hostname”: “example-node”
-  powerProfile: "shared-example-node"
+  powerProfile: "shared"
 ````
-
-**Important** Version 2.4.0 of the Kubernetes Power Manager allows users the possibility of assigning a specific power profile
-to a reserved pool. This is turn relies on a change in the PowerWorkload CRD that is not backwards compatible with
-older versions of Kubernetes Power Manager (v2.3.1 and older). If affected by this problem, you will see similar error in the
-manager POD's logs:
-````
-Failed to watch *v1.PowerWorkload: failed to list *v1.PowerWorkload: json: cannot unmarshal number into Go struct field PowerWorkloadSpec.items.spec.reservedCPUs of type v1.ReservedSpec
-````
-
-To mitigate this problem, we ask customers to update their PowerWorkload manifests as suggested below:
-````yaml
--   - 0
--   - 1
-+   - cores: [0, 1]
-````
-We aim to fix this issue in the next release of the Kubernetes Power Manager. 
-
 
 ### Profile Controller
 
-The Profile Controller holds values for specific SST settings which are then applied to cores at host level by the
+The Profile Controller holds values for specific CPU settings which are then applied to cores at host level by the
 Kubernetes Power Manager as requested. Power Profiles are advertised as extended resources and can be requested via the
 PodSpec. The Config controller creates the requested high-performance PowerProfiles depending on which are requested in
 the PowerConfig created by the user.
 
-There are two kinds of PowerProfiles:
+A base PowerProfile can be one of values:
 
-- Base PowerProfiles
-- Extended PowerProfiles
-
-A Base PowerProfile can be one of three values:
-
+- power
 - performance
 - balance-performance
 - balance-power
 
-These correspond to three of the EPP values associated with SST-CP. Base PowerProfiles are used to tell the Profile
-controller that the specified profile is being requested for the cluster. The Profile controller takes the created
-Profile and further creates an Extended PowerProfile. An Extended PowerProfile is Node-specific. The reason behind this
-is that different Nodes in your cluster may have different maximum frequency limitations. For example, one Node may have
-the maximum limitation of 3700GHz, while another may only be able to reach frequency levels of 3200GHz. An Extended
-PowerProfile queries the Node that it is running on to obtain this maximum limitation and sets the Max and Min values of
-the profile accordingly. An Extended PowerProfile’s name has the following form:
-
-BASE_PROFILE_NAME-NODE_NAME - for example: “performance-example-node”.
-
-Either the Base PowerProfile or the Extended PowerProfile can be requested in the PodSpec, as the Workload controller
-can determine the correct PowerProfile to use from the Base PowerProfile.
+These correspond to the EPP values. Base PowerProfiles are used to tell the Profile
+controller that the specified profile is being requested for the cluster.
+A PowerProfile can be requested in the PodSpec.
 
 #### Example
 
@@ -446,19 +380,23 @@ spec:
   epp: "performance"
 ````
 
-The Shared PowerProfile must be created by the user and does not require a Base PowerProfile. This allows the user to
-have a Shared PowerProfile per Node in their cluster, giving more room for different configurations. The Power
-controller determines that a PowerProfile is being designated as ‘Shared’ through the use of the ‘shared’ parameter.
+Max and min values can be ommitted. Then hardware frequency limits on respective machine will be taken.
+It is also possible to use percentages, where 0% = hardware minimum frequency,
+100% = hardware maiximum frequency.
+
+One or more shared PowerProfiles must be created by the user. The Power controller determines
+that a PowerProfile is being designated as ‘Shared’ through the use of the ‘shared’ parameter.
 This flag must be enabled when using a shared pool.
+
 #### Example
 
 ````yaml
 apiVersion: "power.amdepyc.com/v1"
 kind: PowerProfile
 metadata:
-  name: shared-example-node1
+  name: shared-example1
 spec:
-  name: "shared-example-node1"
+  name: "shared-example1"
   max: 1500
   min: 1000
   shared: true
@@ -470,14 +408,118 @@ spec:
 apiVersion: "power.amdepyc.com/v1"
 kind: PowerProfile
 metadata:
-  name: shared-example-node2
+  name: shared-example2
 spec:
-  name: "shared-example-node2"
-  max: 2000
-  min: 1500
+  name: "shared-example2"
+  max: "90%"
+  min: "10%"
   shared: true
   governor: "powersave"
 
+````
+
+### CPU Scaling Profile Controller
+
+The CPU Scaling Profile Controller dynamically adjusts CPU frequency based on workload busyness,
+utilizing [DPDK Telemetry](https://doc.dpdk.org/guides/howto/telemetry.html) for accurate reporting.
+It leverages the userspace CPUFreq governor to manage frequency settings effectively.
+
+When a CPU Scaling Profile is created, it generates a corresponding PowerProfile with the same name.
+This PowerProfile is tasked with configuring the CPUs to operate under the userspace governor,
+applying specified parameters such as EPP (Energy Performance Preference), and maximum/minimum frequency limits.
+
+Additionally, the CPU Scaling Profile offers predefined profiles tailored to various EPP values, including:
+- **power**: Optimizes for energy efficiency.
+- **balance_power**: Strikes a balance between performance and power consumption.
+- **balance_performance**: Prioritizes performance while maintaining reasonable power usage.
+- **performance**: Maximizes performance at the cost of higher power consumption.
+
+Table with predefined values:
+
+| Parameter                  | Description                                           |                     |                     |                     |                     |
+|----------------------------|-------------------------------------------------------|---------------------|---------------------|---------------------|---------------------|
+| epp                        | Target EPP value and identifier for predefined        <br>parameter values |               power |       balance_power | balance_performance |         performance |
+| cooldownPeriod             | Time to elapse after setting a new frequency target   <br>before next CPU sampling |                30ms |                30ms |                30ms |                30ms |
+| targetBusyness             | Target CPU busyness, in percents                      |                  80 |                  80 |                  80 |                  80 |
+| allowedBusynessDifference | Maximum difference between target and actual          <br>CPU busyness on which frequency re-evaluation <br>will not happen, in percent points |                   5 |                   5 |                   5 |                   5 |
+| allowedFrequencyDifference | Maximum difference between target and actual          <br>CPU frequency on which frequency re-evaluation <br>will not happen, in MHz |                  25 |                  25 |                  25 |                  25 |
+| samplePeriod               | Minimum time to elapse between two CPU sample periods |                10ms |                10ms |                10ms |                10ms |
+| min                        | Minimum frequency CPUs can run at, in MHz or percents |                  0% |                  0% |                  0% |                  0% |
+| max                        | Maximum frequency CPUs can run at, in MHz or percents |                100% |                100% |                100% |                100% |
+| scalePercentage            | Percentage factor of CPU frequency change             <br>when scaling, in percents |                  50 |                  50 |                  50 |                  50 |
+
+
+Fallback frequency for the cases when workload busyness is not available:
+
+|               power |        balnce_power | balance_performance |         performance |
+|---------------------|---------------------|---------------------|---------------------|
+|                  0% |                 25% |                 50% |                100% |
+
+The formula that is used to set CPU frequency:
+
+$$
+\text{nextTargetFrequency} = \text{currentFrequency} \times \left(1 + \left(\frac{\text{currentBusyness}}{\text{targetBusyness}} - 1\right) \times \text{scalePercentage}\right)
+$$
+
+CPU Scaling Profiles are advertised as extended resources similarly as Power Profiles and can be requested via the PodSpec.
+For reference, see the Performance Pod example.
+
+The Controller also creates CPU Scaling Configuration for nodes where the Profile is requested.
+
+Note: CPUScalingProfile cannot be used for hosts with EPP support due to limitations for setting **userspace** CPUFreq governor.
+
+#### Example
+
+````yaml
+apiVersion: power.amdepyc.com/v1
+kind: CPUScalingProfile
+metadata:
+  name: cpuscalingprofile-sample
+spec:
+  epp: power
+  samplePeriod: 20ms
+  cooldownPeriod: 60ms
+  targetBusyness: 80
+  allowedBusynessDifference: 5
+  allowedFrequencyDifference: 15
+  scalePercentage: 100
+  min: "100%"
+  max: "0%"
+````
+
+### CPU Scaling Configuration Controller
+
+The CPU Scaling Profile Configuration is an internal resource and should not be created or modified by end users.
+The CPU Scaling Configuration Controller manages the CPU frequency for each instance where the corresponding
+CPU Scaling Profile needs to be applied.
+
+It uses DPDK Telemetry client to connect to Pod's DPDK Telemetry application. Accordingly to reported busyness,
+it drives CPU frequency.
+
+#### Example
+
+````yaml
+apiVersion: power.amdepyc.com/v1
+kind: CPUScalingConfiguration
+metadata:
+  name: example-node
+  namespace: power-manager
+spec:
+  items:
+  - allowedBysynessDifference: 5
+    allowedFrequencyDifference: 25
+    cooldownPeriod: 30ms
+    fallbackPercent: 25
+    cpuIDs:
+    - 2
+    - 3
+    - 8
+    - 9
+    podUID: e90ec778-006b-4bac-a954-7b022d08d5c7
+    powerProfile: cpuscalingprofile-sample
+    samplePeriod: 10ms
+    scalePercentage: 50
+    targetBusyness: 80
 ````
 
 ### PowerNode Controller
@@ -488,21 +530,18 @@ the containers that those cores are associated to. Moreover, it informs the user
 Default Pool or the Shared Pool can be one of the two shared pools. The Default Pool will hold all the cores in the "
 shared pool," none of which will have their frequencies set to a lower value, if there is no Shared PowerProfile
 associated with the Node. The cores in the "shared pool"—apart from those reserved for Kubernetes processes (
-reservedCPUs)—will be assigned to the Shared Pool and have their cores tuned by the Intel Power Optimization Library if
+reservedCPUs)—will be assigned to the Shared Pool and have their cores tuned by the Power Optimization Library if
 a Shared PowerProfile is associated with the Node.
 
 #### Example
 
 ````
-activeProfiles:
-    performance-example-node: true
-  activeWorkloads:
-  - cores:
-    - 2
-    - 3
-    - 8
-    - 9
-    name: performance-example-node-workload
+apiVersion: power.amdepyc.com/v1
+kind: PowerNode
+Metadata:
+  name: example-node
+  namespace: power-manager
+spec:
   nodeName: example-node
   powerContainers:
   - exclusiveCpus:
@@ -512,67 +551,38 @@ activeProfiles:
     - 9
     id: c392f492e05fc245f77eba8a90bf466f70f19cb48767968f3bf44d7493e18e5b
     name: example-container
+    namespace: example-app-namespace
     pod: example-pod
-    powerProfile: performance-example-node
-    workload: performance-example-node-workload
-  sharedPools:
-  - name: Default
-    sharedPoolCpuIds:
-    - 0
-    - 1
-    - 4
-    - 5
-    - 6
-    - 7
-    - 10
-````
-
-````
-activeProfiles:
-    performance-example-node: true
-  activeWorkloads:
-  - cores:
-    - 2
-    - 3
-    - 8
-    - 9
-    name: performance-example-node-workload
-  nodeName: example-node
-  powerContainers:
-  - exclusiveCpus:
-    - 2
-    - 3
-    - 8
-    - 9
-    id: c392f492e05fc245f77eba8a90bf466f70f19cb48767968f3bf44d7493e18e5b
-    name: example-container
-    pod: example-pod
-    powerProfile: performance-example-node
-    workload: performance-example-node-workload
-  sharedPools:
-  - name: Default
-    sharedPoolCpuIds:
-    - 0
-    - 1
-- name: Shared
-    sharedPoolCpuIds:
-    - 4
-    - 5
-    - 6
-    - 7
-    - 10
+    podUID: e90ec778-006b-4bac-a954-7b022d08d5c7
+    powerProfile: performance
+    workload: performance-example-node
+  powerProfiles:
+  - 'shared: 2100000 || 400000 || '
+  - 'powersave: 3709000 || 400000 || '
+  - 'balance-performance: 2882000 || 2682000 || '
+  - 'balance-power: 2055000 || 1855000 || '
+  - 'performance: 3709000 || 3509000 || '
+  powerWorkloads:
+  - 'balance-performance: balance-performance || '
+  - 'balance-power: balance-power || '
+  - 'performance: performance || 2-3,8-9'
+  - 'shared: shared || '
+  - 'powersave: powersave || '
+  reservedPools:
+  - 2100000 || 400000 || 0-1
+  sharedPool: shared || 2100000 || 400000 || 4-7,10-127
 ````
 
 ### C-States
 
 To save energy on a system, you can command the CPU to go into a low-power mode. Each CPU has several power modes, which
 are collectively called C-States. These work by cutting the clock signal and power from idle CPUs, or CPUs that are not
-executing commands.While you save more energy by sending CPUs into deeper C-State modes, it does take more time for the
+executing commands. While you save more energy by sending CPUs into deeper C-State modes, it does take more time for the
 CPU to fully “wake up” from sleep mode, so there is a trade-off when it comes to deciding the depth of sleep.
 
 #### C-State Implementation in the Power Optimization Library
 
-The driver that is used for C-States is the intel_idle driver. Everything associated with C-States in Linux is stored in
+The driver that is used for C-States is the cpu_idle driver. Everything associated with C-States in Linux is stored in
 the /sys/devices/system/cpu/cpuN/cpuidle file or the /sys/devices/system/cpu/cpuidle file. To check the driver in use,
 the user simply has to check the /sys/devices/system/cpu/cpuidle/current_driver file.
 
@@ -584,14 +594,8 @@ check on the system if they are activated and if they are not, reject the PowerC
 
 ````
 C0      Operating State
-C1      Halt
-C1E     Enhanced Halt
-C2      Stop Grant   
-C2E     Extended Stop Grant
-C3      Deep Sleep
-C4      Deeper Sleep
-C4E/C5  Enhanced Deeper Sleep
-C6      Deep Power Down
+C1      Idle
+C2      Idle and power gated, deep sleep
 ````
 
 #### Example
@@ -611,23 +615,16 @@ spec:
   individualCoreCStates:
     "3":
       C1: true
-      C6: false
+      C2: false
 ````
 
-### intel-pstate CPU Performance Scaling Driver
-  The intel_pstate is a part of the CPU performance scaling subsystem in the Linux kernel (CPUFreq).
+### amd-pstate CPU Performance Scaling Driver
+  The amd_pstate is a part of the CPU performance scaling subsystem in the Linux kernel (CPUFreq).
 
   In some situations it is desirable or even necessary to run the program as fast as possible and then there is no reason to use any P-states different from the highest one (i.e. the highest-performance frequency/voltage configuration available). In some other cases, however, it may not be necessary to execute instructions so quickly and maintaining the highest available CPU capacity for a relatively long time without utilizing it entirely may be regarded as wasteful. It also may not be physically possible to maintain maximum CPU capacity for too long for thermal or power supply capacity reasons or similar. To cover those cases, there are hardware interfaces allowing CPUs to be switched between different frequency/voltage configurations or (in the ACPI terminology) to be put into different P-states.
 
   #### P-State Governors 
   In order to offer dynamic frequency scaling, the cpufreq core must be able to tell these drivers of a "target frequency". So these specific drivers will be transformed to offer a "->target/target_index/fast_switch()" call instead of the "->setpolicy()" call. For set_policy drivers, all stays the same, though.
-
-  The cpufreq governors decide what frequency within the CPUfreq policy should be used.  The P-state driver utilizes the "powersave" and "performance" governors.
-  ##### Powersave Governor
-  The CPUfreq governor "powersave" sets the CPU statically to the lowest frequency within the borders of scaling_min_freq and scaling_max_freq.
-
-  ##### Performance Governor
-  The CPUfreq governor "performance" sets the CPU statically to the highest frequency within the borders of scaling_min_freq and scaling_max_freq.
 
 ### acpi-cpufreq scaling driver
   An alternative to the P-state driver is the acpi-cpufreq driver. 
@@ -637,7 +634,7 @@ spec:
 
 ### Time Of Day
 
-The TIme Of Day feature allows users to change the configuration of their system at a given time each day. This is done
+The Time Of Day feature allows users to change the configuration of their system at a given time each day. This is done
 through the use of a `timeofdaycronjob`
 which schedules itself for a specific time each day and gives users the option of tuning cstates, the shared pool
 profile as well as the profile used by individual pods.
@@ -672,13 +669,13 @@ spec:
       cState:
         sharedPoolCStates:
           C1: false
-          C6: true
+          C2: true
     - time: "23:57"
       powerProfile: shared
       cState:
         sharedPoolCStates:
           C1: true
-          C6: false
+          C2: false
       pods:
       - labels:
           matchLabels:
@@ -733,6 +730,8 @@ spec:
 - PowerConfig CRD
 - PowerWorkload CRD
 - PowerProfile CRD
+- CPUScalingProfile CRD
+- CPUScalingConfiguration CRD
 - PowerNode CRD
 - C-State CRD
 
@@ -894,10 +893,6 @@ Note: the request and the limits must have a matching number of cores and are al
 Currently the Kubernetes Power Manager only supports a single PowerProfile per Pod. If two profiles are requested in
 different containers, the pod will get created but the cores will not get tuned.
 
-## Repository Links
-
-[Intel Power Optimization Library](https://github.com/intel/power-optimization-library)
-
 ## Installation
 
 ## Step by step build
@@ -907,7 +902,7 @@ different containers, the pod will get created but the cores will not get tuned.
 - Clone the Kubernetes Power Manager
 
 ````
-git clone https://github.com/intel/kubernetes-power-manager
+git clone https://github.com/amdepyc/kubernetes-power-manager
 cd kubernetes-power-manager
 ````
 
@@ -930,70 +925,13 @@ make
 ````
 make images
 ````
-or available by pulling from the Intel's public Docker Hub at:
- - intel/power-operator:TAG 
- - intel/power-node-agent:TAG
-
-or available by pulling from the Intel's public Docker Hub at:
-
-- intel/power-operator:TAG
-- intel/power-node-agent:TAG
+or available by pulling from the AMD's public Docker Hub at:
+ - amdepyc/power-operator:TAG 
+ - amdepyc/power-node-agent:TAG
 
 ### Running the Kubernetes Power Manager
 
 - **Applying the manager**
-
-The manager Deployment in config/manager/manager.yaml contains the following:
-
-````yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: controller-manager
-  namespace: power-manager
-  labels:
-    control-plane: controller-manager
-spec:
-  selector:
-    matchLabels:
-      control-plane: controller-manager
-  replicas: 1
-  template:
-    metadata:
-      labels:
-        control-plane: controller-manager
-    spec:
-      serviceAccountName: intel-power-operator
-      containers:
-        - command:
-            - /manager
-          args:
-            - --leader-elect
-          imagePullPolicy: IfNotPresent
-          image: power-operator:v2.3.0
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: [ "ALL" ]
-          name: manager
-          resources:
-            limits:
-              cpu: 100m
-              memory: 30Mi
-            requests:
-              cpu: 100m
-              memory: 20Mi
-          volumeMounts:
-            - mountPath: /sys/fs
-              name: cgroup
-              mountPropagation: HostToContainer
-              readOnly: true
-      terminationGracePeriodSeconds: 10
-      volumes:
-        - name: cgroup
-          hostPath:
-            path: /sys/fs
-````
 
 Apply the manager:
 `kubectl apply -f config/manager/manager.yaml`
@@ -1083,6 +1021,30 @@ cores then a separate pool will be created for those cores and that profile. If 
 the default reserved pool with system defaults. It should be noted that in most instances leaving these cores at system defaults is the best approach 
 to prevent important k8s or kernel related processes from becoming starved.
 
+- **CPU Scaling Profile**
+
+The example CPU Scaling Profile in examples/example-cpuscalingprofile.yaml contains following PodSpec:
+
+````yaml
+apiVersion: power.amdepyc.com/v1
+kind: CPUScalingProfile
+metadata:
+  name: cpuscalingprofile-sample
+spec:
+  samplePeriod: 20ms
+  cooldownPeriod: 60ms
+  targetBusyness: 80
+  allowedBusynessDifference: 5
+  allowedFrequencyDifference: 15
+  scalePercentage: 100
+  min: "100%"
+  max: "0%"
+  epp: power
+````
+
+to apply the CPU Scaling Profile:
+`kubectl apply -f examples/example-cpuscalingprofile.yaml`
+
 - **Performance Pod**
 
 The example Pod in examples/example-pod.yaml contains the following PodSpec:
@@ -1103,16 +1065,16 @@ spec:
           memory: "200Mi"
           cpu: "2"
           # Replace <POWER_PROFILE> with the PowerProfile you wish to request
-          # IMPORTANT: The number of requested PowerProfiles must match the number of requested CPUs
+          # IMPORTANT: The number of requested PowerProfiles (or CPUScalingProfiles) must match the number of requested CPUs
           # IMPORTANT: If they do not match, the Pod will be successfully scheduled, but the PowerWorkload for the Pod will not be created
-          power.amdepyc.com/<POWER_PROFILE>: "2"
+          power.amdepyc.com/<POWER_OR_CPUSCALING_PROFILE>: "2"
         limits:
           memory: "200Mi"
           cpu: "2"
           # Replace <POWER_PROFILE> with the PowerProfile you wish to request
           # IMPORTANT: The number of requested PowerProfiles must match the number of requested CPUs
           # IMPORTANT: If they do not match, the Pod will be successfully scheduled, but the PowerWorkload for the Pod will not be created
-          power.amdepyc.com/<POWER_PROFILE>: "2"
+          power.amdepyc.com/<POWER_OR_CPUSCALING_PROFILE>: "2"
 ````
 
 Replace the placeholder values with the PowerProfile you require and apply the PodSpec:
@@ -1120,16 +1082,7 @@ Replace the placeholder values with the PowerProfile you require and apply the P
 `kubectl apply -f examples/example-pod.yaml`
 
 At this point, if only the ‘performance’ PowerProfile was selected in the PowerConfig, the user’s cluster will contain
-three PowerProfiles and two PowerWorkloads:
-
-`kubectl get powerprofiles -n power-manager`
-
-````
-NAME                          AGE
-performance                   59m
-performance-<NODE_NAME>       58m
-shared-<NODE_NAME>            60m
-````
+two PowerWorkloads:
 
 `kubectl get powerworkloads -n power-manager`
 
@@ -1138,6 +1091,140 @@ NAME                                   AGE
 performance-<NODE_NAME>-workload       63m
 shared-<NODE_NAME>-workload            61m
 ````
+
+- **Performance Pod with sample DPDK application**
+
+A precondition for this example is to have 1GiB hugepages configured on target nodes. This can be verified by:
+
+`kubectl get node <NODE_NAME> -o custom-columns=NAME:.metadata.name,HUGEPAGES-1GI:.status.allocatable."hugepages-1Gi" `
+
+Refer to the [Kubernetes hugepage documentation](https://kubernetes.io/docs/tasks/manage-hugepages/scheduling-hugepages/) for more details.
+
+The example Pod with sample DPDK application in examples/example-dpdk-testapp.yaml contains the following PodSpec:
+
+````yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dpdk-testapp
+  namespace: power-manager
+  labels:
+    app: dpdk-testapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dpdk-testapp
+  template:
+    metadata:
+      labels:
+        app: dpdk-testapp
+    spec:
+      nodeSelector:
+        "feature.node.kubernetes.io/power-node": "true"
+      containers:
+        - name: server
+          env:
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.uid
+          image: amdepyc/dpdk-testapp:0.0.1
+          imagePullPolicy: Always # IfNotPresent
+          command: ["tail", "-f", "/dev/null"]
+          securityContext:
+            privileged: true
+          resources:
+            requests:
+              cpu: "32"
+              hugepages-1Gi: "10Gi"
+              memory: "6Gi"
+              power.amdepyc.com/cpuscalingprofile-power: "32"
+            limits:
+              cpu: "32"
+              hugepages-1Gi: "10Gi"
+              memory: "6Gi"
+              power.amdepyc.com/cpuscalingprofile-power: "32"
+          volumeMounts:
+            - mountPath: /hugepages-1Gi
+              name: hugepages-1gi
+            - mountPath: /var/run/memif
+              name: memif
+            - name: pods
+              mountPath: /var/run/dpdk/rte
+              subPathExpr: $(POD_UID)/dpdk/rte
+        - name: client
+          env:
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.uid
+          image: amdepyc/dpdk-testapp:0.0.1
+          imagePullPolicy: Always
+          command: ["tail", "-f", "/dev/null"]
+          securityContext:
+            privileged: true
+          resources:
+            requests:
+              cpu: "8"
+              hugepages-1Gi: "5Gi"
+              memory: "3Gi"
+              power.amdepyc.com/performance: "8"
+            limits:
+              cpu: "8"
+              hugepages-1Gi: "5Gi"
+              memory: "3Gi"
+              power.amdepyc.com/performance: "8"
+          volumeMounts:
+            - mountPath: /hugepages-1Gi
+              name: hugepages-1gi
+            - mountPath: /var/run/memif
+              name: memif
+            - name: pods
+              mountPath: /var/run/dpdk/rte
+              subPathExpr: $(POD_UID)/dpdk/rte
+      volumes:
+        - name: hugepages-1gi
+          emptyDir:
+            medium: HugePages-1Gi
+        - name: memif
+          emptyDir: {}
+        - name: pods
+          hostPath:
+            path: /var/lib/power-node-agent/pods
+            type: DirectoryOrCreate
+````
+
+To apply the PodSpec, run:
+`kubectl apply -f examples/example-pod.yaml`
+
+To induct DPDK busyness, server and client DPDK testpmd applications must be run in server and client containers.
+
+Examples:
+
+- Server: 
+`dpdk-testpmd --no-pci --lcores $SERVER_CPUS --huge-dir=\"/hugepages-1Gi\" \
+        --vdev=\"net_memif0,role=server,socket=/var/run/memif/memif1.sock\" -- \
+        --rxq=$SERVER_CPUS_NUM --txq=$SERVER_CPUS_NUM --nb-cores=$SERVER_CPUS_NUM \
+        -i -a --rss-udp --forward-mode=csum --workload-scale=$WORKLOAD_SCALE"`
+
+- Client:
+`dpdk-testpmd --lcores $CLIENT_CPUS --file-prefix=client --no-pci \
+        --huge-dir=\"/hugepages-1Gi\" --vdev=\"net_memif0,role=client,socket=/var/run/memif/memif1.sock\" -- \
+        --rxq=$SERVER_CPUS_NUM --txq=$SERVER_CPUS_NUM --nb-cores=$CLIENT_CPUS_NUM \
+        -a --tx-first --rss-udp --forward-mode=io`
+
+Note: For running the DPDK test applications, following information need to be obtained:
+  - SERVER_CPUS - Range of CPUs allocated for the server container. This can be obtained from respective PowerNode. (example: "8-15")
+  - SERVER_CPUS_NUM - Number of CPUs allocated for the server container. (example: "7")
+  - WORKLOAD_SCALE - Scale of the inducted load. (example: "2")
+  - CLIENT_CPUS - Range of CPUs allocated for the client container. This can be obtained from respective PowerNode. (example: "16-23")
+  - CLIENT_CPUS_NUM - Number of CPUs allocated for the client container. (example: "7")
+
+DPDK busyness, as well as current cpu frequencies and governors, can be watched on worker nodes using helper application:
+`testbin/kpmon.py`
 
 - **Delete Pods**
 
