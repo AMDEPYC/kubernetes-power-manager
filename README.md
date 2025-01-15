@@ -1200,32 +1200,6 @@ spec:
 To apply the PodSpec, run:
 `kubectl apply -f examples/example-pod.yaml`
 
-To induct DPDK busyness, server and client DPDK testpmd applications must be run in server and client containers.
-
-Examples:
-
-- Server: 
-`dpdk-testpmd --no-pci --lcores $SERVER_CPUS --huge-dir=\"/hugepages-1Gi\" \
-        --vdev=\"net_memif0,role=server,socket=/var/run/memif/memif1.sock\" -- \
-        --rxq=$SERVER_CPUS_NUM --txq=$SERVER_CPUS_NUM --nb-cores=$SERVER_CPUS_NUM \
-        -i -a --rss-udp --forward-mode=csum --workload-scale=$WORKLOAD_SCALE"`
-
-- Client:
-`dpdk-testpmd --lcores $CLIENT_CPUS --file-prefix=client --no-pci \
-        --huge-dir=\"/hugepages-1Gi\" --vdev=\"net_memif0,role=client,socket=/var/run/memif/memif1.sock\" -- \
-        --rxq=$SERVER_CPUS_NUM --txq=$SERVER_CPUS_NUM --nb-cores=$CLIENT_CPUS_NUM \
-        -a --tx-first --rss-udp --forward-mode=io`
-
-Note: For running the DPDK test applications, following information need to be obtained:
-  - SERVER_CPUS - Range of CPUs allocated for the server container. This can be obtained from respective PowerNode. (example: "8-15")
-  - SERVER_CPUS_NUM - Number of CPUs allocated for the server container. (example: "7")
-  - WORKLOAD_SCALE - Scale of the inducted load. (example: "2")
-  - CLIENT_CPUS - Range of CPUs allocated for the client container. This can be obtained from respective PowerNode. (example: "16-23")
-  - CLIENT_CPUS_NUM - Number of CPUs allocated for the client container. (example: "7")
-
-DPDK busyness, as well as current cpu frequencies and governors, can be watched on worker nodes using helper application:
-`testbin/kpmon.py`
-
 - **Delete Pods**
 
 `kubectl delete pods <name>`
