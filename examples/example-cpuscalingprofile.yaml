@@ -2,6 +2,7 @@ apiVersion: power.amdepyc.com/v1
 kind: CPUScalingProfile
 metadata:
   name: cpuscalingprofile-sample
+  namespace: power-manager
 spec:
   samplePeriod: 20ms
   cooldownPeriod: 60ms
@@ -9,6 +10,6 @@ spec:
   allowedBusynessDifference: 5
   allowedFrequencyDifference: 10
   scalePercentage: 100
-  min: "100%" # can be percentage of max frequency passed as a string, or regular value in MHz passed as int
-  max: "0%" # can be percentage of max frequency passed as a string, or regular value in MHz passed as int
+  min: "0%" # can be percentage of max frequency passed as a string, or regular value in MHz passed as int
+  max: "100%" # can be percentage of max frequency passed as a string, or regular value in MHz passed as int
   epp: "power"
