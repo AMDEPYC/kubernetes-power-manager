@@ -35,7 +35,7 @@ operatorrolebinding:
 # Cluster Role for the overarching operator
 operatorclusterrole:
   name: operator-nodes
-  resources: ["nodes", "nodes/status", "configmaps", "configmaps/status", "powerconfigs", "powerconfigs/status", "powerprofiles", "powerprofiles/status", "powerworkloads", "powerworkloads/status", "powernodes", "powernodes/status", "events", "daemonsets", "uncores", "cpuscalingprofiles", "cpuscalingprofiles/status", "cpuscalingconfigurations", "cpuscalingconfigurations/status"]
+  resources: ["nodes", "nodes/status", "configmaps", "configmaps/status", "powerconfigs", "powerconfigs/status", "powerprofiles", "powerprofiles/status", "powerworkloads", "powerworkloads/status", "powernodes", "powernodes/status", "events", "daemonsets", "uncores", "cpuscalingprofiles", "cpuscalingprofiles/status", "cpuscalingprofiles/finalizers", "cpuscalingconfigurations", "cpuscalingconfigurations/status"]
 
 # Cluster Role Binding for the overarching operator
 operatorclusterrolebinding:
