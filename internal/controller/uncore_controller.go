@@ -29,7 +29,7 @@ import (
 
 	"github.com/go-logr/logr"
 	powerv1 "github.com/AMDEPYC/kubernetes-power-manager/api/v1"
-	"github.com/intel/power-optimization-library/pkg/power"
+	"github.com/AMDEPYC/power-optimization-library/pkg/power"
 )
 
 // UncoreReconciler reconciles a Uncore object

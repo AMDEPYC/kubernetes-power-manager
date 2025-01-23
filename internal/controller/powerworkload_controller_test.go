@@ -13,7 +13,7 @@ import (
 
 	powerv1 "github.com/AMDEPYC/kubernetes-power-manager/api/v1"
 	"github.com/AMDEPYC/kubernetes-power-manager/pkg/testutils"
-	"github.com/intel/power-optimization-library/pkg/power"
+	"github.com/AMDEPYC/power-optimization-library/pkg/power"
 	"github.com/stretchr/testify/mock"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"

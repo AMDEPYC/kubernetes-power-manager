@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/AMDEPYC/kubernetes-power-manager/internal/metrics"
-	"github.com/intel/power-optimization-library/pkg/power"
+	"github.com/AMDEPYC/power-optimization-library/pkg/power"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap/zapcore"
 	ctrl "sigs.k8s.io/controller-runtime"

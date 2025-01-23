@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/AMDEPYC/kubernetes-power-manager/internal/metrics"
-	"github.com/intel/power-optimization-library/pkg/power"
+	"github.com/AMDEPYC/power-optimization-library/pkg/power"
 )
 
 type CPUScalingUpdater interface {

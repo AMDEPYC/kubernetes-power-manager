@@ -6,7 +6,7 @@ import (
 
 	"github.com/AMDEPYC/kubernetes-power-manager/internal/metrics"
 	"github.com/AMDEPYC/kubernetes-power-manager/pkg/testutils"
-	"github.com/intel/power-optimization-library/pkg/power"
+	"github.com/AMDEPYC/power-optimization-library/pkg/power"
 
 	prom "github.com/prometheus/client_golang/prometheus"
 	promtestutil "github.com/prometheus/client_golang/prometheus/testutil"

@@ -26,7 +26,7 @@ import (
 	"github.com/go-logr/logr"
 	powerv1 "github.com/AMDEPYC/kubernetes-power-manager/api/v1"
 	"github.com/AMDEPYC/kubernetes-power-manager/pkg/util"
-	"github.com/intel/power-optimization-library/pkg/power"
+	"github.com/AMDEPYC/power-optimization-library/pkg/power"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"

@@ -34,7 +34,7 @@ pipeline {
                         ])
                         sh 'git checkout origin/${LIBRARY_BRANCH}'
                     }
-                    sh 'echo "replace github.com/intel/power-optimization-library => ./library" >> go.mod'
+                    sh 'echo "replace github.com/AMDEPYC/power-optimization-library => ./library" >> go.mod'
                     sh "sed -i 's/COPY go\\.sum go\\.sum/COPY go\\.sum go\\.sum\\nCOPY \\.\\/library \\.\\/library/' build/Dockerfile"
                     sh "sed -i 's/COPY go\\.sum go\\.sum/COPY go\\.sum go\\.sum\\nCOPY \\.\\/library \\.\\/library/' build/Dockerfile.nodeagent"
                 }

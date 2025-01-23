@@ -36,7 +36,7 @@ import (
 
 	powerv1 "github.com/AMDEPYC/kubernetes-power-manager/api/v1"
 	"github.com/AMDEPYC/kubernetes-power-manager/pkg/podstate"
-	"github.com/intel/power-optimization-library/pkg/power"
+	"github.com/AMDEPYC/power-optimization-library/pkg/power"
 )
 
 const queuetime = time.Second * 5

@@ -41,7 +41,7 @@ import (
 	"github.com/AMDEPYC/kubernetes-power-manager/internal/monitoring"
 	"github.com/AMDEPYC/kubernetes-power-manager/pkg/podresourcesclient"
 
-	"github.com/intel/power-optimization-library/pkg/power"
+	"github.com/AMDEPYC/power-optimization-library/pkg/power"
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/AMDEPYC/kubernetes-power-manager/internal/controller"

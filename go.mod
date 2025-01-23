@@ -4,7 +4,7 @@ go 1.22.3
 
 require (
 	github.com/go-logr/logr v1.4.2
-	github.com/intel/power-optimization-library v1.5.0
+	github.com/AMDEPYC/power-optimization-library v1.5.0
 	github.com/onsi/ginkgo/v2 v2.14.0
 	github.com/onsi/gomega v1.30.0
 	github.com/prometheus/client_golang v1.18.0
@@ -22,7 +22,7 @@ require (
 	sigs.k8s.io/controller-runtime v0.17.3
 )
 
-replace github.com/intel/power-optimization-library => ./power-optimization-library
+replace github.com/AMDEPYC/power-optimization-library => ./power-optimization-library
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect

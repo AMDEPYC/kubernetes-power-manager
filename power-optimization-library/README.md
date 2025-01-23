@@ -78,7 +78,7 @@ To begin using the library first create a host object with the supplied name, a 
 as system reserved and an empty list of Exclusive Pools. At this stage no changes are made to any configurations.
 
 ```go
-import "github.com/intel/power-optimization-library/pkg/power"
+import "github.com/AMDEPYC/power-optimization-library/pkg/power"
 host := power.CreateInstance("Name")
 ```
 

@@ -36,7 +36,7 @@ import (
 	"github.com/AMDEPYC/kubernetes-power-manager/internal/metrics"
 	"github.com/AMDEPYC/kubernetes-power-manager/internal/scaling"
 	"github.com/AMDEPYC/kubernetes-power-manager/pkg/testutils"
-	"github.com/intel/power-optimization-library/pkg/power"
+	"github.com/AMDEPYC/power-optimization-library/pkg/power"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
