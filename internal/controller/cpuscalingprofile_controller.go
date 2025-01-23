@@ -23,7 +23,7 @@ import (
 	"slices"
 	"strings"
 
-	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
+	powerv1 "github.com/AMDEPYC/kubernetes-power-manager/api/v1"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"

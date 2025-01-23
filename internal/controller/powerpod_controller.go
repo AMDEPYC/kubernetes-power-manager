@@ -28,7 +28,7 @@ import (
 	e "errors"
 
 	"github.com/go-logr/logr"
-	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
+	powerv1 "github.com/AMDEPYC/kubernetes-power-manager/api/v1"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -38,9 +38,9 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/intel/kubernetes-power-manager/pkg/podresourcesclient"
-	"github.com/intel/kubernetes-power-manager/pkg/podstate"
-	"github.com/intel/kubernetes-power-manager/pkg/util"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/podresourcesclient"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/podstate"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/util"
 )
 
 const (

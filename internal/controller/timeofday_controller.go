@@ -33,10 +33,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
-	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
+	powerv1 "github.com/AMDEPYC/kubernetes-power-manager/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/intel/kubernetes-power-manager/pkg/util"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/util"
 )
 
 // TimeOfDayReconciler reconciles a TimeOfDay object

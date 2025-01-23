@@ -24,8 +24,8 @@ import (
 
 	e "errors"
 	"github.com/go-logr/logr"
-	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
-	"github.com/intel/kubernetes-power-manager/pkg/util"
+	powerv1 "github.com/AMDEPYC/kubernetes-power-manager/api/v1"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/util"
 	"github.com/intel/power-optimization-library/pkg/power"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"

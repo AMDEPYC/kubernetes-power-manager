@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/go-logr/logr"
-	"github.com/intel/kubernetes-power-manager/pkg/util"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/util"
 	"github.com/intel/power-optimization-library/pkg/power"
 	"golang.org/x/sys/unix"
 )

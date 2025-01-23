@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"testing"
 
-	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
+	powerv1 "github.com/AMDEPYC/kubernetes-power-manager/api/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"

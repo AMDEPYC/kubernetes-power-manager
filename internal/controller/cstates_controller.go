@@ -24,7 +24,7 @@ import (
 	"strconv"
 	"time"
 
-	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
+	powerv1 "github.com/AMDEPYC/kubernetes-power-manager/api/v1"
 	"github.com/intel/power-optimization-library/pkg/power"
 
 	"github.com/go-logr/logr"

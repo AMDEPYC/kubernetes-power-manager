@@ -25,10 +25,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
-	"github.com/intel/kubernetes-power-manager/pkg/podresourcesclient"
-	"github.com/intel/kubernetes-power-manager/pkg/podstate"
-	"github.com/intel/kubernetes-power-manager/pkg/testutils"
+	powerv1 "github.com/AMDEPYC/kubernetes-power-manager/api/v1"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/podresourcesclient"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/podstate"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 

@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/intel/kubernetes-power-manager/pkg/util"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/util"
 	"github.com/intel/power-optimization-library/pkg/power"
 
 	"github.com/stretchr/testify/assert"

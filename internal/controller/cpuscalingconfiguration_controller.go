@@ -30,9 +30,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
-	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
-	"github.com/intel/kubernetes-power-manager/internal/metrics"
-	"github.com/intel/kubernetes-power-manager/internal/scaling"
+	powerv1 "github.com/AMDEPYC/kubernetes-power-manager/api/v1"
+	"github.com/AMDEPYC/kubernetes-power-manager/internal/metrics"
+	"github.com/AMDEPYC/kubernetes-power-manager/internal/scaling"
 	"github.com/intel/power-optimization-library/pkg/power"
 )
 

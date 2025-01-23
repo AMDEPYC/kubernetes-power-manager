@@ -1,7 +1,7 @@
 package monitoring
 
 import (
-	"github.com/intel/kubernetes-power-manager/internal/metrics"
+	"github.com/AMDEPYC/kubernetes-power-manager/internal/metrics"
 	"github.com/intel/power-optimization-library/pkg/power"
 
 	"github.com/go-logr/logr"

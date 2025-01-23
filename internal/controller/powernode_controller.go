@@ -34,8 +34,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
-	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
-	"github.com/intel/kubernetes-power-manager/pkg/podstate"
+	powerv1 "github.com/AMDEPYC/kubernetes-power-manager/api/v1"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/podstate"
 	"github.com/intel/power-optimization-library/pkg/power"
 )
 

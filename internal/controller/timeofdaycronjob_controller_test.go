@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
-	"github.com/intel/kubernetes-power-manager/pkg/podstate"
-	"github.com/intel/kubernetes-power-manager/pkg/testutils"
+	powerv1 "github.com/AMDEPYC/kubernetes-power-manager/api/v1"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/podstate"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/testutils"
 	"github.com/intel/power-optimization-library/pkg/power"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
