@@ -62,7 +62,7 @@ func TestTimeOfDay_Reconcile(t *testing.T) {
 	todObj := &powerv1.TimeOfDay{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      testNode,
-			Namespace: IntelPowerNamespace,
+			Namespace: PowerManagerNamespace,
 		},
 		Spec: powerv1.TimeOfDaySpec{
 			TimeZone:     "Eire",
@@ -95,7 +95,7 @@ func TestTimeOfDay_Reconcile(t *testing.T) {
 	req := reconcile.Request{
 		NamespacedName: client.ObjectKey{
 			Name:      testNode,
-			Namespace: IntelPowerNamespace,
+			Namespace: PowerManagerNamespace,
 		},
 	}
 	nodemk := new(testutils.MockHost)
@@ -328,7 +328,7 @@ func TestTimeOfDay_Reconcile_InvalidTODRequests(t *testing.T) {
 	req = reconcile.Request{
 		NamespacedName: client.ObjectKey{
 			Name:      testNode,
-			Namespace: IntelPowerNamespace,
+			Namespace: PowerManagerNamespace,
 		},
 	}
 	r, err = createTimeOfDayReconcilerObject(clientObjs)
@@ -372,7 +372,7 @@ func TestTimeOfDay_Reconcile_InvalidTODRequests(t *testing.T) {
 	req = reconcile.Request{
 		NamespacedName: client.ObjectKey{
 			Name:      testNode,
-			Namespace: IntelPowerNamespace,
+			Namespace: PowerManagerNamespace,
 		},
 	}
 	r, err = createTimeOfDayReconcilerObject(clientObjs)
@@ -404,7 +404,7 @@ func TestTimeOfDay_Reconcile_ClientErrs(t *testing.T) {
 	rogueCronjob := &powerv1.TimeOfDayCronJob{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "rogue",
-			Namespace: IntelPowerNamespace,
+			Namespace: PowerManagerNamespace,
 		},
 		Spec: powerv1.TimeOfDayCronJobSpec{
 			Hour:     22,
@@ -416,7 +416,7 @@ func TestTimeOfDay_Reconcile_ClientErrs(t *testing.T) {
 	req := reconcile.Request{
 		NamespacedName: client.ObjectKey{
 			Name:      testNode,
-			Namespace: IntelPowerNamespace,
+			Namespace: PowerManagerNamespace,
 		},
 	}
 	r, err := createTimeOfDayReconcilerObject([]runtime.Object{})
@@ -460,7 +460,7 @@ func TestTimeOfDay_Reconcile_ClientErrs(t *testing.T) {
 	_, err = r.Reconcile(context.TODO(), req)
 	assert.Nil(t, err)
 	dummy := powerv1.TimeOfDayCronJob{}
-	err = r.Client.Get(context.TODO(), types.NamespacedName{Namespace: IntelPowerNamespace, Name: "rogue"}, &dummy)
+	err = r.Client.Get(context.TODO(), types.NamespacedName{Namespace: PowerManagerNamespace, Name: "rogue"}, &dummy)
 	assert.ErrorContains(t, err, "not found")
 }
 

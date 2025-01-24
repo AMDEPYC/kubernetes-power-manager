@@ -85,7 +85,7 @@ type PowerProfileReconciler struct {
 func (r *PowerProfileReconciler) Reconcile(c context.Context, req ctrl.Request) (ctrl.Result, error) {
 	var err error
 	logger := r.Log.WithValues("powerprofile", req.NamespacedName)
-	if req.Namespace != IntelPowerNamespace {
+	if req.Namespace != PowerManagerNamespace {
 		err := fmt.Errorf("incorrect namespace")
 		logger.Error(err, "resource is not in the power-manager namespace, ignoring")
 		return ctrl.Result{Requeue: false}, err
@@ -128,7 +128,7 @@ func (r *PowerProfileReconciler) Reconcile(c context.Context, req ctrl.Request) 
 
 			// To get current cstate obj matching node name and removing powerprofile entry
 			currentNodeCStates := &powerv1.CStates{}
-			err = r.Client.Get(c, client.ObjectKey{Name: nodeName, Namespace: IntelPowerNamespace}, currentNodeCStates)
+			err = r.Client.Get(c, client.ObjectKey{Name: nodeName, Namespace: PowerManagerNamespace}, currentNodeCStates)
 			// if we're unsuccessful trying to fetch the cStates coresponding to the current power profile
 			if err != nil && !errors.IsNotFound(err) {
 				logger.Error(err, fmt.Sprintf("unable to retrieve the cState object from the library for %s", nodeName))

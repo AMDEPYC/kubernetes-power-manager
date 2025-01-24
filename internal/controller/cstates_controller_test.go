@@ -71,7 +71,7 @@ func TestCStates_Reconcile(t *testing.T) {
 	cStatesObj := &powerv1.CStates{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "node1",
-			Namespace: IntelPowerNamespace,
+			Namespace: PowerManagerNamespace,
 		},
 		Spec: powerv1.CStatesSpec{
 			SharedPoolCStates:     power.CStates{"C1": true},
@@ -141,7 +141,7 @@ func TestCStates_Reconcile(t *testing.T) {
 	assert.NotNil(t, r)
 	ctx := context.Background()
 	req := reconcile.Request{NamespacedName: client.ObjectKey{
-		Namespace: IntelPowerNamespace,
+		Namespace: PowerManagerNamespace,
 		Name:      "node1",
 	}}
 	t.Setenv("NODE_NAME", "node1")
@@ -357,7 +357,7 @@ func TestCStates_Reconcile_WithPartialSetup(t *testing.T) {
 	cStatesSetup := &powerv1.CStates{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "node1",
-			Namespace: IntelPowerNamespace,
+			Namespace: PowerManagerNamespace,
 		},
 		Spec: powerv1.CStatesSpec{
 			SharedPoolCStates:     power.CStates{"C1": true},
@@ -369,7 +369,7 @@ func TestCStates_Reconcile_WithPartialSetup(t *testing.T) {
 	cStatesSetupWithInvalidCPUIds := &powerv1.CStates{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "node1",
-			Namespace: IntelPowerNamespace,
+			Namespace: PowerManagerNamespace,
 		},
 		Spec: powerv1.CStatesSpec{
 			SharedPoolCStates:     power.CStates{"C1": true},
@@ -568,7 +568,7 @@ func TestCStates_Reconcile_WithPartialSetup(t *testing.T) {
 		assert.NotNil(t, r)
 		ctx := context.Background()
 		req := reconcile.Request{NamespacedName: client.ObjectKey{
-			Namespace: IntelPowerNamespace,
+			Namespace: PowerManagerNamespace,
 			Name:      "node1",
 		}}
 		t.Setenv("NODE_NAME", "node1")

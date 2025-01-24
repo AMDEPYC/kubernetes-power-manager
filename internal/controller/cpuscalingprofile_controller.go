@@ -58,7 +58,7 @@ func (r *CPUScalingProfileReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	var err error
 	logger := r.Log.WithValues("cpuscalingprofile", req.NamespacedName)
 
-	if req.Namespace != IntelPowerNamespace {
+	if req.Namespace != PowerManagerNamespace {
 		err := fmt.Errorf("incorrect namespace")
 		logger.Error(err, "resource is not in the power-manager namespace, ignoring")
 		return ctrl.Result{}, err
@@ -134,7 +134,7 @@ func (r *CPUScalingProfileReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	// Create, delete or update CPUScalingConfiguration on nodes on which CPUScalingProfile is requested
 	for nodeName, items := range nodesItems {
-		confKey := client.ObjectKey{Name: nodeName, Namespace: IntelPowerNamespace}
+		confKey := client.ObjectKey{Name: nodeName, Namespace: PowerManagerNamespace}
 		cpuScalingConf := &powerv1.CPUScalingConfiguration{}
 		err := r.Client.Get(context.TODO(), confKey, cpuScalingConf)
 		// CPUScalingConfiguration could not be retrieved
@@ -147,7 +147,7 @@ func (r *CPUScalingProfileReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			cpuScalingConf = &powerv1.CPUScalingConfiguration{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      nodeName,
-					Namespace: IntelPowerNamespace,
+					Namespace: PowerManagerNamespace,
 				},
 			}
 			if err = r.setCPUScalingConfiguration(cpuScalingConf, items, scalingProfile); err != nil {
