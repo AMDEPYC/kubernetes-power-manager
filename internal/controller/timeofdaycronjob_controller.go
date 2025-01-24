@@ -28,10 +28,10 @@ import (
 
 	"time"
 
-	"github.com/go-logr/logr"
 	powerv1 "github.com/AMDEPYC/kubernetes-power-manager/api/v1"
 	"github.com/AMDEPYC/kubernetes-power-manager/pkg/podstate"
 	"github.com/AMDEPYC/power-optimization-library/pkg/power"
+	"github.com/go-logr/logr"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"

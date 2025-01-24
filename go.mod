@@ -3,8 +3,8 @@ module github.com/AMDEPYC/kubernetes-power-manager
 go 1.22.3
 
 require (
-	github.com/go-logr/logr v1.4.2
 	github.com/AMDEPYC/power-optimization-library v1.5.0
+	github.com/go-logr/logr v1.4.2
 	github.com/onsi/ginkgo/v2 v2.14.0
 	github.com/onsi/gomega v1.30.0
 	github.com/prometheus/client_golang v1.18.0

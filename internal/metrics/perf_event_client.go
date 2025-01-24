@@ -8,9 +8,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/go-logr/logr"
 	"github.com/AMDEPYC/kubernetes-power-manager/pkg/util"
 	"github.com/AMDEPYC/power-optimization-library/pkg/power"
+	"github.com/go-logr/logr"
 	"golang.org/x/sys/unix"
 )
 

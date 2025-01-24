@@ -9,8 +9,8 @@ import (
 
 	"context"
 
-	"github.com/go-logr/logr"
 	"github.com/AMDEPYC/power-optimization-library/pkg/power"
+	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/mock"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
