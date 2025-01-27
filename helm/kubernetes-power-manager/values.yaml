@@ -9,12 +9,12 @@ namespace:
 
 # Service Account for the overarching operator
 operatorserviceaccount:
-  name: intel-power-operator
+  name: power-operator
   namespace: power-manager
 
 # Service Account for the Power Node Agent
 agentserviceaccount:
-  name: intel-power-node-agent
+  name: power-node-agent
   namespace: power-manager
 
 # Role for the overarching operator
@@ -28,7 +28,7 @@ operatorrolebinding:
   name: operator-custom-resource-definitions-role-binding
   namespace: power-manager
   serviceaccount:
-    name: intel-power-operator
+    name: power-operator
     namespace: power-manager
   rolename: operator-custom-resource-definitions-role
 
@@ -41,7 +41,7 @@ operatorclusterrole:
 operatorclusterrolebinding:
   name: operator-nodes-binding
   serviceaccount:
-    name: intel-power-operator
+    name: power-operator
     namespace: power-manager
   clusterrolename: operator-nodes
 
@@ -54,7 +54,7 @@ agentclusterrole:
 agentclusterrolebinding:
   name: node-agent-cluster-resources-binding
   serviceaccount:
-    name: intel-power-node-agent
+    name: power-node-agent
     namespace: power-manager
   clusterrolename: node-agent-cluster-resources
 
@@ -67,7 +67,7 @@ operator:
   replicas: 1
   container:
     serviceaccount:
-      name: intel-power-operator
+      name: power-operator
     command: /manager
     args: --leader-elect
     image: amdepyc/power-operator:v1.1.0

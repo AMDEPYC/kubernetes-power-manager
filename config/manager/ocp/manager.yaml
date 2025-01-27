@@ -19,7 +19,7 @@ spec:
       labels:
         control-plane: controller-manager
     spec:
-      serviceAccountName: intel-power-operator
+      serviceAccountName: power-operator
       securityContext:
         runAsNonRoot: true
       containers:

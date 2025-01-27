@@ -13,7 +13,7 @@ spec:
       labels:
         name: power-node-agent-pod
     spec:
-      serviceAccountName: intel-power-node-agent
+      serviceAccountName: power-node-agent
       containers:
         - image: amdepyc/power-node-agent:v1.1.0
           imagePullPolicy: IfNotPresent
