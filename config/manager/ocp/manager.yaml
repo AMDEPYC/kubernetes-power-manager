@@ -5,7 +5,7 @@ metadata:
   namespace: power-manager
   labels:
     control-plane: controller-manager
-    app.kubernetes.io/name: intel-kubernetes-power-manager
+    app.kubernetes.io/name: kubernetes-power-manager
     app.kubernetes.io/managed-by: kustomize
 spec:
   selector:

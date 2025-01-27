@@ -3,6 +3,6 @@ kind: Namespace
 metadata:
   labels:
     control-plane: controller-manager
-    app.kubernetes.io/name: intel-kubernetes-power-manager
+    app.kubernetes.io/name: kubernetes-power-manager
     app.kubernetes.io/managed-by: kustomize
   name: power-manager
