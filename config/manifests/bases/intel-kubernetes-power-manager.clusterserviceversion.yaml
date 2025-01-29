@@ -284,5 +284,5 @@ spec:
   maturity: alpha
   provider:
     name: Intel Corporation
-    url: https://github.com/intel/kubernetes-power-manager
+    url: https://github.com/AMDEPYC/kubernetes-power-manager
   version: 2.3.1

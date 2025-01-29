@@ -7,8 +7,8 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/intel/kubernetes-power-manager/pkg/util"
-	"github.com/intel/power-optimization-library/pkg/power"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/util"
+	"github.com/AMDEPYC/power-optimization-library/pkg/power"
 
 	"go.uber.org/zap/zapcore"
 	ctrl "sigs.k8s.io/controller-runtime"

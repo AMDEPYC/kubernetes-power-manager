@@ -6,8 +6,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/intel/kubernetes-power-manager/internal/metrics"
-	"github.com/intel/power-optimization-library/pkg/power"
+	"github.com/AMDEPYC/kubernetes-power-manager/internal/metrics"
+	"github.com/AMDEPYC/power-optimization-library/pkg/power"
 )
 
 var (

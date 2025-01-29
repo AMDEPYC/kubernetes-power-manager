@@ -3,7 +3,7 @@ package controller
 import (
 	"testing"
 
-	"github.com/intel/power-optimization-library/pkg/power"
+	"github.com/AMDEPYC/power-optimization-library/pkg/power"
 )
 
 func TestMain(m *testing.M) {

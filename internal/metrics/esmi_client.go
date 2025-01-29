@@ -57,7 +57,7 @@ import (
 	"fmt"
 	"unsafe"
 
-	"github.com/intel/power-optimization-library/pkg/power"
+	"github.com/AMDEPYC/power-optimization-library/pkg/power"
 
 	"github.com/go-logr/logr"
 )

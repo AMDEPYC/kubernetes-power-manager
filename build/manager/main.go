@@ -36,10 +36,10 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
+	powerv1 "github.com/AMDEPYC/kubernetes-power-manager/api/v1"
 
-	"github.com/intel/kubernetes-power-manager/internal/controller"
-	"github.com/intel/kubernetes-power-manager/pkg/state"
+	"github.com/AMDEPYC/kubernetes-power-manager/internal/controller"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/state"
 	// +kubebuilder:scaffold:imports
 )
 

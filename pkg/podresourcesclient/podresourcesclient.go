@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/intel/kubernetes-power-manager/pkg/cpuset"
-	"github.com/intel/kubernetes-power-manager/pkg/util"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/cpuset"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/util"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"k8s.io/apimachinery/pkg/api/errors"

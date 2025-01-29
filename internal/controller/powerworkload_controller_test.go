@@ -11,9 +11,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap/zapcore"
 
-	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
-	"github.com/intel/kubernetes-power-manager/pkg/testutils"
-	"github.com/intel/power-optimization-library/pkg/power"
+	powerv1 "github.com/AMDEPYC/kubernetes-power-manager/api/v1"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/testutils"
+	"github.com/AMDEPYC/power-optimization-library/pkg/power"
 	"github.com/stretchr/testify/mock"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -127,7 +127,7 @@ func TestPowerWorkload_Reconcile(t *testing.T) {
 	pwrWorkloadObj := &powerv1.PowerWorkload{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "performance-TestNode",
-			Namespace: IntelPowerNamespace,
+			Namespace: PowerManagerNamespace,
 		},
 		Spec: powerv1.PowerWorkloadSpec{
 			Name:              "performance-TestNode",
@@ -143,7 +143,7 @@ func TestPowerWorkload_Reconcile(t *testing.T) {
 	sharedSkeleton := &powerv1.PowerWorkload{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "shared-" + testNode,
-			Namespace: IntelPowerNamespace,
+			Namespace: PowerManagerNamespace,
 		},
 		Spec: powerv1.PowerWorkloadSpec{
 			Name:     "shared-" + testNode,
@@ -186,7 +186,7 @@ func TestPowerWorkload_Reconcile(t *testing.T) {
 				req := reconcile.Request{
 					NamespacedName: client.ObjectKey{
 						Name:      "performance-TestNode",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 					},
 				}
 
@@ -198,7 +198,7 @@ func TestPowerWorkload_Reconcile(t *testing.T) {
 				&powerv1.PowerWorkload{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "shared-" + testNode,
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 					},
 					Spec: powerv1.PowerWorkloadSpec{
 						Name:              "shared-" + testNode,
@@ -479,7 +479,7 @@ func TestPowerWorkload_Reconcile(t *testing.T) {
 		req := reconcile.Request{
 			NamespacedName: client.ObjectKey{
 				Name:      tc.workloadName,
-				Namespace: IntelPowerNamespace,
+				Namespace: PowerManagerNamespace,
 			},
 		}
 		_, err = r.Reconcile(context.TODO(), req)
@@ -533,7 +533,7 @@ func TestPowerWorkload_Reconcile_ClientErrs(t *testing.T) {
 	pwrWorkloadObj := &powerv1.PowerWorkload{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      workloadName,
-			Namespace: IntelPowerNamespace,
+			Namespace: PowerManagerNamespace,
 		},
 		Spec: powerv1.PowerWorkloadSpec{
 			Name:              "",
@@ -588,7 +588,7 @@ func TestPowerWorkload_Reconcile_ClientErrs(t *testing.T) {
 	req := reconcile.Request{
 		NamespacedName: client.ObjectKey{
 			Name:      workloadName,
-			Namespace: IntelPowerNamespace,
+			Namespace: PowerManagerNamespace,
 		},
 	}
 
@@ -635,7 +635,7 @@ func FuzzPowerWorkloadController(f *testing.F) {
 			&powerv1.PowerProfile{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      prof,
-					Namespace: IntelPowerNamespace,
+					Namespace: PowerManagerNamespace,
 				},
 				Spec: powerv1.PowerProfileSpec{
 					Name:     prof,
@@ -649,7 +649,7 @@ func FuzzPowerWorkloadController(f *testing.F) {
 			&powerv1.PowerWorkload{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      prof + "-" + nodeName,
-					Namespace: IntelPowerNamespace,
+					Namespace: PowerManagerNamespace,
 				},
 				Spec: powerv1.PowerWorkloadSpec{
 					Name:     prof + "-" + nodeName,
@@ -697,7 +697,7 @@ func FuzzPowerWorkloadController(f *testing.F) {
 		req := reconcile.Request{
 			NamespacedName: client.ObjectKey{
 				Name:      prof + "-" + nodeName,
-				Namespace: IntelPowerNamespace,
+				Namespace: PowerManagerNamespace,
 			},
 		}
 
