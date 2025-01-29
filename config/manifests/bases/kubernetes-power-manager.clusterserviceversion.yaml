@@ -223,7 +223,7 @@ metadata:
         }
       ]
     capabilities: Basic Install
-  name: intel-kubernetes-power-manager.v0.0.0
+  name: kubernetes-power-manager.v0.0.0
   namespace: power-manager
 spec:
   apiservicedefinitions: {}

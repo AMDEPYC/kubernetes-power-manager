@@ -1,4 +1,4 @@
-export APP_NAME=intel-kubernetes-power-manager
+export APP_NAME=kubernetes-power-manager
 
 CONTROLLER_IMG ?= amdepyc/power-operator
 AGENT_IMG ?= amdepyc/power-node-agent
