@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/intel/kubernetes-power-manager/internal/metrics"
+	"github.com/AMDEPYC/kubernetes-power-manager/internal/metrics"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -222,7 +222,7 @@ func TestCPUScalingUpdater_Update(t *testing.T) {
 				CurrentTargetFrequency:     3512500,
 				HWMaxFrequency:             3700000,
 				HWMinFrequency:             400000,
-				ScaleFactor: 1.0,
+				ScaleFactor:                1.0,
 				AllowedFrequencyDifference: 100000,
 				CooldownPeriod:             20 * time.Millisecond,
 			},
@@ -244,7 +244,7 @@ func TestCPUScalingUpdater_Update(t *testing.T) {
 				HWMaxFrequency:             3700000,
 				HWMinFrequency:             400000,
 				AllowedFrequencyDifference: 100000,
-				ScaleFactor: 1.0,
+				ScaleFactor:                1.0,
 				CooldownPeriod:             20 * time.Millisecond,
 			},
 			currentBusyness: 0,
@@ -265,7 +265,7 @@ func TestCPUScalingUpdater_Update(t *testing.T) {
 				HWMaxFrequency:             3700000,
 				HWMinFrequency:             400000,
 				AllowedFrequencyDifference: 100000,
-				ScaleFactor: 1.0,
+				ScaleFactor:                1.0,
 				CooldownPeriod:             20 * time.Millisecond,
 			},
 			currentBusyness: 70,
@@ -286,7 +286,7 @@ func TestCPUScalingUpdater_Update(t *testing.T) {
 				HWMaxFrequency:             3700000,
 				HWMinFrequency:             400000,
 				AllowedFrequencyDifference: 100000,
-				ScaleFactor: 1.0,
+				ScaleFactor:                1.0,
 				CooldownPeriod:             20 * time.Millisecond,
 			},
 			currentBusyness: 70,

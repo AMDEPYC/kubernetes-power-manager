@@ -36,17 +36,17 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
-	"github.com/intel/kubernetes-power-manager/internal/metrics"
-	"github.com/intel/kubernetes-power-manager/internal/monitoring"
-	"github.com/intel/kubernetes-power-manager/pkg/podresourcesclient"
+	powerv1 "github.com/AMDEPYC/kubernetes-power-manager/api/v1"
+	"github.com/AMDEPYC/kubernetes-power-manager/internal/metrics"
+	"github.com/AMDEPYC/kubernetes-power-manager/internal/monitoring"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/podresourcesclient"
 
-	"github.com/intel/power-optimization-library/pkg/power"
+	"github.com/AMDEPYC/power-optimization-library/pkg/power"
 	corev1 "k8s.io/api/core/v1"
 
-	"github.com/intel/kubernetes-power-manager/internal/controller"
-	"github.com/intel/kubernetes-power-manager/internal/scaling"
-	"github.com/intel/kubernetes-power-manager/pkg/podstate"
+	"github.com/AMDEPYC/kubernetes-power-manager/internal/controller"
+	"github.com/AMDEPYC/kubernetes-power-manager/internal/scaling"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/podstate"
 	// +kubebuilder:scaffold:imports
 )
 

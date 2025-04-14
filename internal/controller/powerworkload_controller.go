@@ -23,10 +23,10 @@ import (
 	"strings"
 
 	e "errors"
+	powerv1 "github.com/AMDEPYC/kubernetes-power-manager/api/v1"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/util"
+	"github.com/AMDEPYC/power-optimization-library/pkg/power"
 	"github.com/go-logr/logr"
-	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
-	"github.com/intel/kubernetes-power-manager/pkg/util"
-	"github.com/intel/power-optimization-library/pkg/power"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -58,7 +58,7 @@ var sharedPowerWorkloadName = ""
 func (r *PowerWorkloadReconciler) Reconcile(c context.Context, req ctrl.Request) (ctrl.Result, error) {
 	var err error
 	logger := r.Log.WithValues("powerworkload", req.NamespacedName)
-	if req.Namespace != IntelPowerNamespace {
+	if req.Namespace != PowerManagerNamespace {
 		err := fmt.Errorf("incorrect namespace")
 		logger.Error(err, "resource is not in the power-manager namespace, ignoring")
 		return ctrl.Result{Requeue: false}, err

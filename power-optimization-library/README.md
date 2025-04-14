@@ -8,7 +8,7 @@ the frequencies and set the priority level of the cores.
 The Power Optimization Library takes allows management of CPUs power/performance on via Pool based management
 
 This library is currently used as part of the
-[Kubernetes Power Manager](https://github.com/intel/kubernetes-power-manager), but could be used with other utilities.
+[Kubernetes Power Manager](https://github.com/AMDEPYC/kubernetes-power-manager), but could be used with other utilities.
 
 ## Features
 
@@ -78,7 +78,7 @@ To begin using the library first create a host object with the supplied name, a 
 as system reserved and an empty list of Exclusive Pools. At this stage no changes are made to any configurations.
 
 ```go
-import "github.com/intel/power-optimization-library/pkg/power"
+import "github.com/AMDEPYC/power-optimization-library/pkg/power"
 host := power.CreateInstance("Name")
 ```
 

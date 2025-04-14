@@ -9,8 +9,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
-	"github.com/intel/kubernetes-power-manager/internal/metrics"
-	"github.com/intel/power-optimization-library/pkg/power"
+	"github.com/AMDEPYC/kubernetes-power-manager/internal/metrics"
+	"github.com/AMDEPYC/power-optimization-library/pkg/power"
 )
 
 // Func definitions for unit testing

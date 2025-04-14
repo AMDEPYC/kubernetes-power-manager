@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
-	"github.com/intel/kubernetes-power-manager/pkg/podstate"
-	"github.com/intel/kubernetes-power-manager/pkg/testutils"
-	"github.com/intel/power-optimization-library/pkg/power"
+	powerv1 "github.com/AMDEPYC/kubernetes-power-manager/api/v1"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/podstate"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/testutils"
+	"github.com/AMDEPYC/power-optimization-library/pkg/power"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"go.uber.org/zap/zapcore"
@@ -66,7 +66,7 @@ var podStaus = corev1.PodStatus{
 var guaranteedPod = powerv1.GuaranteedPod{
 	Node:      "TestNode",
 	Name:      "test-pod-1",
-	Namespace: IntelPowerNamespace,
+	Namespace: PowerManagerNamespace,
 	UID:       "abcdefg",
 	Containers: []powerv1.Container{
 		{
@@ -83,7 +83,7 @@ var guaranteedPod = powerv1.GuaranteedPod{
 var defaultSharedProf = &powerv1.PowerProfile{
 	ObjectMeta: metav1.ObjectMeta{
 		Name:      "shared-TestNode",
-		Namespace: IntelPowerNamespace,
+		Namespace: PowerManagerNamespace,
 	},
 	Spec: powerv1.PowerProfileSpec{
 		Name: "shared-TestNode",
@@ -96,7 +96,7 @@ var defaultSharedProf = &powerv1.PowerProfile{
 var defaultSharedWork = &powerv1.PowerWorkload{
 	ObjectMeta: metav1.ObjectMeta{
 		Name:      "shared-TestNode",
-		Namespace: IntelPowerNamespace,
+		Namespace: PowerManagerNamespace,
 	},
 	Spec: powerv1.PowerWorkloadSpec{
 		Name:     "shared-TestNode",
@@ -204,7 +204,7 @@ func TestTimeOfDayCronJob_Reconcile_CronProfile(t *testing.T) {
 		&powerv1.PowerProfile{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "performance",
-				Namespace: IntelPowerNamespace,
+				Namespace: PowerManagerNamespace,
 			},
 			Spec: powerv1.PowerProfileSpec{
 				Name: "performance",
@@ -214,7 +214,7 @@ func TestTimeOfDayCronJob_Reconcile_CronProfile(t *testing.T) {
 		&powerv1.PowerWorkload{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "performance-TestNode",
-				Namespace: IntelPowerNamespace,
+				Namespace: PowerManagerNamespace,
 			},
 			Spec: powerv1.PowerWorkloadSpec{
 				Name: "performance-TestNode",
@@ -310,7 +310,7 @@ func TestTimeOfDayCronJob_Reconcile_CronPods(t *testing.T) {
 		&powerv1.PowerProfile{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "balance-performance",
-				Namespace: IntelPowerNamespace,
+				Namespace: PowerManagerNamespace,
 			},
 			Spec: powerv1.PowerProfileSpec{
 				Name: "balance-performance",
@@ -320,7 +320,7 @@ func TestTimeOfDayCronJob_Reconcile_CronPods(t *testing.T) {
 		&powerv1.PowerWorkload{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "balance-performance-TestNode",
-				Namespace: IntelPowerNamespace,
+				Namespace: PowerManagerNamespace,
 			},
 			Spec: powerv1.PowerWorkloadSpec{
 				Name: "balance-performance-TestNode",
@@ -336,7 +336,7 @@ func TestTimeOfDayCronJob_Reconcile_CronPods(t *testing.T) {
 		&powerv1.PowerProfile{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "performance",
-				Namespace: IntelPowerNamespace,
+				Namespace: PowerManagerNamespace,
 			},
 			Spec: powerv1.PowerProfileSpec{
 				Name: "performance",
@@ -346,7 +346,7 @@ func TestTimeOfDayCronJob_Reconcile_CronPods(t *testing.T) {
 		&powerv1.PowerWorkload{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "performance-TestNode",
-				Namespace: IntelPowerNamespace,
+				Namespace: PowerManagerNamespace,
 			},
 			Spec: powerv1.PowerWorkloadSpec{
 				Name: "performance-TestNode",
@@ -366,7 +366,7 @@ func TestTimeOfDayCronJob_Reconcile_CronPods(t *testing.T) {
 		&corev1.Pod{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:        "test-pod-1",
-				Namespace:   IntelPowerNamespace,
+				Namespace:   PowerManagerNamespace,
 				UID:         "abcdefg",
 				Labels:      map[string]string{"power": "true"},
 				Annotations: map[string]string{"jibber": "jabber"},
@@ -405,13 +405,13 @@ func TestTimeOfDayCronJob_Reconcile_CronPods(t *testing.T) {
 	performanceReq := reconcile.Request{
 		NamespacedName: client.ObjectKey{
 			Name:      "performance-TestNode",
-			Namespace: IntelPowerNamespace,
+			Namespace: PowerManagerNamespace,
 		},
 	}
 	balancePerformanceReq := reconcile.Request{
 		NamespacedName: client.ObjectKey{
 			Name:      "balance-performance-TestNode",
-			Namespace: IntelPowerNamespace,
+			Namespace: PowerManagerNamespace,
 		},
 	}
 	nodemk := new(testutils.MockHost)
@@ -504,13 +504,13 @@ func TestTimeOfDayCronJob_Reconcile_Cstates(t *testing.T) {
 	req := reconcile.Request{
 		NamespacedName: client.ObjectKey{
 			Name:      "timeofday-test",
-			Namespace: IntelPowerNamespace,
+			Namespace: PowerManagerNamespace,
 		},
 	}
 	cstateReq := reconcile.Request{
 		NamespacedName: client.ObjectKey{
 			Name:      "TestNode",
-			Namespace: IntelPowerNamespace,
+			Namespace: PowerManagerNamespace,
 		},
 	}
 	nodemk := new(testutils.MockHost)
@@ -598,13 +598,13 @@ func TestTimeOfDayCronJob_Reconcile_ExistingCstates(t *testing.T) {
 	req := reconcile.Request{
 		NamespacedName: client.ObjectKey{
 			Name:      "timeofday-test",
-			Namespace: IntelPowerNamespace,
+			Namespace: PowerManagerNamespace,
 		},
 	}
 	cstateReq := reconcile.Request{
 		NamespacedName: client.ObjectKey{
 			Name:      "TestNode",
-			Namespace: IntelPowerNamespace,
+			Namespace: PowerManagerNamespace,
 		},
 	}
 	nodemk := new(testutils.MockHost)
@@ -652,7 +652,7 @@ func TestTimeOfDayCronJob_Reconcile_NoExistingWorkload_Lib_Err(t *testing.T) {
 		&powerv1.PowerProfile{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "balance-performance",
-				Namespace: IntelPowerNamespace,
+				Namespace: PowerManagerNamespace,
 			},
 			Spec: powerv1.PowerProfileSpec{
 				Name: "balance-performance",
@@ -665,7 +665,7 @@ func TestTimeOfDayCronJob_Reconcile_NoExistingWorkload_Lib_Err(t *testing.T) {
 		&powerv1.PowerProfile{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "performance",
-				Namespace: IntelPowerNamespace,
+				Namespace: PowerManagerNamespace,
 			},
 			Spec: powerv1.PowerProfileSpec{
 				Name: "performance",
@@ -806,7 +806,7 @@ func TestTimeOfDayCronJob_Reconcile_ErrsSharedPoolExists(t *testing.T) {
 	performanceWorkload := &powerv1.PowerWorkload{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "performance-TestNode",
-			Namespace: IntelPowerNamespace,
+			Namespace: PowerManagerNamespace,
 		},
 		Spec: powerv1.PowerWorkloadSpec{
 			Name: "performance-TestNode",
@@ -833,7 +833,7 @@ func TestTimeOfDayCronJob_Reconcile_ErrsSharedPoolExists(t *testing.T) {
 		&powerv1.PowerProfile{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "performance",
-				Namespace: IntelPowerNamespace,
+				Namespace: PowerManagerNamespace,
 			},
 			Spec: powerv1.PowerProfileSpec{
 				Name: "performance",
@@ -975,7 +975,7 @@ func TestTimeOfDayCronJob_Reconcile_ErrsPodTuning(t *testing.T) {
 	performanceWorkload := &powerv1.PowerWorkload{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "performance-TestNode",
-			Namespace: IntelPowerNamespace,
+			Namespace: PowerManagerNamespace,
 		},
 		Spec: powerv1.PowerWorkloadSpec{
 			Name: "performance-TestNode",
@@ -995,7 +995,7 @@ func TestTimeOfDayCronJob_Reconcile_ErrsPodTuning(t *testing.T) {
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        "test-pod-1",
-			Namespace:   IntelPowerNamespace,
+			Namespace:   PowerManagerNamespace,
 			UID:         "abcdefg",
 			Labels:      map[string]string{"power": "true"},
 			Annotations: map[string]string{},
@@ -1018,7 +1018,7 @@ func TestTimeOfDayCronJob_Reconcile_ErrsPodTuning(t *testing.T) {
 		&powerv1.PowerProfile{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "balance-performance",
-				Namespace: IntelPowerNamespace,
+				Namespace: PowerManagerNamespace,
 			},
 			Spec: powerv1.PowerProfileSpec{
 				Name: "balance-performance",
@@ -1028,7 +1028,7 @@ func TestTimeOfDayCronJob_Reconcile_ErrsPodTuning(t *testing.T) {
 		&powerv1.PowerWorkload{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "balance-performance-TestNode",
-				Namespace: IntelPowerNamespace,
+				Namespace: PowerManagerNamespace,
 			},
 			Spec: powerv1.PowerWorkloadSpec{
 				Name: "balance-performance-TestNode",
@@ -1042,7 +1042,7 @@ func TestTimeOfDayCronJob_Reconcile_ErrsPodTuning(t *testing.T) {
 		&powerv1.PowerProfile{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "performance",
-				Namespace: IntelPowerNamespace,
+				Namespace: PowerManagerNamespace,
 			},
 			Spec: powerv1.PowerProfileSpec{
 				Name: "performance",
@@ -1334,7 +1334,7 @@ func FuzzTimeOfDayCronController(f *testing.F) {
 		pod := &corev1.Pod{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:        "test-pod-1",
-				Namespace:   IntelPowerNamespace,
+				Namespace:   PowerManagerNamespace,
 				UID:         "abcdefg",
 				Labels:      map[string]string{label1: "true"},
 				Annotations: map[string]string{"jibber": "jabber"},

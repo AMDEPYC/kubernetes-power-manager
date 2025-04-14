@@ -19,10 +19,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
-	"github.com/intel/kubernetes-power-manager/pkg/podstate"
-	"github.com/intel/kubernetes-power-manager/pkg/testutils"
-	"github.com/intel/power-optimization-library/pkg/power"
+	powerv1 "github.com/AMDEPYC/kubernetes-power-manager/api/v1"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/podstate"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/testutils"
+	"github.com/AMDEPYC/power-optimization-library/pkg/power"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	corev1 "k8s.io/api/core/v1"
@@ -70,7 +70,7 @@ func createPowerNodeReconcilerObject(objs []runtime.Object) (*PowerNodeReconcile
 var defaultNode = &powerv1.PowerNode{
 	ObjectMeta: metav1.ObjectMeta{
 		Name:      "TestNode",
-		Namespace: IntelPowerNamespace,
+		Namespace: PowerManagerNamespace,
 	},
 	Spec: powerv1.PowerNodeSpec{
 		CustomDevices: []string{"device-plugin"},
@@ -79,7 +79,7 @@ var defaultNode = &powerv1.PowerNode{
 var defaultProf = &powerv1.PowerProfile{
 	ObjectMeta: metav1.ObjectMeta{
 		Name:      "perfromance",
-		Namespace: IntelPowerNamespace,
+		Namespace: PowerManagerNamespace,
 	},
 	Spec: powerv1.PowerProfileSpec{
 		Name: "performance",
@@ -91,7 +91,7 @@ var defaultProf = &powerv1.PowerProfile{
 var defaultWload = &powerv1.PowerWorkload{
 	ObjectMeta: metav1.ObjectMeta{
 		Name:      "performance-TestNode",
-		Namespace: IntelPowerNamespace,
+		Namespace: PowerManagerNamespace,
 	},
 	Spec: powerv1.PowerWorkloadSpec{
 		Name:         "performance-TestNode",
@@ -133,7 +133,7 @@ var defaultObs = struct {
 var nodeGuaranteedPod = powerv1.GuaranteedPod{
 	Node:      "TestNode",
 	Name:      "test-pod-1",
-	Namespace: IntelPowerNamespace,
+	Namespace: PowerManagerNamespace,
 	UID:       "abcdefg",
 	Containers: []powerv1.Container{
 		{
@@ -141,7 +141,7 @@ var nodeGuaranteedPod = powerv1.GuaranteedPod{
 			Id:            "abcdefg",
 			Pod:           "test-pod-1",
 			PodUID:        "hijkl",
-			Namespace:     IntelPowerNamespace,
+			Namespace:     PowerManagerNamespace,
 			ExclusiveCPUs: []uint{3, 4},
 			PowerProfile:  "performance",
 			Workload:      "performance-TestNode",
@@ -166,7 +166,7 @@ func TestPowerNode_Reconcile(t *testing.T) {
 				&powerv1.PowerNode{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "TestNode",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 					},
 					Spec: powerv1.PowerNodeSpec{},
 				},
@@ -225,7 +225,7 @@ func TestPowerNode_Reconcile(t *testing.T) {
 		req := reconcile.Request{
 			NamespacedName: client.ObjectKey{
 				Name:      tc.powerNodeName,
-				Namespace: IntelPowerNamespace,
+				Namespace: PowerManagerNamespace,
 			},
 		}
 
@@ -288,7 +288,7 @@ func TestPowerNode_Reconcile_ClientErrs(t *testing.T) {
 					*pod = corev1.Pod{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:        "test-pod-1",
-							Namespace:   IntelPowerNamespace,
+							Namespace:   PowerManagerNamespace,
 							UID:         "abcdefg",
 							Annotations: make(map[string]string),
 						},
@@ -323,7 +323,7 @@ func TestPowerNode_Reconcile_ClientErrs(t *testing.T) {
 					*pod = corev1.Pod{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:        "test-pod-1",
-							Namespace:   IntelPowerNamespace,
+							Namespace:   PowerManagerNamespace,
 							UID:         "abcdefg",
 							Annotations: map[string]string{"PM-updated": "0"},
 						},
@@ -366,7 +366,7 @@ func TestPowerNode_Reconcile_ClientErrs(t *testing.T) {
 		req := reconcile.Request{
 			NamespacedName: client.ObjectKey{
 				Name:      tc.powerNodeName,
-				Namespace: IntelPowerNamespace,
+				Namespace: PowerManagerNamespace,
 			},
 		}
 
@@ -391,7 +391,7 @@ func FuzzPowerNodeController(f *testing.F) {
 			Id:            "abcdefg",
 			Pod:           "test-pod-1",
 			PodUID:        "hijkl",
-			Namespace:     IntelPowerNamespace,
+			Namespace:     PowerManagerNamespace,
 			ExclusiveCPUs: []uint{1, 2, 3},
 			PowerProfile:  prof1,
 			Workload:      prof1 + nodeName,
@@ -410,7 +410,7 @@ func FuzzPowerNodeController(f *testing.F) {
 			&powerv1.PowerProfile{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      prof1,
-					Namespace: IntelPowerNamespace,
+					Namespace: PowerManagerNamespace,
 				},
 				Spec: powerv1.PowerProfileSpec{
 					Name: prof1,
@@ -419,7 +419,7 @@ func FuzzPowerNodeController(f *testing.F) {
 			&powerv1.PowerProfile{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      prof2,
-					Namespace: IntelPowerNamespace,
+					Namespace: PowerManagerNamespace,
 				},
 				Spec: powerv1.PowerProfileSpec{
 					Name: prof2,
@@ -428,7 +428,7 @@ func FuzzPowerNodeController(f *testing.F) {
 			&powerv1.PowerProfile{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      prof3,
-					Namespace: IntelPowerNamespace,
+					Namespace: PowerManagerNamespace,
 				},
 				Spec: powerv1.PowerProfileSpec{
 					Name: prof3,
@@ -437,7 +437,7 @@ func FuzzPowerNodeController(f *testing.F) {
 			&powerv1.PowerWorkload{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      prof1 + "-" + nodeName,
-					Namespace: IntelPowerNamespace,
+					Namespace: PowerManagerNamespace,
 				},
 				Spec: powerv1.PowerWorkloadSpec{
 					Name:         prof1 + "-" + nodeName,
@@ -451,7 +451,7 @@ func FuzzPowerNodeController(f *testing.F) {
 			&powerv1.PowerNode{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      nodeName,
-					Namespace: IntelPowerNamespace,
+					Namespace: PowerManagerNamespace,
 				},
 				Spec: powerv1.PowerNodeSpec{
 					CustomDevices:   []string{devicePlugin},
@@ -469,7 +469,7 @@ func FuzzPowerNodeController(f *testing.F) {
 		pod := powerv1.GuaranteedPod{
 			Node:      "TestNode",
 			Name:      "test-pod-1",
-			Namespace: IntelPowerNamespace,
+			Namespace: PowerManagerNamespace,
 			UID:       "abcdefg",
 			Containers: []powerv1.Container{
 				container,
@@ -515,7 +515,7 @@ func FuzzPowerNodeController(f *testing.F) {
 		req := reconcile.Request{
 			NamespacedName: client.ObjectKey{
 				Name:      nodeName,
-				Namespace: IntelPowerNamespace,
+				Namespace: PowerManagerNamespace,
 			},
 		}
 

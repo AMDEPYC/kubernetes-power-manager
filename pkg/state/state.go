@@ -1,7 +1,7 @@
 package state
 
 import (
-	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
+	powerv1 "github.com/AMDEPYC/kubernetes-power-manager/api/v1"
 )
 
 type PowerNodeData struct {

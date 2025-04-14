@@ -28,10 +28,10 @@ import (
 
 	"time"
 
+	powerv1 "github.com/AMDEPYC/kubernetes-power-manager/api/v1"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/podstate"
+	"github.com/AMDEPYC/power-optimization-library/pkg/power"
 	"github.com/go-logr/logr"
-	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
-	"github.com/intel/kubernetes-power-manager/pkg/podstate"
-	"github.com/intel/power-optimization-library/pkg/power"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -63,7 +63,7 @@ type TimeOfDayCronJobReconciler struct {
 func (r *TimeOfDayCronJobReconciler) Reconcile(c context.Context, req ctrl.Request) (ctrl.Result, error) {
 	var err error
 	logger := r.Log.WithValues("timeofdaycronjob", req.NamespacedName)
-	if req.Namespace != IntelPowerNamespace {
+	if req.Namespace != PowerManagerNamespace {
 		err := fmt.Errorf("incorrect namespace")
 		logger.Error(err, "resource is not in the power-manager namespace, ignoring")
 		return ctrl.Result{Requeue: false}, err
@@ -153,7 +153,7 @@ func (r *TimeOfDayCronJobReconciler) Reconcile(c context.Context, req ctrl.Reque
 					workloadName := fmt.Sprintf("shared-%s", nodeName)
 					workload := &powerv1.PowerWorkload{
 						ObjectMeta: metav1.ObjectMeta{
-							Namespace: IntelPowerNamespace,
+							Namespace: PowerManagerNamespace,
 							Name:      workloadName,
 						},
 						Spec: powerv1.PowerWorkloadSpec{
@@ -177,7 +177,7 @@ func (r *TimeOfDayCronJobReconciler) Reconcile(c context.Context, req ctrl.Reque
 				workloadMatch.Spec.PowerProfile = *cronJob.Spec.Profile
 				logger.V(5).Info(fmt.Sprintf("setting profile %s", *cronJob.Spec.Profile))
 				profile := &powerv1.PowerProfile{}
-				if err = r.Client.Get(context.TODO(), client.ObjectKey{Name: *cronJob.Spec.Profile, Namespace: IntelPowerNamespace}, profile); err != nil {
+				if err = r.Client.Get(context.TODO(), client.ObjectKey{Name: *cronJob.Spec.Profile, Namespace: PowerManagerNamespace}, profile); err != nil {
 					logger.Error(err, "cannot retrieve the profile")
 					return ctrl.Result{Requeue: false}, err
 				}
@@ -231,14 +231,14 @@ func (r *TimeOfDayCronJobReconciler) Reconcile(c context.Context, req ctrl.Reque
 				cstate := &powerv1.CStates{}
 				err = r.Client.Get(context.TODO(), client.ObjectKey{
 					Name:      nodeName,
-					Namespace: IntelPowerNamespace,
+					Namespace: PowerManagerNamespace,
 				}, cstate)
 				if apierrors.IsNotFound(err) {
 					// if C-State does not exist
 					logger.V(5).Info("creating new C-State")
 					newCstate := &powerv1.CStates{
 						ObjectMeta: metav1.ObjectMeta{
-							Namespace: IntelPowerNamespace,
+							Namespace: PowerManagerNamespace,
 							Name:      nodeName,
 						},
 						Spec: powerv1.CStatesSpec{
@@ -311,7 +311,7 @@ func (r *TimeOfDayCronJobReconciler) Reconcile(c context.Context, req ctrl.Reque
 						if workloadFrom.Name != from {
 							err = r.Client.Get(context.TODO(), client.ObjectKey{
 								Name:      from,
-								Namespace: IntelPowerNamespace,
+								Namespace: PowerManagerNamespace,
 							}, &workloadFrom)
 							if err != nil {
 								logger.Error(err, fmt.Sprintf("error retrieving the workload %s", from))
@@ -322,7 +322,7 @@ func (r *TimeOfDayCronJobReconciler) Reconcile(c context.Context, req ctrl.Reque
 						if workloadTo.Name != podInfo.Target+"-"+nodeName {
 							err = r.Client.Get(context.TODO(), client.ObjectKey{
 								Name:      podInfo.Target + "-" + nodeName,
-								Namespace: IntelPowerNamespace,
+								Namespace: PowerManagerNamespace,
 							}, &workloadTo)
 							if err != nil {
 								logger.Error(err, fmt.Sprintf("error retrieving the workload %s", (podInfo.Target+"-"+nodeName)))
