@@ -35,12 +35,12 @@ spec:
               cpu: "32"
               hugepages-1Gi: "10Gi"
               memory: "6Gi"
-              power.amdepyc.com/cpuscalingprofile-power: "32"
+              power.amdepyc.com/cpuscalingprofile-sample: "32"
             limits:
               cpu: "32"
               hugepages-1Gi: "10Gi"
               memory: "6Gi"
-              power.amdepyc.com/cpuscalingprofile-power: "32"
+              power.amdepyc.com/cpuscalingprofile-sample: "32"
           volumeMounts:
             - mountPath: /hugepages-1Gi
               name: hugepages-1gi
