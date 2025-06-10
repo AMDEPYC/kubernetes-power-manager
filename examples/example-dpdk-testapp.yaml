@@ -17,6 +17,7 @@ spec:
     spec:
       nodeSelector:
         "feature.node.kubernetes.io/power-node": "true"
+      hostNetwork: true
       containers:
         - name: server
           env:
