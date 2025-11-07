@@ -43,23 +43,42 @@ func isUserspaceGovernor(cpu uint) (bool, error) {
 	return governor == userspaceGovernor, nil
 }
 
-// setCPUFrequency sets the CPU frequency in kHz for the specified CPU using the userspace governor.
+// setCPUFrequency attempts to set the CPU frequency in kHz using the userspace governor.
+// If userspace governor is not supported, it falls back to setting scaling_max_freq
+// (for AMD P-State EPP or similar drivers).
 func setCPUFrequency(cpu uint, frequency uint) error {
-	// check that the userspace governor is enabled
+	// Check if the userspace governor is enabled
 	isUserspace, err := isUserspaceGovernor(cpu)
 	if err != nil {
-		return fmt.Errorf("failed to get userspace governor for CPU %d: %w", cpu, err)
+		return fmt.Errorf("failed to get governor for CPU %d: %w", cpu, err)
 	}
 
-	if !isUserspace {
-		return fmt.Errorf("userspace governor not set for CPU %d", cpu)
+	if isUserspace {
+		// Use userspace governor path
+		scalingSetspeedPath := getCPUFreqPathFunction(cpu, "scaling_setspeed")
+
+		if err := os.WriteFile(scalingSetspeedPath, []byte(fmt.Sprintf("%d", frequency)), 0644); err != nil {
+			return fmt.Errorf("failed to set userspace frequency for CPU %d: %w", cpu, err)
+		}
+
+		return nil
 	}
 
-	scalingSetspeedPath := getCPUFreqPathFunction(cpu, "scaling_setspeed")
-	// Set the desired frequency
-	err = os.WriteFile(scalingSetspeedPath, []byte(fmt.Sprintf("%d", frequency)), 0644)
-	if err != nil {
-		return fmt.Errorf("failed to set frequency for CPU %d: %w", cpu, err)
+	// Fallback: userspace governor not available, try AMD P-State max frequency
+	if err := setCPUMaxFrequency(cpu, frequency); err != nil {
+		return fmt.Errorf("fallback to set max frequency for CPU %d failed: %w", cpu, err)
+	}
+
+	return nil
+}
+
+// setCPUMaxFrequency sets the CPU max frequency in kHz using scaling_max_freq.
+// This is typically used for AMD P-State EPP where userspace governor is unavailable.
+func setCPUMaxFrequency(cpu uint, frequency uint) error {
+	scalingMaxFreqPath := getCPUFreqPathFunction(cpu, "scaling_max_freq")
+
+	if err := os.WriteFile(scalingMaxFreqPath, []byte(fmt.Sprintf("%d", frequency)), 0644); err != nil {
+		return fmt.Errorf("failed to set max frequency for CPU %d: %w", cpu, err)
 	}
 
 	return nil
