@@ -11,5 +11,6 @@ spec:
   - "performance"
   - "balance-performance"
   - "balance-power"
+  - "power"
 
 {{- end -}}
