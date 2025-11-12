@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	userspaceGovernor = "userspace"
+	powersaveGovernor = "powersave"
 	cpuFreqBasePath   = "/sys/devices/system/cpu/cpu%d/cpufreq"
 )
 
@@ -35,48 +35,27 @@ func getCurrentGovernor(cpu uint) (string, error) {
 	return strings.TrimSpace(string(currentGovernor)), nil
 }
 
-func isUserspaceGovernor(cpu uint) (bool, error) {
+func isPowersaveGovernor(cpu uint) (bool, error) {
 	governor, err := getCurrentGovernor(cpu)
 	if err != nil {
 		return false, fmt.Errorf("failed to read current governor for cpu %d: %w", cpu, err)
 	}
-	return governor == userspaceGovernor, nil
+	return governor == powersaveGovernor, nil
 }
 
-// setCPUFrequency attempts to set the CPU frequency in kHz using the userspace governor.
-// If userspace governor is not supported, it falls back to setting scaling_max_freq
-// (for AMD P-State EPP or similar drivers).
+// setCPUFrequency sets the CPU max frequency in kHz using scaling_max_freq.
 func setCPUFrequency(cpu uint, frequency uint) error {
-	// Check if the userspace governor is enabled
-	isUserspace, err := isUserspaceGovernor(cpu)
+	// Check that the powersave governor is enabled
+	isPowersave, err := isPowersaveGovernor(cpu)
 	if err != nil {
 		return fmt.Errorf("failed to get governor for CPU %d: %w", cpu, err)
 	}
 
-	if isUserspace {
-		// Use userspace governor path
-		scalingSetspeedPath := getCPUFreqPathFunction(cpu, "scaling_setspeed")
-
-		if err := os.WriteFile(scalingSetspeedPath, []byte(fmt.Sprintf("%d", frequency)), 0644); err != nil {
-			return fmt.Errorf("failed to set userspace frequency for CPU %d: %w", cpu, err)
-		}
-
-		return nil
+	if !isPowersave {
+		return fmt.Errorf("powersave governor not set for CPU %d", cpu)
 	}
 
-	// Fallback: userspace governor not available, try AMD P-State max frequency
-	if err := setCPUMaxFrequency(cpu, frequency); err != nil {
-		return fmt.Errorf("fallback to set max frequency for CPU %d failed: %w", cpu, err)
-	}
-
-	return nil
-}
-
-// setCPUMaxFrequency sets the CPU max frequency in kHz using scaling_max_freq.
-// This is typically used for AMD P-State EPP where userspace governor is unavailable.
-func setCPUMaxFrequency(cpu uint, frequency uint) error {
 	scalingMaxFreqPath := getCPUFreqPathFunction(cpu, "scaling_max_freq")
-
 	if err := os.WriteFile(scalingMaxFreqPath, []byte(fmt.Sprintf("%d", frequency)), 0644); err != nil {
 		return fmt.Errorf("failed to set max frequency for CPU %d: %w", cpu, err)
 	}

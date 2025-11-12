@@ -474,7 +474,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					Name:     "cpuscalingprofile1",
 					Min:      ptr.To(intstr.FromInt32(2000)),
 					Max:      ptr.To(intstr.FromInt32(3000)),
-					Governor: userspaceGovernor,
+					Governor: scalingGovernor,
 					Epp:      powerv1.EPPBalancePerformance,
 					Shared:   false,
 				}, pp.Spec)
@@ -529,7 +529,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					Name:     "cpuscalingprofile1",
 					Min:      ptr.To(intstr.FromInt32(2000)),
 					Max:      ptr.To(intstr.FromInt32(3000)),
-					Governor: userspaceGovernor,
+					Governor: scalingGovernor,
 					Epp:      powerv1.EPPBalancePerformance,
 					Shared:   false,
 				}, pp.Spec)
@@ -748,7 +748,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					Max:      ptr.To(intstr.FromString("80%")),
 					Shared:   false,
 					Epp:      powerv1.EPPBalancePerformance,
-					Governor: userspaceGovernor,
+					Governor: scalingGovernor,
 				}, pp.Spec)
 			},
 			clientObjs: []client.Object{
@@ -835,7 +835,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					Max:      ptr.To(intstr.FromInt32(3000)),
 					Shared:   false,
 					Epp:      powerv1.EPPBalancePerformance,
-					Governor: userspaceGovernor,
+					Governor: scalingGovernor,
 				}, pp.Spec)
 			},
 			clientObjs: []client.Object{
@@ -1595,7 +1595,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					Max:      ptr.To(intstr.FromString("70%")),
 					Shared:   false,
 					Epp:      powerv1.EPPBalancePerformance,
-					Governor: userspaceGovernor,
+					Governor: scalingGovernor,
 				}, pp.Spec)
 				csc := &powerv1.CPUScalingConfiguration{}
 				if !assert.NoError(t, c.Get(context.TODO(),
@@ -1670,7 +1670,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						Max:      ptr.To(intstr.FromString("70%")),
 						Shared:   false,
 						Epp:      powerv1.EPPBalancePerformance,
-						Governor: userspaceGovernor,
+						Governor: scalingGovernor,
 					},
 				},
 				&powerv1.CPUScalingConfiguration{
@@ -1803,7 +1803,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 					Name:     "cpuscalingprofile1",
 					Min:      eppDefaults[powerv1.EPPPower].cpuScalingProfileSpec.Min,
 					Max:      eppDefaults[powerv1.EPPPower].cpuScalingProfileSpec.Max,
-					Governor: userspaceGovernor,
+					Governor: scalingGovernor,
 					Epp:      powerv1.EPPPower,
 					Shared:   false,
 				}, pp.Spec)
