@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	userspaceGovernor = "userspace"
+	powersaveGovernor = "powersave"
 	cpuFreqBasePath   = "/sys/devices/system/cpu/cpu%d/cpufreq"
 )
 
@@ -35,31 +35,29 @@ func getCurrentGovernor(cpu uint) (string, error) {
 	return strings.TrimSpace(string(currentGovernor)), nil
 }
 
-func isUserspaceGovernor(cpu uint) (bool, error) {
+func isPowersaveGovernor(cpu uint) (bool, error) {
 	governor, err := getCurrentGovernor(cpu)
 	if err != nil {
 		return false, fmt.Errorf("failed to read current governor for cpu %d: %w", cpu, err)
 	}
-	return governor == userspaceGovernor, nil
+	return governor == powersaveGovernor, nil
 }
 
-// setCPUFrequency sets the CPU frequency in kHz for the specified CPU using the userspace governor.
+// setCPUFrequency sets the CPU max frequency in kHz using scaling_max_freq.
 func setCPUFrequency(cpu uint, frequency uint) error {
-	// check that the userspace governor is enabled
-	isUserspace, err := isUserspaceGovernor(cpu)
+	// Check that the powersave governor is enabled
+	isPowersave, err := isPowersaveGovernor(cpu)
 	if err != nil {
-		return fmt.Errorf("failed to get userspace governor for CPU %d: %w", cpu, err)
+		return fmt.Errorf("failed to get governor for CPU %d: %w", cpu, err)
 	}
 
-	if !isUserspace {
-		return fmt.Errorf("userspace governor not set for CPU %d", cpu)
+	if !isPowersave {
+		return fmt.Errorf("powersave governor not set for CPU %d", cpu)
 	}
 
-	scalingSetspeedPath := getCPUFreqPathFunction(cpu, "scaling_setspeed")
-	// Set the desired frequency
-	err = os.WriteFile(scalingSetspeedPath, []byte(fmt.Sprintf("%d", frequency)), 0644)
-	if err != nil {
-		return fmt.Errorf("failed to set frequency for CPU %d: %w", cpu, err)
+	scalingMaxFreqPath := getCPUFreqPathFunction(cpu, "scaling_max_freq")
+	if err := os.WriteFile(scalingMaxFreqPath, []byte(fmt.Sprintf("%d", frequency)), 0644); err != nil {
+		return fmt.Errorf("failed to set max frequency for CPU %d: %w", cpu, err)
 	}
 
 	return nil

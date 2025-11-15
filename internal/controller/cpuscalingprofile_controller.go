@@ -204,7 +204,7 @@ func (r *CPUScalingProfileReconciler) createOrUpdatePowerProfile(scalingProfile 
 			Name:     scalingProfile.Name,
 			Max:      scalingProfile.Spec.Max,
 			Min:      scalingProfile.Spec.Min,
-			Governor: userspaceGovernor,
+			Governor: scalingGovernor,
 			Shared:   false,
 			Epp:      scalingProfile.Spec.Epp,
 		}

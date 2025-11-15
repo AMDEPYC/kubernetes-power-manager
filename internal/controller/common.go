@@ -27,7 +27,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-const userspaceGovernor = "userspace"
+const scalingGovernor = "powersave"
 
 type eppValues struct {
 	cpuScalingProfileSpec powerv1.CPUScalingProfileSpec

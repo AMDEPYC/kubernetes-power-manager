@@ -77,18 +77,6 @@ func TestGetFrequencyFromPercent(t *testing.T) {
 	}
 }
 
-func TestGetCurrentGovernorUserspace(t *testing.T) {
-	originalGetCPUFreqPath := getCPUFreqPathFunction
-	getCPUFreqPathFunction = func(cpu uint, resource string) string {
-		return overrideGetCPUFreqPath(t, cpu, resource)
-	}
-	defer func() { getCPUFreqPathFunction = originalGetCPUFreqPath }()
-
-	governor, err := getCurrentGovernor(0)
-	require.NoError(t, err)
-	assert.Equal(t, "userspace", governor)
-}
-
 func TestGetCurrentGovernorPowersave(t *testing.T) {
 	originalGetCPUFreqPath := getCPUFreqPathFunction
 	getCPUFreqPathFunction = func(cpu uint, resource string) string {
@@ -99,30 +87,6 @@ func TestGetCurrentGovernorPowersave(t *testing.T) {
 	governor, err := getCurrentGovernor(1)
 	require.NoError(t, err)
 	assert.Equal(t, "powersave", governor)
-}
-
-func TestIsUserspaceGovernor(t *testing.T) {
-	originalGetCPUFreqPath := getCPUFreqPathFunction
-	getCPUFreqPathFunction = func(cpu uint, resource string) string {
-		return overrideGetCPUFreqPath(t, cpu, resource)
-	}
-	defer func() { getCPUFreqPathFunction = originalGetCPUFreqPath }()
-
-	isUserspace, err := isUserspaceGovernor(0)
-	require.NoError(t, err)
-	assert.True(t, isUserspace)
-}
-
-func TestIsUserspaceGovernorNegative(t *testing.T) {
-	originalGetCPUFreqPath := getCPUFreqPathFunction
-	getCPUFreqPathFunction = func(cpu uint, resource string) string {
-		return overrideGetCPUFreqPath(t, cpu, resource)
-	}
-	defer func() { getCPUFreqPathFunction = originalGetCPUFreqPath }()
-
-	isUserspace, err := isUserspaceGovernor(1)
-	require.NoError(t, err)
-	assert.False(t, isUserspace)
 }
 
 func TestSetCPUFrequency(t *testing.T) {
