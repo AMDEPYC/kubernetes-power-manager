@@ -33,10 +33,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
-	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
+	powerv1 "github.com/AMDEPYC/kubernetes-power-manager/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/intel/kubernetes-power-manager/pkg/util"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/util"
 )
 
 // TimeOfDayReconciler reconciles a TimeOfDay object
@@ -53,7 +53,7 @@ type TimeOfDayReconciler struct {
 func (r *TimeOfDayReconciler) Reconcile(c context.Context, req ctrl.Request) (ctrl.Result, error) {
 	var err error
 	logger := r.Log.WithValues("timeofday", req.NamespacedName)
-	if req.Namespace != IntelPowerNamespace {
+	if req.Namespace != PowerManagerNamespace {
 		err := fmt.Errorf("incorrect namespace")
 		logger.Error(err, "resource is not in the power-manager namespace, ignoring")
 		return ctrl.Result{Requeue: false}, err
@@ -87,7 +87,7 @@ func (r *TimeOfDayReconciler) Reconcile(c context.Context, req ctrl.Request) (ct
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			logger.V(5).Info("deleting time-of-day cron jobs from cluster")
-			err = r.Client.DeleteAllOf(c, &powerv1.TimeOfDayCronJob{}, client.InNamespace(IntelPowerNamespace))
+			err = r.Client.DeleteAllOf(c, &powerv1.TimeOfDayCronJob{}, client.InNamespace(PowerManagerNamespace))
 			if err != nil {
 				logger.Error(err, "error deleting the time-of-day cron jobs")
 				return ctrl.Result{}, err
@@ -139,7 +139,7 @@ func (r *TimeOfDayReconciler) Reconcile(c context.Context, req ctrl.Request) (ct
 		cronJob := &powerv1.TimeOfDayCronJob{}
 		err = r.Client.Get(c, client.ObjectKey{
 			Name:      cronJobName,
-			Namespace: IntelPowerNamespace,
+			Namespace: PowerManagerNamespace,
 		}, cronJob)
 		// if cronjob doesn't exist create one
 		logger.V(5).Info("creating the cron job if one doesn't exist")
@@ -160,7 +160,7 @@ func (r *TimeOfDayReconciler) Reconcile(c context.Context, req ctrl.Request) (ct
 
 				cronJob = &powerv1.TimeOfDayCronJob{
 					ObjectMeta: metav1.ObjectMeta{
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						Name:      cronJobName,
 					},
 				}
@@ -181,7 +181,7 @@ func (r *TimeOfDayReconciler) Reconcile(c context.Context, req ctrl.Request) (ct
 	}
 
 	cronJobList := &powerv1.TimeOfDayCronJobList{}
-	err = r.Client.List(c, cronJobList, client.InNamespace(IntelPowerNamespace))
+	err = r.Client.List(c, cronJobList, client.InNamespace(PowerManagerNamespace))
 	if err != nil {
 		logger.Error(err, "error retrieving the cron job list")
 		return ctrl.Result{}, err

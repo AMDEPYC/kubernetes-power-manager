@@ -21,8 +21,8 @@ import (
 	"testing"
 	"time"
 
-	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
-	"github.com/intel/kubernetes-power-manager/pkg/testutils"
+	powerv1 "github.com/AMDEPYC/kubernetes-power-manager/api/v1"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/testutils"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -118,7 +118,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 			validateStatus: func(c client.Client) {
 				csc := &powerv1.CPUScalingProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: PowerManagerNamespace}, csc)) {
 					return
 				}
 				if !assert.Len(t, csc.Status.Errors, 1) {
@@ -132,7 +132,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 				&powerv1.CPUScalingProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "cpuscalingprofile1",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
@@ -147,7 +147,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 			validateStatus: func(c client.Client) {
 				csc := &powerv1.CPUScalingProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: PowerManagerNamespace}, csc)) {
 					return
 				}
 				if !assert.Len(t, csc.Status.Errors, 1) {
@@ -161,7 +161,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 				&powerv1.CPUScalingProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "cpuscalingprofile1",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
@@ -176,7 +176,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 			validateStatus: func(c client.Client) {
 				csc := &powerv1.CPUScalingProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: PowerManagerNamespace}, csc)) {
 					return
 				}
 				if !assert.Len(t, csc.Status.Errors, 1) {
@@ -190,7 +190,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 				&powerv1.CPUScalingProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "cpuscalingprofile1",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
@@ -207,7 +207,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 			validateStatus: func(c client.Client) {
 				csc := &powerv1.CPUScalingProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: PowerManagerNamespace}, csc)) {
 					return
 				}
 				if !assert.Len(t, csc.Status.Errors, 1) {
@@ -220,7 +220,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 				&powerv1.CPUScalingProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "cpuscalingprofile1",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
@@ -237,7 +237,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 			validateStatus: func(c client.Client) {
 				csc := &powerv1.CPUScalingProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: PowerManagerNamespace}, csc)) {
 					return
 				}
 				if !assert.Len(t, csc.Status.Errors, 1) {
@@ -250,7 +250,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 				&powerv1.CPUScalingProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "cpuscalingprofile1",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
@@ -267,7 +267,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 			validateStatus: func(c client.Client) {
 				csc := &powerv1.CPUScalingProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: PowerManagerNamespace}, csc)) {
 					return
 				}
 				if !assert.Len(t, csc.Status.Errors, 1) {
@@ -280,7 +280,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 				&powerv1.CPUScalingProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "cpuscalingprofile1",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
@@ -297,7 +297,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 			validateStatus: func(c client.Client) {
 				csc := &powerv1.CPUScalingProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: PowerManagerNamespace}, csc)) {
 					return
 				}
 				if !assert.Len(t, csc.Status.Errors, 1) {
@@ -310,7 +310,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 				&powerv1.CPUScalingProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "cpuscalingprofile1",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
@@ -327,7 +327,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 			validateStatus: func(c client.Client) {
 				csc := &powerv1.CPUScalingProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: PowerManagerNamespace}, csc)) {
 					return
 				}
 				if !assert.Len(t, csc.Status.Errors, 1) {
@@ -340,7 +340,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 				&powerv1.CPUScalingProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "cpuscalingprofile1",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
@@ -357,7 +357,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 			validateStatus: func(c client.Client) {
 				csc := &powerv1.CPUScalingProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: PowerManagerNamespace}, csc)) {
 					return
 				}
 				if !assert.Len(t, csc.Status.Errors, 1) {
@@ -370,7 +370,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 				&powerv1.CPUScalingProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "cpuscalingprofile1",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
@@ -387,7 +387,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 			validateStatus: func(c client.Client) {
 				csc := &powerv1.CPUScalingProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: PowerManagerNamespace}, csc)) {
 					return
 				}
 				assert.Contains(t, csc.Status.Errors,
@@ -397,7 +397,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 				&powerv1.CPUScalingProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "cpuscalingprofile1",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
@@ -418,7 +418,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 			return
 		}
 
-		objKey := client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}
+		objKey := client.ObjectKey{Name: "cpuscalingprofile1", Namespace: PowerManagerNamespace}
 		_, err = r.Reconcile(context.TODO(), reconcile.Request{NamespacedName: objKey})
 		if !assert.NoError(t, err) {
 			return
@@ -426,7 +426,7 @@ func TestCPUScalingProfile_Reconcile_Validate(t *testing.T) {
 
 		tc.validateStatus(r.Client)
 		assert.True(t, errors.IsNotFound(r.Client.Get(context.TODO(),
-			client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace},
+			client.ObjectKey{Name: "cpuscalingprofile1", Namespace: PowerManagerNamespace},
 			&powerv1.PowerProfile{})))
 	}
 }
@@ -449,7 +449,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				}
 				csc := &powerv1.CPUScalingProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: PowerManagerNamespace}, csc)) {
 					return
 				}
 				assert.Empty(t, csc.Status.Errors)
@@ -457,7 +457,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 			validateObjects: func(c client.Client) {
 				pp := &powerv1.PowerProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, pp)) {
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: PowerManagerNamespace}, pp)) {
 					return
 				}
 				assert.ElementsMatch(t, []metav1.OwnerReference{
@@ -483,7 +483,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				&powerv1.CPUScalingProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "cpuscalingprofile1",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
@@ -504,7 +504,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				}
 				csc := &powerv1.CPUScalingProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: PowerManagerNamespace}, csc)) {
 					return
 				}
 				assert.Empty(t, csc.Status.Errors)
@@ -512,7 +512,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 			validateObjects: func(c client.Client) {
 				pp := &powerv1.PowerProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, pp)) {
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: PowerManagerNamespace}, pp)) {
 					return
 				}
 				assert.ElementsMatch(t, []metav1.OwnerReference{
@@ -538,7 +538,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				&powerv1.CPUScalingProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "cpuscalingprofile1",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
@@ -551,7 +551,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				&powerv1.PowerProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:              "cpuscalingprofile1",
-						Namespace:         IntelPowerNamespace,
+						Namespace:         PowerManagerNamespace,
 						UID:               "hgf",
 						CreationTimestamp: metav1.Now(),
 						OwnerReferences: []metav1.OwnerReference{
@@ -588,14 +588,14 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 
 				// CPUScalingConfiguration should be deleted
 				assert.True(t, errors.IsNotFound(c.Get(context.TODO(),
-					client.ObjectKey{Name: "worker1", Namespace: IntelPowerNamespace},
+					client.ObjectKey{Name: "worker1", Namespace: PowerManagerNamespace},
 					&powerv1.CPUScalingConfiguration{})))
 			},
 			clientObjs: []client.Object{
 				&powerv1.PowerProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:              "cpuscalingprofile1",
-						Namespace:         IntelPowerNamespace,
+						Namespace:         PowerManagerNamespace,
 						UID:               "hgf",
 						CreationTimestamp: metav1.Now(),
 						OwnerReferences: []metav1.OwnerReference{
@@ -617,7 +617,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						{
 							ObjectMeta: metav1.ObjectMeta{
 								Name:      "worker1",
-								Namespace: IntelPowerNamespace,
+								Namespace: PowerManagerNamespace,
 								OwnerReferences: []metav1.OwnerReference{
 									{
 										Name:       "cpuscalingprofile1",
@@ -650,7 +650,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				assert.Error(t, err)
 				csc := &powerv1.CPUScalingProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "performance", Namespace: IntelPowerNamespace}, csc)) {
+					client.ObjectKey{Name: "performance", Namespace: PowerManagerNamespace}, csc)) {
 					return
 				}
 				assert.ElementsMatch(t, csc.Status.Errors,
@@ -660,7 +660,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 			validateObjects: func(c client.Client) {
 				pp := &powerv1.PowerProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "performance", Namespace: IntelPowerNamespace}, pp)) {
+					client.ObjectKey{Name: "performance", Namespace: PowerManagerNamespace}, pp)) {
 					return
 				}
 				assert.Empty(t, pp.ObjectMeta.OwnerReferences)
@@ -677,7 +677,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				&powerv1.CPUScalingProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "performance",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
@@ -690,7 +690,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				&powerv1.PowerProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:              "performance",
-						Namespace:         IntelPowerNamespace,
+						Namespace:         PowerManagerNamespace,
 						UID:               "hgf",
 						CreationTimestamp: metav1.Now(),
 					},
@@ -714,7 +714,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				}
 				csc := &powerv1.CPUScalingProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: PowerManagerNamespace}, csc)) {
 					return
 				}
 				assert.Empty(t, csc.Status.Errors)
@@ -722,7 +722,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 			validateObjects: func(c client.Client) {
 				pp := &powerv1.PowerProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, pp)) {
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: PowerManagerNamespace}, pp)) {
 					return
 				}
 				// New Ownership entry will be respected, but any changes to spec will be reverted
@@ -755,7 +755,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				&powerv1.CPUScalingProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "cpuscalingprofile1",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
@@ -768,7 +768,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				&powerv1.PowerProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:              "cpuscalingprofile1",
-						Namespace:         IntelPowerNamespace,
+						Namespace:         PowerManagerNamespace,
 						UID:               "hgf",
 						CreationTimestamp: metav1.Now(),
 						OwnerReferences: []metav1.OwnerReference{
@@ -808,7 +808,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				}
 				csc := &powerv1.CPUScalingProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: PowerManagerNamespace}, csc)) {
 					return
 				}
 				assert.Empty(t, csc.Status.Errors)
@@ -816,7 +816,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 			validateObjects: func(c client.Client) {
 				pp := &powerv1.PowerProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, pp)) {
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: PowerManagerNamespace}, pp)) {
 					return
 				}
 				assert.ElementsMatch(t, []metav1.OwnerReference{
@@ -842,7 +842,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				&powerv1.CPUScalingProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "cpuscalingprofile1",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
@@ -855,7 +855,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				&powerv1.PowerProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:              "cpuscalingprofile1",
-						Namespace:         IntelPowerNamespace,
+						Namespace:         PowerManagerNamespace,
 						UID:               "hgf",
 						CreationTimestamp: metav1.Now(),
 						OwnerReferences: []metav1.OwnerReference{
@@ -889,7 +889,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				}
 				csc := &powerv1.CPUScalingProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: PowerManagerNamespace}, csc)) {
 					return
 				}
 				assert.Empty(t, csc.Status.Errors)
@@ -897,7 +897,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 			validateObjects: func(c client.Client) {
 				csc := &powerv1.CPUScalingConfiguration{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "worker1", Namespace: IntelPowerNamespace}, csc)) {
+					client.ObjectKey{Name: "worker1", Namespace: PowerManagerNamespace}, csc)) {
 					return
 				}
 				assert.ElementsMatch(t, []metav1.OwnerReference{
@@ -930,7 +930,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				&powerv1.CPUScalingProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "cpuscalingprofile1",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
@@ -952,7 +952,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						{
 							ObjectMeta: metav1.ObjectMeta{
 								Name:      "cpuscalingprofile1-worker1",
-								Namespace: IntelPowerNamespace,
+								Namespace: PowerManagerNamespace,
 							},
 							Spec: powerv1.PowerWorkloadSpec{
 								PowerProfile: "cpuscalingprofile1",
@@ -961,7 +961,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 									Containers: []powerv1.Container{
 										{
 											Name:          "container1",
-											Namespace:     IntelPowerNamespace,
+											Namespace:     PowerManagerNamespace,
 											Pod:           "pod1",
 											PodUID:        "abcde",
 											ExclusiveCPUs: []uint{5, 6, 7, 8},
@@ -986,7 +986,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				}
 				csc := &powerv1.CPUScalingProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: PowerManagerNamespace}, csc)) {
 					return
 				}
 				assert.Empty(t, csc.Status.Errors)
@@ -994,7 +994,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 			validateObjects: func(c client.Client) {
 				csc := &powerv1.CPUScalingConfiguration{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "worker1", Namespace: IntelPowerNamespace}, csc)) {
+					client.ObjectKey{Name: "worker1", Namespace: PowerManagerNamespace}, csc)) {
 					return
 				}
 				assert.ElementsMatch(t, []metav1.OwnerReference{
@@ -1045,7 +1045,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				&powerv1.CPUScalingProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "cpuscalingprofile1",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
@@ -1063,7 +1063,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				&powerv1.CPUScalingProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "cpuscalingprofile2",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						UID:       "hgf",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
@@ -1081,7 +1081,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				&powerv1.CPUScalingConfiguration{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "worker1",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						OwnerReferences: []metav1.OwnerReference{
 							{
 								Name:       "cpuscalingprofile1",
@@ -1116,7 +1116,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						{
 							ObjectMeta: metav1.ObjectMeta{
 								Name:      "cpuscalingprofile1-worker1",
-								Namespace: IntelPowerNamespace,
+								Namespace: PowerManagerNamespace,
 							},
 							Spec: powerv1.PowerWorkloadSpec{
 								PowerProfile: "cpuscalingprofile1",
@@ -1125,7 +1125,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 									Containers: []powerv1.Container{
 										{
 											Name:          "container1",
-											Namespace:     IntelPowerNamespace,
+											Namespace:     PowerManagerNamespace,
 											Pod:           "pod1",
 											PodUID:        "abcde",
 											ExclusiveCPUs: []uint{3, 4},
@@ -1139,7 +1139,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						{
 							ObjectMeta: metav1.ObjectMeta{
 								Name:      "cpuscalingprofile2-worker1",
-								Namespace: IntelPowerNamespace,
+								Namespace: PowerManagerNamespace,
 							},
 							Spec: powerv1.PowerWorkloadSpec{
 								PowerProfile: "cpuscalingprofile2",
@@ -1148,7 +1148,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 									Containers: []powerv1.Container{
 										{
 											Name:          "container1",
-											Namespace:     IntelPowerNamespace,
+											Namespace:     PowerManagerNamespace,
 											Pod:           "pod2",
 											PodUID:        "fghij",
 											ExclusiveCPUs: []uint{1, 2},
@@ -1173,7 +1173,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				}
 				csc := &powerv1.CPUScalingProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: PowerManagerNamespace}, csc)) {
 					return
 				}
 				assert.Empty(t, csc.Status.Errors)
@@ -1181,7 +1181,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 			validateObjects: func(c client.Client) {
 				csc := &powerv1.CPUScalingConfiguration{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "worker1", Namespace: IntelPowerNamespace}, csc)) {
+					client.ObjectKey{Name: "worker1", Namespace: PowerManagerNamespace}, csc)) {
 					return
 				}
 				assert.ElementsMatch(t, []metav1.OwnerReference{
@@ -1213,7 +1213,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				&powerv1.CPUScalingProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "cpuscalingprofile1",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
@@ -1231,7 +1231,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				&powerv1.CPUScalingProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "cpuscalingprofile2",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						UID:       "hgf",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
@@ -1249,7 +1249,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				&powerv1.CPUScalingConfiguration{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "worker1",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						OwnerReferences: []metav1.OwnerReference{
 							{
 								Name:       "cpuscalingprofile1",
@@ -1303,7 +1303,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						{
 							ObjectMeta: metav1.ObjectMeta{
 								Name:      "cpuscalingprofile2-worker1",
-								Namespace: IntelPowerNamespace,
+								Namespace: PowerManagerNamespace,
 							},
 							Spec: powerv1.PowerWorkloadSpec{
 								PowerProfile: "cpuscalingprofile2",
@@ -1312,7 +1312,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 									Containers: []powerv1.Container{
 										{
 											Name:          "container1",
-											Namespace:     IntelPowerNamespace,
+											Namespace:     PowerManagerNamespace,
 											Pod:           "pod2",
 											PodUID:        "fghij",
 											ExclusiveCPUs: []uint{1, 2},
@@ -1326,7 +1326,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						{
 							ObjectMeta: metav1.ObjectMeta{
 								Name:      "cpuscalingprofile1-worker1",
-								Namespace: IntelPowerNamespace,
+								Namespace: PowerManagerNamespace,
 							},
 							Spec: powerv1.PowerWorkloadSpec{
 								PowerProfile: "cpuscalingprofile1",
@@ -1349,7 +1349,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				}
 				csc := &powerv1.CPUScalingProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: PowerManagerNamespace}, csc)) {
 					return
 				}
 				assert.Empty(t, csc.Status.Errors)
@@ -1357,7 +1357,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 			validateObjects: func(c client.Client) {
 				// Empty CPUScalingConfiguration should be deleted
 				assert.True(t, errors.IsNotFound(c.Get(context.TODO(),
-					client.ObjectKey{Name: "worker1", Namespace: IntelPowerNamespace},
+					client.ObjectKey{Name: "worker1", Namespace: PowerManagerNamespace},
 					&powerv1.CPUScalingConfiguration{}),
 				))
 			},
@@ -1365,7 +1365,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				&powerv1.CPUScalingProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "cpuscalingprofile1",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
@@ -1383,7 +1383,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				&powerv1.CPUScalingConfiguration{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "worker1",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						OwnerReferences: []metav1.OwnerReference{
 							{
 								Name:       "cpuscalingprofile1",
@@ -1418,7 +1418,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						{
 							ObjectMeta: metav1.ObjectMeta{
 								Name:      "cpuscalingprofile1-worker1",
-								Namespace: IntelPowerNamespace,
+								Namespace: PowerManagerNamespace,
 							},
 							Spec: powerv1.PowerWorkloadSpec{
 								PowerProfile: "cpuscalingprofile1",
@@ -1440,7 +1440,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				}
 				csc := &powerv1.CPUScalingProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: PowerManagerNamespace}, csc)) {
 					return
 				}
 				assert.Empty(t, csc.Status.Errors)
@@ -1448,7 +1448,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 			validateObjects: func(c client.Client) {
 				csc := &powerv1.CPUScalingConfiguration{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "worker1", Namespace: IntelPowerNamespace}, csc)) {
+					client.ObjectKey{Name: "worker1", Namespace: PowerManagerNamespace}, csc)) {
 					return
 				}
 				assert.ElementsMatch(t, []metav1.OwnerReference{
@@ -1481,7 +1481,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				&powerv1.CPUScalingProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "cpuscalingprofile1",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
@@ -1499,7 +1499,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				&powerv1.CPUScalingConfiguration{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "worker1",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						OwnerReferences: []metav1.OwnerReference{
 							{
 								Name:               "cpuscalingprofile1",
@@ -1535,7 +1535,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						{
 							ObjectMeta: metav1.ObjectMeta{
 								Name:      "cpuscalingprofile1-worker1",
-								Namespace: IntelPowerNamespace,
+								Namespace: PowerManagerNamespace,
 							},
 							Spec: powerv1.PowerWorkloadSpec{
 								PowerProfile: "cpuscalingprofile1",
@@ -1544,7 +1544,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 									Containers: []powerv1.Container{
 										{
 											Name:          "container1",
-											Namespace:     IntelPowerNamespace,
+											Namespace:     PowerManagerNamespace,
 											Pod:           "pod1",
 											PodUID:        "abcde",
 											ExclusiveCPUs: []uint{5, 6, 7, 8},
@@ -1568,7 +1568,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				}
 				csc := &powerv1.CPUScalingProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: PowerManagerNamespace}, csc)) {
 					return
 				}
 				assert.Empty(t, csc.Status.Errors)
@@ -1576,7 +1576,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 			validateObjects: func(c client.Client) {
 				pp := &powerv1.PowerProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, pp)) {
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: PowerManagerNamespace}, pp)) {
 					return
 				}
 				assert.ElementsMatch(t, []metav1.OwnerReference{
@@ -1599,7 +1599,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				}, pp.Spec)
 				csc := &powerv1.CPUScalingConfiguration{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "worker1", Namespace: IntelPowerNamespace}, csc)) {
+					client.ObjectKey{Name: "worker1", Namespace: PowerManagerNamespace}, csc)) {
 					return
 				}
 				assert.ElementsMatch(t, []metav1.OwnerReference{
@@ -1632,7 +1632,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				&powerv1.CPUScalingProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "cpuscalingprofile1",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{
@@ -1650,7 +1650,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				&powerv1.PowerProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:              "cpuscalingprofile1",
-						Namespace:         IntelPowerNamespace,
+						Namespace:         PowerManagerNamespace,
 						UID:               "hgf",
 						CreationTimestamp: metav1.Now(),
 						OwnerReferences: []metav1.OwnerReference{
@@ -1676,7 +1676,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				&powerv1.CPUScalingConfiguration{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "worker1",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 					},
 					Spec: powerv1.CPUScalingConfigurationSpec{
 						Items: []powerv1.ConfigItem{
@@ -1703,7 +1703,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						{
 							ObjectMeta: metav1.ObjectMeta{
 								Name:      "cpuscalingprofile1-worker1",
-								Namespace: IntelPowerNamespace,
+								Namespace: PowerManagerNamespace,
 							},
 							Spec: powerv1.PowerWorkloadSpec{
 								PowerProfile: "cpuscalingprofile1",
@@ -1712,7 +1712,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 									Containers: []powerv1.Container{
 										{
 											Name:          "container1",
-											Namespace:     IntelPowerNamespace,
+											Namespace:     PowerManagerNamespace,
 											Pod:           "pod1",
 											PodUID:        "abcde",
 											ExclusiveCPUs: []uint{1, 2},
@@ -1736,7 +1736,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				}
 				csc := &powerv1.CPUScalingProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: PowerManagerNamespace}, csc)) {
 					return
 				}
 				assert.Empty(t, csc.Status.Errors)
@@ -1746,7 +1746,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				&powerv1.CPUScalingProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "cpuscalingprofile1",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						UID:       "lkj",
 					},
 					Status: powerv1.CPUScalingProfileStatus{
@@ -1778,7 +1778,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				}
 				csc := &powerv1.CPUScalingProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, csc)) {
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: PowerManagerNamespace}, csc)) {
 					return
 				}
 				assert.Empty(t, csc.Status.Errors)
@@ -1786,7 +1786,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 			validateObjects: func(c client.Client) {
 				pp := &powerv1.PowerProfile{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: IntelPowerNamespace}, pp)) {
+					client.ObjectKey{Name: "cpuscalingprofile1", Namespace: PowerManagerNamespace}, pp)) {
 					return
 				}
 				assert.ElementsMatch(t, []metav1.OwnerReference{
@@ -1809,7 +1809,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				}, pp.Spec)
 				csc := &powerv1.CPUScalingConfiguration{}
 				if !assert.NoError(t, c.Get(context.TODO(),
-					client.ObjectKey{Name: "worker1", Namespace: IntelPowerNamespace}, csc)) {
+					client.ObjectKey{Name: "worker1", Namespace: PowerManagerNamespace}, csc)) {
 					return
 				}
 				assert.ElementsMatch(t, []metav1.OwnerReference{
@@ -1846,7 +1846,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 				&powerv1.CPUScalingProfile{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "cpuscalingprofile1",
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						UID:       "lkj",
 					},
 					Spec: powerv1.CPUScalingProfileSpec{},
@@ -1858,7 +1858,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 						{
 							ObjectMeta: metav1.ObjectMeta{
 								Name:      "cpuscalingprofile1-worker1",
-								Namespace: IntelPowerNamespace,
+								Namespace: PowerManagerNamespace,
 							},
 							Spec: powerv1.PowerWorkloadSpec{
 								PowerProfile: "cpuscalingprofile1",
@@ -1867,7 +1867,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 									Containers: []powerv1.Container{
 										{
 											Name:          "container1",
-											Namespace:     IntelPowerNamespace,
+											Namespace:     PowerManagerNamespace,
 											Pod:           "pod1",
 											PodUID:        "abcde",
 											ExclusiveCPUs: []uint{5, 6, 7, 8},
@@ -1894,7 +1894,7 @@ func TestCPUScalingProfile_Reconcile(t *testing.T) {
 		req := reconcile.Request{
 			NamespacedName: types.NamespacedName{
 				Name:      tc.cpuScalingProfileName,
-				Namespace: IntelPowerNamespace,
+				Namespace: PowerManagerNamespace,
 			},
 		}
 		_, err = r.Reconcile(context.TODO(), req)
@@ -1916,7 +1916,7 @@ func TestCPUScalingProfile_mapPowerWorkloadToCPUScalingProfile(t *testing.T) {
 			powerWorkload: &powerv1.PowerWorkload{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "cpuscalingprofile1-worker1",
-					Namespace: IntelPowerNamespace,
+					Namespace: PowerManagerNamespace,
 				},
 				Spec: powerv1.PowerWorkloadSpec{
 					PowerProfile: "cpuscalingprofile1",
@@ -1927,7 +1927,7 @@ func TestCPUScalingProfile_mapPowerWorkloadToCPUScalingProfile(t *testing.T) {
 					{
 						NamespacedName: types.NamespacedName{
 							Name:      "cpuscalingprofile1",
-							Namespace: IntelPowerNamespace,
+							Namespace: PowerManagerNamespace,
 						},
 					},
 				}, reqs)
@@ -1938,7 +1938,7 @@ func TestCPUScalingProfile_mapPowerWorkloadToCPUScalingProfile(t *testing.T) {
 						{
 							ObjectMeta: metav1.ObjectMeta{
 								Name:      "cpuscalingprofile1",
-								Namespace: IntelPowerNamespace,
+								Namespace: PowerManagerNamespace,
 							},
 							Spec: powerv1.CPUScalingProfileSpec{},
 						},
@@ -1951,7 +1951,7 @@ func TestCPUScalingProfile_mapPowerWorkloadToCPUScalingProfile(t *testing.T) {
 			powerWorkload: &powerv1.PowerWorkload{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "cpuscalingprofile2-worker1",
-					Namespace: IntelPowerNamespace,
+					Namespace: PowerManagerNamespace,
 				},
 				Spec: powerv1.PowerWorkloadSpec{
 					PowerProfile: "cpuscalingprofile2",
@@ -1966,7 +1966,7 @@ func TestCPUScalingProfile_mapPowerWorkloadToCPUScalingProfile(t *testing.T) {
 						{
 							ObjectMeta: metav1.ObjectMeta{
 								Name:      "cpuscalingprofile1",
-								Namespace: IntelPowerNamespace,
+								Namespace: PowerManagerNamespace,
 							},
 						},
 					},
@@ -1978,7 +1978,7 @@ func TestCPUScalingProfile_mapPowerWorkloadToCPUScalingProfile(t *testing.T) {
 			powerWorkload: &powerv1.PowerWorkload{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "cpuscalingprofile1-worker1",
-					Namespace: IntelPowerNamespace,
+					Namespace: PowerManagerNamespace,
 				},
 				Spec: powerv1.PowerWorkloadSpec{
 					PowerProfile: "cpuscalingprofile1",

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/intel/kubernetes-power-manager/internal/metrics"
+	"github.com/AMDEPYC/kubernetes-power-manager/internal/metrics"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

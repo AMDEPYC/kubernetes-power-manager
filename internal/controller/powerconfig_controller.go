@@ -31,19 +31,19 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
+	powerv1 "github.com/AMDEPYC/kubernetes-power-manager/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/intel/kubernetes-power-manager/pkg/state"
-	"github.com/intel/kubernetes-power-manager/pkg/util"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/state"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/util"
 )
 
 const (
 	ExtendedResourcePrefix = "power.amdepyc.com/"
 	NodeAgentDSName        = "power-node-agent"
-	IntelPowerNamespace    = "power-manager"
+	PowerManagerNamespace  = "power-manager"
 )
 
 var NodeAgentDaemonSetPath = "/power-manifests/power-node-agent-ds.yaml"
@@ -64,7 +64,7 @@ func (r *PowerConfigReconciler) Reconcile(c context.Context, req ctrl.Request) (
 	_ = context.Background()
 	logger := r.Log.WithValues("powerconfig", req.NamespacedName)
 
-	if req.Namespace != IntelPowerNamespace {
+	if req.Namespace != PowerManagerNamespace {
 		err := fmt.Errorf("incorrect namespace")
 		logger.Error(err, "resource is not in the power-manager namespace, ignoring")
 		return ctrl.Result{Requeue: false}, err
@@ -142,7 +142,7 @@ func (r *PowerConfigReconciler) Reconcile(c context.Context, req ctrl.Request) (
 				logger.V(5).Info("retrieving the power node-agent daemonSet")
 				err = r.Client.Get(c, client.ObjectKey{
 					Name:      NodeAgentDSName,
-					Namespace: IntelPowerNamespace,
+					Namespace: PowerManagerNamespace,
 				}, daemonSet)
 				if err != nil {
 					if !errors.IsNotFound(err) {
@@ -210,7 +210,7 @@ func (r *PowerConfigReconciler) Reconcile(c context.Context, req ctrl.Request) (
 
 		powerNode := &powerv1.PowerNode{}
 		err = r.Client.Get(c, client.ObjectKey{
-			Namespace: IntelPowerNamespace,
+			Namespace: PowerManagerNamespace,
 			Name:      node.Name,
 		}, powerNode)
 
@@ -219,7 +219,7 @@ func (r *PowerConfigReconciler) Reconcile(c context.Context, req ctrl.Request) (
 			if errors.IsNotFound(err) {
 				powerNode = &powerv1.PowerNode{
 					ObjectMeta: metav1.ObjectMeta{
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						Name:      node.Name,
 					},
 				}
@@ -265,7 +265,7 @@ func (r *PowerConfigReconciler) Reconcile(c context.Context, req ctrl.Request) (
 		profileFromCluster := &powerv1.PowerProfile{}
 		err = r.Client.Get(c, client.ObjectKey{
 			Name:      profile,
-			Namespace: IntelPowerNamespace,
+			Namespace: PowerManagerNamespace,
 		}, profileFromCluster)
 		if err != nil {
 			if errors.IsNotFound(err) {
@@ -278,7 +278,7 @@ func (r *PowerConfigReconciler) Reconcile(c context.Context, req ctrl.Request) (
 				}
 				powerProfile := &powerv1.PowerProfile{
 					ObjectMeta: metav1.ObjectMeta{
-						Namespace: IntelPowerNamespace,
+						Namespace: PowerManagerNamespace,
 						Name:      profile,
 					},
 				}
@@ -331,7 +331,7 @@ func (r *PowerConfigReconciler) createDaemonSetIfNotPresent(c context.Context, p
 
 	err = r.Client.Get(c, client.ObjectKey{
 		Name:      NodeAgentDSName,
-		Namespace: IntelPowerNamespace,
+		Namespace: PowerManagerNamespace,
 	}, daemonSet)
 	if err != nil {
 		if errors.IsNotFound(err) {

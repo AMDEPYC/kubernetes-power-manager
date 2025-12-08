@@ -27,9 +27,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
+	powerv1 "github.com/AMDEPYC/kubernetes-power-manager/api/v1"
+	"github.com/AMDEPYC/power-optimization-library/pkg/power"
 	"github.com/go-logr/logr"
-	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
-	"github.com/intel/power-optimization-library/pkg/power"
 )
 
 // UncoreReconciler reconciles a Uncore object
@@ -62,7 +62,7 @@ func (r *UncoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		return ctrl.Result{}, nil
 	}
 	logger := r.Log.WithValues("uncore", req.NamespacedName)
-	if req.Namespace != IntelPowerNamespace {
+	if req.Namespace != PowerManagerNamespace {
 		err = fmt.Errorf("incorrect namespace")
 		logger.Error(err, "resource is not in the power-manager namespace, ignoring")
 		return ctrl.Result{Requeue: false}, err

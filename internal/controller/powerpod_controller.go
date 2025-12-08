@@ -27,8 +27,8 @@ import (
 
 	e "errors"
 
+	powerv1 "github.com/AMDEPYC/kubernetes-power-manager/api/v1"
 	"github.com/go-logr/logr"
-	powerv1 "github.com/intel/kubernetes-power-manager/api/v1"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -38,9 +38,9 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/intel/kubernetes-power-manager/pkg/podresourcesclient"
-	"github.com/intel/kubernetes-power-manager/pkg/podstate"
-	"github.com/intel/kubernetes-power-manager/pkg/util"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/podresourcesclient"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/podstate"
+	"github.com/AMDEPYC/kubernetes-power-manager/pkg/util"
 )
 
 const (
@@ -115,7 +115,7 @@ func (r *PowerPodReconciler) Reconcile(c context.Context, req ctrl.Request) (ctr
 			logger.V(5).Info("retrieving the workload instance", "Workload Name", workloadName)
 			workload := &powerv1.PowerWorkload{}
 			err = r.Get(context.TODO(), client.ObjectKey{
-				Namespace: IntelPowerNamespace,
+				Namespace: PowerManagerNamespace,
 				Name:      workloadName,
 			}, workload)
 			if err != nil {
@@ -155,7 +155,7 @@ func (r *PowerPodReconciler) Reconcile(c context.Context, req ctrl.Request) (ctr
 	logger.V(5).Info("retrieving custom resources from power node")
 	powernode := &powerv1.PowerNode{}
 	err = r.Get(context.TODO(), client.ObjectKey{
-		Namespace: IntelPowerNamespace,
+		Namespace: PowerManagerNamespace,
 		Name:      nodeName,
 	}, powernode)
 	if err != nil {
